@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Profile | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.p-row { display:flex; gap:1rem; align-items:flex-start; flex-wrap:wrap; }
+.p-col { display:flex; flex-direction:column; gap:1rem; flex:1; min-width:0; }
+.p-narrow { flex:0 0 260px; }
+.avatar-lg { width:96px; height:96px; border-radius:50%; object-fit:cover; }
+.avatar-fb { width:96px; height:96px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:700; color:#fff; }
+.bar { height:6px; border-radius:3px; background:var(--line); overflow:hidden; }
+.bar > div { height:100%; background:var(--green); }
+@media (max-width:800px){ .p-narrow { flex:none; width:100%; } }
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <div id="content"><p class="muted">Loading…</p></div>
+  <div id="modal"></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('');
+const slug = decodeURIComponent(location.pathname.split('/')[2] || '');
+const COLORS = ['#2D6A4F','#1E40AF','#9C6344','#6B4C2A','#3D8A65','#4A3F38','#7C3AED','#BE123C'];
+const color = (n) => COLORS[(n || '?').charCodeAt(0) % COLORS.length];
+const initials = (n) => (n || 'SN').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+const msg = (h) => { document.getElementById('msg').innerHTML = h; };
+let data = null;
+
+function render() {
+  const { profile, isOwnProfile, neighbors, myRank, submissions, enrollments } = data;
+  document.title = `${profile.name} | SproutNet`;
+  const badges = [];
+  if (profile.milestones_done >= 5) badges.push('Deep Thinker');
+  if (profile.avg_score >= 8) badges.push('Expert Solver');
+  if (profile.attempted >= 3) badges.push('Multi-Problem');
+  const socials = [['github', profile.github, 'GitHub'], ['linkedin', profile.linkedin, 'LinkedIn'], ['twitter', profile.twitter, 'Twitter']].filter(([, u]) => u);
+  document.getElementById('content').innerHTML = `<div class="p-row">
+    <div class="p-col p-narrow">
+      <div class="card" style="text-align:center;">
+        ${profile.avatar_url ? `<img class="avatar-lg" src="${esc(profile.avatar_url)}" alt="${esc(profile.name)}">`
+          : `<div class="avatar-fb" style="background:${color(profile.name)};margin:0 auto;">${esc(initials(profile.name))}</div>`}
+        <h2 style="margin:.5rem 0 0;">${esc(profile.name)}</h2>
+        <div><span class="badge">${esc(profile.role)}</span>
+          <span class="muted">${esc([profile.dept, profile.year].filter(Boolean).join(' · '))}</span></div>
+        ${isOwnProfile ? `<p><label class="btn">Change avatar<input type="file" id="avatar" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label></p>
+          <button class="btn" id="edit" style="width:100%;">Edit Profile</button><div id="av-msg"></div>` : ''}
+      </div>
+      <div class="card"><table class="table"><tbody>
+        <tr><td>Builder Score</td><td><b>${esc(String(profile.builder_score ?? 0))}</b></td></tr>
+        <tr><td>Attempted</td><td><b>${esc(String(profile.attempted ?? 0))}</b></td></tr>
+        <tr><td>Avg Score</td><td><b>${profile.avg_score != null ? esc(Number(profile.avg_score).toFixed(1)) : '—'}</b></td></tr>
+        <tr><td>Milestones</td><td><b>${esc(String(profile.milestones_done ?? 0))}</b></td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="p-col">
+      ${myRank ? `<div class="card"><div class="row"><b>Leaderboard Rank</b><b>#${esc(String(myRank))}</b></div>
+        <div class="row">${neighbors.map(n => `<a class="btn" href="/profile/${esc(n.profile_slug)}">#${esc(String(n.rank))} ${esc(n.profile_slug === profile.profile_slug ? 'You' : n.name)} (${esc(String(n.builder_score))})</a>`).join('')}</div>
+        <p><a href="/leaderboard">Full Leaderboard →</a></p></div>` : ''}
+      ${profile.bio ? `<div class="card"><b>About</b><p>${esc(profile.bio)}</p></div>` : ''}
+      ${(socials.length || badges.length) ? `<div class="card"><div class="row">
+        ${socials.map(([, u, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a>`).join('')}
+        ${badges.map(b => `<span class="badge">${esc(b)}</span>`).join('')}</div></div>` : ''}
+      <div class="card"><b>Recent Activity</b>
+        ${submissions.length ? `<table class="table"><tbody>${submissions.map(s => `<tr><td>${esc(s.problem_title || 'Submission')}<br><span class="muted">${esc(new Date(s.created_at).toLocaleDateString('en-IN'))}</span></td>
+          <td>${s.score != null ? `<b>${esc(String(s.score))}/10</b>` : '<span class="muted">Pending</span>'}</td></tr>`).join('')}</tbody></table>`
+        : '<p class="muted">No judged submissions yet.</p>'}</div>
+      ${enrollments.length ? `<div class="card"><b>In Progress</b>${enrollments.map(e => {
+        const pct = Math.min(100, Math.round((e.milestone / e.total_milestones) * 100));
+        return `<p>${esc(e.problem_title || 'Problem')} — ${pct}%</p><div class="bar"><div style="width:${pct}%;"></div></div>`; }).join('')}</div>` : ''}
+    </div>
+  </div>`;
+
+  if (isOwnProfile) {
+    document.getElementById('avatar').addEventListener('change', async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      const form = new FormData(); form.append('avatar', file);
+      try { await api('/api/profile/avatar', { method:'POST', form }); location.reload(); }
+      catch (err) { document.getElementById('av-msg').innerHTML = alertBox(err.message); }
+    });
+    document.getElementById('edit').addEventListener('click', openEdit);
+  }
+}
+
+function openEdit() {
+  const p = data.profile;
+  const fields = [['name','Full Name'],['dept','Department'],['year','Year'],['profile_slug','Profile URL (/profile/…)'],['bio','Bio'],['github','GitHub'],['linkedin','LinkedIn'],['twitter','Twitter']];
+  document.getElementById('modal').innerHTML = `<div class="card"><h2>Edit Profile</h2><div id="e-err"></div>
+    ${fields.map(([k, l]) => k === 'bio'
+      ? `<label>${esc(l)}</label><textarea class="textarea" id="f-${k}">${esc(p[k] || '')}</textarea>`
+      : `<label>${esc(l)}</label><input class="input" id="f-${k}" value="${esc(p[k] || '')}">`).join('')}
+    <div class="row"><button class="btn" id="e-cancel">Cancel</button>
+    <button class="btn btn-primary" id="e-save">Save Changes</button></div></div>`;
+  document.getElementById('e-cancel').addEventListener('click', () => { document.getElementById('modal').innerHTML = ''; });
+  document.getElementById('e-save').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    const body = {}; fields.forEach(([k]) => { body[k] = document.getElementById('f-' + k).value; });
+    try { const d = await api('/api/profile/update', { method:'PUT', body });
+      if (d.profile_slug || body.profile_slug) { const ns = body.profile_slug?.trim(); if (ns && ns !== slug) { location.href = `/profile/${encodeURIComponent(ns)}`; return; } }
+      document.getElementById('modal').innerHTML = ''; location.reload();
+    } catch (err) { document.getElementById('e-err').innerHTML = alertBox(err.message); e.target.disabled = false; }
+  });
+}
+
+try {
+  data = await api(`/api/public/profile/${encodeURIComponent(slug)}`);
+  render();
+} catch (e) {
+  document.getElementById('content').innerHTML = `<div class="card"><h2>Profile not found</h2><a href="/">← Home</a></div>`;
+  if (!/404|not found/i.test(e.message)) msg(alertBox(e.message));
+}
+</script>
+</body>
+</html>

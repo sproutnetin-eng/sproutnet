@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blogs | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <div class="card" style="background:#1C1410;color:#FAF8F4;">
+    <p class="muted">// community blog feed</p>
+    <h1>Share what you know. Ask what you don't.</h1>
+    <p>Read the full feed and comments without logging in. To publish, like, or comment, sign in.</p>
+    <div class="row" id="blog-cta"></div>
+  </div>
+  <div class="grid" style="grid-template-columns: 2fr 1fr;">
+    <div id="feed"><p class="muted">Loading…</p></div>
+    <aside><div class="card"><h3>// feed snapshot</h3><div id="snapshot"><p class="muted">Loading…</p></div></div>
+    <div class="card"><h3>Strong posts help faster</h3><ul class="muted">
+      <li>Name the exact problem, insight, or confusion in the title.</li>
+      <li>Add enough context that someone outside your project can still help.</li>
+      <li>Use comments to refine the thread.</li></ul></div></aside>
+  </div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('blogs');
+const { data: { session } } = await sb().auth.getSession();
+document.getElementById('blog-cta').innerHTML = session
+  ? `<a class="btn btn-primary" href="/blogs/new">Write and manage posts</a>`
+  : `<a class="btn btn-primary" href="/login">Log in to post</a><a class="btn" href="/join">Create account</a>`;
+const plain = (body) => { try { const t = body.trim();
+    if (t.startsWith('{')) { const j = JSON.parse(t);
+      const walk = (n) => n.text ? n.text : (n.content || []).map(walk).join(' ');
+      return walk(j); } } catch {} return body; };
+try {
+  const { posts, error } = await api('/api/blogs/posts');
+  if (error) throw new Error(error);
+  const list = posts || [];
+  document.getElementById('feed').innerHTML = list.length ? list.map(p => {
+    const meta = p.postType === 'question' ? 'Question / Doubt' : 'Knowledge Share';
+    const txt = plain(p.body || '');
+    const ex = p.excerpt || (txt.slice(0, 250) + (txt.length > 250 ? '…' : ''));
+    return `<a href="/blogs/${esc(p.id)}" style="text-decoration:none;color:inherit;"><div class="card">
+      ${p.cover_image ? `<img src="${esc(p.cover_image)}" alt="" style="width:100%;height:200px;object-fit:cover;border-radius:8px;">` : ''}
+      <div><b>${esc(p.author?.name || 'SproutNet member')}</b> <span class="badge">${esc(meta)}</span></div>
+      <div class="muted">${esc(p.author?.role || 'Member')} · ${esc(new Date(p.createdAt).toLocaleString('en-IN'))}</div>
+      <h2>${esc(p.title)}</h2><p>${esc(ex)}</p>
+      <span class="badge gray">${esc(String(p.commentsCount ?? 0))} comments · ${esc(String(p.likesCount ?? 0))} likes</span>
+    </div></a>`; }).join('')
+    : '<div class="card"><h2>No blog posts yet</h2><p class="muted">The first knowledge share or question posted here will start the community.</p></div>';
+  document.getElementById('snapshot').innerHTML =
+    `<p>Visible posts: <b>${list.length}</b></p>
+     <p>Questions open: <b>${list.filter(p => p.postType === 'question').length}</b></p>
+     <p>Knowledge shares: <b>${list.filter(p => p.postType === 'knowledge').length}</b></p>`;
+} catch (e) {
+  document.getElementById('msg').innerHTML = alertBox(e.message);
+  document.getElementById('feed').innerHTML = '<div class="card"><h2>Could not load the blog feed</h2><p class="muted">Refresh the page in a moment.</p></div>';
+}
+</script>
+</body>
+</html>

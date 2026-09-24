@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SproutNet — Structured thinking for real India</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.hero h1 { font-size: 2.4rem; margin: 0 0 .5rem; }
+.stats { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1.5rem 0; }
+.stat { flex: 1 1 160px; text-align: center; }
+.stat b { font-size: 1.8rem; color: var(--green-dark); display: block; }
+.domains { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <div class="hero">
+    <p><span class="badge">Structured thinking for real India</span></p>
+    <h1>India's problems don't wait for permission.</h1>
+    <p class="muted">SproutNet is where students stop theorizing and start solving — with structure, seriousness, and real stakes.</p>
+    <div class="row" style="justify-content:center; margin-top:1rem;">
+      <a class="btn btn-primary" href="/join">Start Solving →</a>
+      <a class="btn" href="/problems">See Open Problems</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stats">
+      <div class="stat"><b>8</b><span class="muted">Problem Domains</span></div>
+      <div class="stat"><b>7</b><span class="muted">Submission Fields</span></div>
+      <div class="stat"><b>5</b><span class="muted">Judging Criteria</span></div>
+      <div class="stat"><b id="open-count">…</b><span class="muted">Open Problems</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Not another hackathon.</h2>
+    <div class="grid">
+      <div><h3>🔍 Real Problems</h3><p class="muted">Posted by real people with real context — not toy scenarios invented for a weekend.</p></div>
+      <div><h3>🧠 Structured Thinking</h3><p class="muted">A 7-field framework that forces you to think like a professional.</p></div>
+      <div><h3>🇮🇳 Indian Context</h3><p class="muted">Agriculture, healthcare, infrastructure, civic tech — real lived reality.</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Simple. Serious. Structured.</h2>
+    <ol>
+      <li><b>Browse real problems</b> — vetted, fully scoped.</li>
+      <li><b>Submit your solution</b> — using the 7-field framework.</li>
+      <li><b>Get evaluated fairly</b> — blind review, 5 clear criteria.</li>
+      <li><b>See your thinking matter</b> — rank, badges, Builder Score.</li>
+    </ol>
+    <a class="btn" href="/how-it-works">How it works →</a>
+  </div>
+
+  <div class="card">
+    <h2>What kind of problems? Indian ones.</h2>
+    <div class="domains" id="domains"></div>
+  </div>
+
+  <div class="card">
+    <h2>Latest open problems</h2>
+    <div id="latest"><p class="muted">Loading…</p></div>
+    <p><a class="btn" href="/problems">See all problems →</a></p>
+  </div>
+
+  <div class="card" style="text-align:center;">
+    <h2>You don't need experience. You need curiosity.</h2>
+    <p class="muted">No prior experience required. No branch restrictions.</p>
+    <a class="btn btn-primary" href="/join">Create Your Account →</a>
+  </div>
+  <footer>SproutNet · Structured thinking for real India · © 2026</footer>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('');
+document.getElementById('domains').innerHTML =
+  ['🤖 AI & Data','🌿 Climate','🏗 Public Infrastructure','🏥 Healthcare','🌾 Agriculture','📚 Education','🚌 Urban Mobility','🏛 Civic Technology']
+  .map(d => `<span class="badge gray">${esc(d)}</span>`).join('');
+try {
+  const [stats, probs] = await Promise.all([
+    api('/api/public/stats'),
+    api('/api/public/problems').catch(() => ({ problems: [] })),
+  ]);
+  document.getElementById('open-count').textContent = stats.openProblems ?? 0;
+  const list = (probs.problems || []).slice(0, 3);
+  document.getElementById('latest').innerHTML = list.length
+    ? list.map(p => `<div class="card"><span class="badge">${esc(p.domain || '')}</span> <a href="/problems/${esc(p.id)}"><b>${esc(p.title)}</b></a><br><span class="muted">${esc((p.context || '').slice(0, 140))}…</span></div>`).join('')
+    : '<p class="muted">No open problems right now.</p>';
+} catch (e) {
+  document.getElementById('msg').innerHTML = alertBox(e.message);
+  document.getElementById('latest').innerHTML = '<p class="muted">Could not load problems.</p>';
+}
+</script>
+</body>
+</html>

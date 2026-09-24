@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Judging Queue — SproutNet Admin</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
+.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
+.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
+.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
+.admin-side .meta{font-size:.75rem;color:#64748b}
+@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+.score-grid{display:flex;gap:.3rem;flex-wrap:wrap;margin:.5rem 0}
+.score-grid button.on{background:#16a34a;color:#fff;border-color:#16a34a}
+.review{white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:1200px">
+<div class="admin-layout">
+<aside class="admin-side card">
+  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
+  <a href="/admin/problems"><strong>Problems</strong> <span class="meta">moderation</span></a>
+  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
+  <a href="/admin/judging" class="on"><strong>Judging</strong> <span class="meta">queue</span></a>
+  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
+  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
+  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
+</aside>
+<div>
+  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">JUDGING · STAGE-1 QUEUE</div>
+  <h1>Judging queue</h1>
+  <p class="muted">Review each written solution, score it 0–10, then Approve to unlock the builder's Stage-2 final upload — or Reject to send it back.</p>
+  <div id="msg"></div>
+  <div id="list"><p class="muted">Loading…</p></div>
+  <p class="muted">Approved solutions sync to the leaderboard automatically.</p>
+</div>
+</div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('admin');
+const msg = document.getElementById('msg');
+const list = document.getElementById('list');
+const LABELS = { f_understanding: 'Problem Understanding', f_solution: 'Proposed Solution', f_impact: 'Expected Impact', f_rootcause: 'Root Cause Analysis', f_feasibility: 'Feasibility Assessment', f_risks: 'Risks & Limitations', f_implementation: 'Implementation Plan' };
+const strip = (h) => String(h || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const delivLabel = (d) => typeof d === 'string' ? d : (d.label || d.url || 'file');
+const delivUrl = (d) => typeof d === 'string' ? d : (d.url || '#');
+let rows = [];
+function render() {
+  if (!rows.length) {
+    list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">⚖️</div><strong>The queue is clear</strong><p class="muted">New Stage-1 submissions will appear here for review.</p></div>`;
+    return;
+  }
+  list.innerHTML = rows.map(r => {
+    const answered = Object.values(r.fields).filter(v => String(v || '').trim()).length;
+    const dl = (r.deliverables || []).map((d, i) => `<a href="${esc(delivUrl(d))}" target="_blank" rel="noreferrer">${i + 1}. ${esc(delivLabel(d))}</a>`).join('<br>');
+    const fields = Object.entries(LABELS).map(([k, l]) => `<div style="margin:.5rem 0"><div class="muted">${l}</div><div class="review">${esc(strip(r.fields[k]) || 'Not answered.')}</div></div>`).join('');
+    return `<div class="card" data-id="${esc(r.id)}">
+      <div class="row" style="justify-content:space-between">
+        <div><strong>${esc(r.problemTitle)}</strong><div class="muted">${esc(r.studentName)}${r.studentDept ? ' · ' + esc(r.studentDept) : ''}${r.studentYear ? ' · ' + esc(r.studentYear) : ''}</div></div>
+        <div><span class="badge gray">${esc(r.problemDomain || '—')}</span> <span class="badge ${r.participantType === 'team' ? 'amber' : ''}">${r.participantType === 'team' ? '👥 Team' : 'Indiv.'}</span></div>
+        <button class="btn" data-act="toggle">Review</button>
+      </div>
+      <div class="detail" style="display:none;border-top:1px solid #e2e8f0;margin-top:.75rem;padding-top:.75rem">
+        <div class="muted">${answered}/7 sections answered · ${(r.deliverables || []).length} final items</div>
+        ${dl ? `<div style="margin:.5rem 0"><strong>Final deliverables</strong><br>${dl}</div>` : ''}
+        ${fields}
+        <div class="muted">Score — <span data-f="score-label">7</span>/10</div>
+        <div class="score-grid" data-f="scores">${Array.from({ length: 11 }, (_, n) => `<button type="button" class="btn ${n === 7 ? 'on' : ''}" data-score="${n}">${n}</button>`).join('')}</div>
+        <label>Feedback (optional)<textarea class="textarea" data-f="feedback" rows="2"></textarea></label>
+        <div class="row"><button class="btn btn-primary" data-act="approve">✓ Approve</button><button class="btn btn-danger" data-act="reject">✕ Reject</button></div>
+        <div class="row"><a href="/problems/${esc(r.problemId)}">View problem page ↗</a></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+async function load() {
+  try {
+    const d = await api('/api/admin/judging');
+    rows = d.rows;
+    render();
+  } catch (e) { msg.innerHTML = alertBox(e.message); }
+}
+list.addEventListener('click', async (e) => {
+  const scoreBtn = e.target.closest('button[data-score]');
+  if (scoreBtn) {
+    const card = scoreBtn.closest('.card');
+    card.querySelectorAll('[data-score]').forEach(b => b.classList.remove('on'));
+    scoreBtn.classList.add('on');
+    card.querySelector('[data-f="score-label"]').textContent = scoreBtn.dataset.score;
+    return;
+  }
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const card = btn.closest('.card');
+  if (btn.dataset.act === 'toggle') {
+    const det = card.querySelector('.detail');
+    det.style.display = det.style.display === 'none' ? '' : 'none';
+    btn.textContent = det.style.display === 'none' ? 'Review' : 'Close';
+    return;
+  }
+  btn.disabled = true;
+  try {
+    await api('/api/submissions/judge', { method: 'POST', body: {
+      submission_id: card.dataset.id,
+      score: Number(card.querySelector('[data-score].on')?.dataset.score ?? 7),
+      feedback: card.querySelector('[data-f="feedback"]').value || undefined,
+      decision: btn.dataset.act,
+    }});
+    rows = rows.filter(r => r.id !== card.dataset.id);
+    render();
+    msg.innerHTML = alertBox(`Submission ${btn.dataset.act}d.`, true);
+  } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+});
+if (me) load();
+</script>
+</body>
+</html>

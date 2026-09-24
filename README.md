@@ -1,49 +1,60 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SproutNet
 
-## Getting Started
+SproutNet is a platform where real Indian problems meet structured student solutions. Anyone can post civic or industry challenges, and students submit thoughtful, milestone-based responses evaluated through blind judging.
 
-First, run the development server:
+**Tagline:** *"Structured Thinking for Real India"*
+
+## Stack
+
+Plain **Node.js + Express** REST API with a vanilla HTML/CSS/JS frontend. No framework, no build step, no React.
+
+| Layer | Technology |
+|-------|------------|
+| Runtime | Node.js 20+ |
+| Server | Express 4 |
+| Frontend | Vanilla HTML/CSS/JS (static files in `client/`) |
+| Backend / DB | Supabase (PostgreSQL, Auth, Storage) |
+| Uploads | multer (memory) → Supabase Storage |
+| Email | Nodemailer (SMTP) |
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run serve      # http://localhost:3001 (PORT env overrides)
+npm run serve:dev  # with --watch reload
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Required env vars (see `.env`): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Optional: `PORT`, SMTP settings for OTP email, `GROQ_API_KEY` for AI problem evaluation.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+server/
+  server.js              entry: page routes, static files, API mounts
+  supabase.js            getAdmin() (service role) + getUserClient(token)
+  middleware/auth.js     authRequired / optionalAuth / loadProfile / requireRole (Bearer JWT)
+  middleware/upload.js   multer memory storage
+  lib/                   ported utilities (same export names as the original TS lib)
+  routes/                13 routers with full /api/... paths (problems, enrollments,
+                         submissions, teams, workspaces, mentors, blogs, auth, admin,
+                         misc, public-reads, student-reads, staff-reads)
+client/
+  *.html                 43 pages, clean URLs (e.g. /problems/:id -> problem-detail.html)
+  assets/app.js          Supabase browser client, api() helper, auth guards, nav
+  assets/styles.css      shared theme
+supabase/migrations/     raw SQL — apply manually in the Supabase SQL editor
+scripts/                 tsx utilities (seed mentors/test data, run migrations, buckets)
+```
 
-## Learn More
+## Auth model
 
-To learn more about Next.js, take a look at the following resources:
+The browser holds the Supabase session (localStorage) and sends it as an `Authorization: Bearer` header via the `api()` helper. The server verifies the JWT with the anon client and uses the service-role client for privileged queries. All role enforcement lives in the API; page guards (`requireAuth`/`requireRole`) are a UX layer on top.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Roles & rules
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# sproutnet
-SproutNet is a platform where real Indian problems meet structured student solutions. Anyone can post civic or industry challenges, and students submit thoughtful, milestone-based responses evaluated through blind judging.
->>>>>>> 9212281ab9a6d7af1ba1546ea4c40e79fe87549e
-#############################################################################################################################################
-######################
-######################
-######################
-########
-#########################
-##################
->>>>>>> 
+- **Student** — browse, enroll (max 2 active), teams, milestone submissions
+- **Poster** — post/manage problems, review solutions
+- **Mentor** — guide teams, connect requests
+- **Admin** — cross-user access, judging, analytics
+- Registration gated to `@jyothyit.ac.in` during Phase 1

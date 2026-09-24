@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Problems — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container">
+  <div class="row" style="justify-content:space-between">
+    <div><h1>My problems</h1><p class="muted">Edit, hold, or delete the problems you've posted.</p></div>
+    <a class="btn btn-primary" href="/poster/post-problem">+ Post a Problem</a>
+  </div>
+  <div id="msg"></div>
+  <div id="list"><p class="muted">Loading…</p></div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('poster', 'admin');
+const list = document.getElementById('list');
+const msg = document.getElementById('msg');
+async function load() {
+  try {
+    const { problems } = await api('/api/poster/problems');
+    if (!problems.length) {
+      list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">🗂️</div><strong>No problems yet</strong><p class="muted">Post your first problem to see it here.</p></div>`;
+      return;
+    }
+    list.innerHTML = problems.map(p => {
+      const open = p.status === 'open';
+      const dl = p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+      return `<div class="card" data-id="${esc(p.id)}">
+        <span class="badge gray">${esc(p.domain)}</span>
+        <span class="badge ${open ? '' : 'amber'}">${esc(p.status)}</span>
+        <h3 style="margin:.5rem 0">${esc(p.title)}</h3>
+        <p class="muted">${esc(p.problem_type === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact')} · deadline ${esc(dl)} · ${p.submission_count ?? 0} submissions</p>
+        <div class="row" style="justify-content:flex-end">
+          <a class="btn" href="/poster/problems/${esc(p.id)}/enrollments">Enrolled</a>
+          <a class="btn" href="/poster/problems/${esc(p.id)}/edit">Edit</a>
+          <button class="btn" data-act="toggle">${open ? 'Hold' : 'Publish'}</button>
+          <button class="btn btn-danger" data-act="delete">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) { msg.innerHTML = alertBox(e.message); }
+}
+list.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const id = btn.closest('.card').dataset.id;
+  const act = btn.dataset.act;
+  if (act === 'delete' && !confirm('Delete this problem? This cannot be undone.')) return;
+  btn.disabled = true;
+  try {
+    if (act === 'toggle') {
+      const isOpen = btn.textContent.trim() === 'Hold';
+      await api('/api/problems/status', { method: 'POST', body: { id, status: isOpen ? 'pending' : 'open' } });
+    } else {
+      await api('/api/problems/delete', { method: 'POST', body: { id } });
+    }
+    await load();
+  } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+});
+if (me) load();
+</script>
+</body>
+</html>

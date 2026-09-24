@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solutions — SproutNet Admin</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
+.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
+.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
+.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
+.admin-side .meta{font-size:.75rem;color:#64748b}
+@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+.table-wrap{overflow-x:auto}
+.review{white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:1200px">
+<div class="admin-layout">
+<aside class="admin-side card">
+  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
+  <a href="/admin/problems"><strong>Problems</strong> <span class="meta">moderation</span></a>
+  <a href="/admin/solutions" class="on"><strong>Solutions</strong> <span class="meta">uploads</span></a>
+  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
+  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
+  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
+  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
+</aside>
+<div>
+  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">SOLUTIONS · ALL SUBMISSIONS</div>
+  <h1>Uploaded solutions</h1>
+  <p class="muted">Every full submission with its written solution, attached files, links, and deliverables. Showing latest 200.</p>
+  <div id="msg"></div>
+  <div class="card"><div class="row">
+    <input class="input" id="q" placeholder="Search by problem, student, or domain…" style="flex:2;min-width:200px">
+    <select class="select" id="status" style="flex:1;min-width:160px">
+      <option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option>
+      <option value="rejected">Rejected</option><option value="draft">Draft</option><option value="final">📦 With final work</option>
+    </select>
+  </div><div class="muted" id="count"></div></div>
+  <div id="list"><p class="muted">Loading…</p></div>
+</div>
+</div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('admin');
+const msg = document.getElementById('msg');
+const list = document.getElementById('list');
+const LABELS = { f_understanding: 'Problem Understanding', f_solution: 'Proposed Solution', f_impact: 'Expected Impact', f_rootcause: 'Root Cause Analysis', f_feasibility: 'Feasibility Assessment', f_risks: 'Risks & Limitations', f_implementation: 'Implementation Plan' };
+const strip = (h) => String(h || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const delivs = (arr) => (Array.isArray(arr) ? arr : []).map(d => typeof d === 'string' ? { url: d, label: d, kind: 'link' } : d);
+let items = [];
+function render() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const sf = document.getElementById('status').value;
+  const rows = items.filter(s => {
+    const dl = delivs(s.deliverables);
+    if (sf === 'final') { if (!dl.length) return false; }
+    else if (sf !== 'all' && s.status !== sf) return false;
+    if (!q) return true;
+    return s.problemTitle.toLowerCase().includes(q) || s.studentName.toLowerCase().includes(q) || (s.problemDomain || '').toLowerCase().includes(q);
+  });
+  document.getElementById('count').textContent = `${rows.length} of ${items.length}`;
+  if (!items.length) {
+    list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">📭</div><strong>No solutions uploaded yet</strong><p class="muted">Full student submissions will appear here once submitted.</p></div>`;
+    return;
+  }
+  list.innerHTML = rows.length ? rows.map(s => {
+    const dl = delivs(s.deliverables);
+    const fields = Object.entries(LABELS).map(([k, l]) => `<div style="margin:.5rem 0"><div class="muted">${l}</div><div class="review">${esc(strip(s.fields[k]) || 'Not answered.')}</div></div>`).join('');
+    return `<div class="card" data-id="${esc(s.id)}">
+      <div class="row" style="justify-content:space-between">
+        <div><strong>${esc(s.problemTitle)}</strong><div class="muted">${esc(s.studentName)}${s.studentDept ? ' · ' + esc(s.studentDept) : ''}${s.studentYear ? ' · ' + esc(s.studentYear) : ''}</div></div>
+        <div><span class="badge gray">${esc(s.problemDomain || '—')}</span>
+        <span class="badge ${s.participantType === 'team' ? 'amber' : ''}">${s.participantType === 'team' ? '👥 Team' : 'Individual'}</span>
+        <span class="badge ${s.status === 'pending' ? 'amber' : ''}">${esc(s.status)}${s.score != null ? ' · ' + esc(s.score) : ''}</span>
+        ${dl.length ? `<span class="badge">📦 ${dl.length}</span>` : ''}</div>
+        <button class="btn" data-act="toggle">View</button>
+      </div>
+      <div class="detail" style="display:none;border-top:1px solid #e2e8f0;margin-top:.75rem;padding-top:.75rem">
+        <div class="muted">Final deliverables (${dl.length})</div>
+        ${dl.length ? dl.map((d, i) => `<div><span class="badge gray">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span> <a href="${esc(d.url)}" target="_blank" rel="noreferrer">${i + 1}. ${esc(d.label || d.url)}</a></div>`).join('') : '<p class="muted">None added.</p>'}
+        <div class="muted" style="margin-top:.5rem">Written solution</div>${fields}
+        <div class="row"><a class="btn" href="/problems/${esc(s.problemId)}">View problem page ↗</a></div>
+      </div>
+    </div>`;
+  }).join('') : `<div class="card" style="text-align:center"><p class="muted">No solutions match your filters.</p></div>`;
+}
+if (me) {
+  try {
+    const d = await api('/api/admin/solutions');
+    items = d.solutions;
+    render();
+  } catch (e) { msg.innerHTML = alertBox(e.message); }
+}
+document.getElementById('q').addEventListener('input', render);
+document.getElementById('status').addEventListener('change', render);
+list.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-act="toggle"]');
+  if (!btn) return;
+  const det = btn.closest('.card').querySelector('.detail');
+  det.style.display = det.style.display === 'none' ? '' : 'none';
+  btn.textContent = det.style.display === 'none' ? 'View' : 'Hide';
+});
+</script>
+</body>
+</html>

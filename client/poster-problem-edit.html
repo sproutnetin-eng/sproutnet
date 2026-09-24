@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Problem — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:820px">
+  <h1>Edit problem</h1>
+  <p class="muted">Update the problem details for students.</p>
+  <div id="msg"></div>
+  <form id="f" class="card" style="display:none">
+    <label>Problem title<input class="input" name="title" required></label>
+    <label>Thumbnail image (optional)<input class="input" type="file" id="thumb" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+    <div id="thumb-preview"></div>
+    <div class="row">
+      <div style="flex:1;min-width:200px"><label>Domain<select class="select" name="domain" id="domain"></select></label></div>
+      <div style="flex:1;min-width:200px"><label>Problem type<select class="select" name="problem_type" id="ptype">
+        <option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option>
+      </select></label></div>
+    </div>
+    <div id="reward-wrap" style="display:none"><label>Reward amount (INR)<input class="input" type="number" min="0" name="reward_amount" id="reward"></label></div>
+    <div class="row">
+      <div style="flex:1"><label>Submission deadline<input class="input" type="date" name="deadline" id="deadline" required></label></div>
+      <div style="flex:1"><label>Judging deadline<input class="input" type="date" name="judging_deadline" id="jdeadline" required></label></div>
+    </div>
+    <label>Participation type<select class="select" name="team_mode" id="tmode">
+      <option value="solo">Individual Only</option><option value="team">Team Only</option><option value="both">Both Individual &amp; Team</option>
+    </select></label>
+    <div class="row" id="team-sizes">
+      <div style="flex:1"><label>Min team size<input class="input" type="number" min="1" name="min_team_size" id="minsize"></label></div>
+      <div style="flex:1"><label>Max team size<input class="input" type="number" min="1" name="max_team_size" id="maxsize"></label></div>
+    </div>
+    <label>Background &amp; context<textarea class="textarea" name="context" id="context" required></textarea></label>
+    <label>Problem statement<textarea class="textarea" name="problem_stmt" id="stmt" required></textarea></label>
+    <label>Scope<textarea class="textarea" name="scope" id="scope" required></textarea></label>
+    <label>Constraints<textarea class="textarea" name="constraints" id="constraints" required></textarea></label>
+    <label>Deliverables<textarea class="textarea" name="deliverables" id="deliverables" required></textarea></label>
+    <div class="row" style="justify-content:flex-end">
+      <a class="btn" href="/poster/problems">Cancel</a>
+      <button class="btn btn-primary" id="submit" type="submit">Save changes</button>
+    </div>
+  </form>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('poster', 'admin');
+const DOMAINS = ['AI & Data','Climate','Public Infrastructure','Healthcare','Agriculture','Education','Urban Mobility','Civic Technology'];
+const msg = document.getElementById('msg');
+const f = document.getElementById('f');
+const id = location.pathname.split('/')[3];
+let currentThumb = '', newFile = null;
+if (me) {
+  if (!id) location.href = '/poster/problems';
+  else {
+    try {
+      const { problem: p } = await api(`/api/poster/problems/${id}`);
+      document.getElementById('domain').innerHTML = DOMAINS.map(d => `<option ${d === p.domain ? 'selected' : ''}>${esc(d)}</option>`).join('');
+      f.title.value = p.title || '';
+      document.getElementById('ptype').value = p.problem_type || 'public_impact';
+      document.getElementById('reward').value = p.reward_amount ?? '';
+      document.getElementById('deadline').value = (p.deadline || '').slice(0, 10);
+      document.getElementById('jdeadline').value = (p.judging_deadline || '').slice(0, 10);
+      document.getElementById('tmode').value = p.team_mode || 'solo';
+      document.getElementById('minsize').value = p.min_team_size ?? 1;
+      document.getElementById('maxsize').value = p.max_team_size ?? 4;
+      document.getElementById('context').value = p.context || '';
+      document.getElementById('stmt').value = p.problem_stmt || '';
+      document.getElementById('scope').value = p.scope || '';
+      document.getElementById('constraints').value = p.constraints || '';
+      document.getElementById('deliverables').value = p.deliverables || '';
+      currentThumb = p.thumbnail_url || '';
+      const sync = () => {
+        document.getElementById('reward-wrap').style.display = document.getElementById('ptype').value === 'industry_challenge' ? '' : 'none';
+        document.getElementById('team-sizes').style.display = document.getElementById('tmode').value === 'solo' ? 'none' : '';
+      };
+      document.getElementById('ptype').addEventListener('change', sync);
+      document.getElementById('tmode').addEventListener('change', sync);
+      sync();
+      const showPrev = (src, name) => {
+        document.getElementById('thumb-preview').innerHTML = src
+          ? `<div class="card"><img src="${esc(src)}" alt="thumbnail" style="max-width:100%;border-radius:8px"><div class="row" style="justify-content:space-between"><span class="muted">${esc(name)}</span><button type="button" class="btn" id="clear-thumb">Remove image</button></div></div>` : '';
+        document.getElementById('clear-thumb')?.addEventListener('click', () => { newFile = null; currentThumb = ''; document.getElementById('thumb').value = ''; showPrev('', ''); });
+      };
+      if (currentThumb) showPrev(currentThumb, 'Current thumbnail');
+      document.getElementById('thumb').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { msg.innerHTML = alertBox('Thumbnail must be 5 MB or smaller.'); e.target.value = ''; return; }
+        newFile = file;
+        showPrev(URL.createObjectURL(file), file.name);
+      });
+      f.style.display = '';
+    } catch (e) { msg.innerHTML = alertBox(e.message); }
+  }
+}
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submit');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const fd = new FormData(f);
+    if (fd.get('judging_deadline') && fd.get('deadline') && fd.get('judging_deadline') < fd.get('deadline')) {
+      throw new Error('Judging deadline must be on or after the submission deadline.');
+    }
+    let thumbnail_url = currentThumb.trim() || null;
+    if (newFile) {
+      btn.textContent = 'Uploading image…';
+      const up = new FormData(); up.append('file', newFile);
+      const r = await api('/api/problems/thumbnail', { method: 'POST', form: up });
+      thumbnail_url = typeof r.url === 'string' ? r.url : null;
+    }
+    const teamMode = fd.get('team_mode');
+    const payload = {
+      id, title: String(fd.get('title')).trim(), domain: fd.get('domain'),
+      problem_type: fd.get('problem_type'), thumbnail_url,
+      reward_amount: fd.get('problem_type') === 'industry_challenge' && fd.get('reward_amount') ? Number(fd.get('reward_amount')) : null,
+      milestones: 1, deadline: fd.get('deadline'), judging_deadline: fd.get('judging_deadline'),
+      context: String(fd.get('context')).trim(), problem_stmt: String(fd.get('problem_stmt')).trim(),
+      scope: String(fd.get('scope')).trim(), constraints: String(fd.get('constraints')).trim(),
+      deliverables: String(fd.get('deliverables')).trim(), team_mode: teamMode,
+      min_team_size: Number(fd.get('min_team_size')) || 1, max_team_size: Number(fd.get('max_team_size')) || 4,
+    };
+    const r = await api('/api/problems/update', { method: 'POST', body: payload });
+    msg.innerHTML = alertBox(r.warning ? r.warning : 'Problem updated. Redirecting…', true);
+    setTimeout(() => location.href = '/poster/problems', 900);
+  } catch (err) {
+    let m = err.message;
+    if (m.includes('min_deadline')) m = 'Submission deadline is too soon. Please choose a later date.';
+    msg.innerHTML = alertBox(m);
+    btn.disabled = false; btn.textContent = 'Save changes';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enrollments — SproutNet Admin</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
+.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
+.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
+.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
+.admin-side .meta{font-size:.75rem;color:#64748b}
+@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+.table-wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:1200px">
+<div class="admin-layout">
+<aside class="admin-side card">
+  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
+  <a href="/admin/problems" class="on"><strong>Problems</strong> <span class="meta">moderation</span></a>
+  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
+  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
+  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
+  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
+  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
+</aside>
+<div>
+  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">PROBLEM · ENROLLMENTS</div>
+  <h1>Enrollments</h1>
+  <p class="muted" id="subtitle">Loading…</p>
+  <a class="btn" href="/admin/problems">← Back to Problems</a>
+  <div id="msg"></div>
+  <div class="card"><input class="input" id="q" placeholder="Search students…"><div class="muted" id="count"></div></div>
+  <div class="card table-wrap"><table class="table"><thead><tr><th>Student</th><th>Dept</th><th>Year</th><th>Enrolled</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
+</div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('admin');
+const msg = document.getElementById('msg');
+const id = location.pathname.split('/')[3];
+let items = [];
+function render() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const rows = items.filter(x => !q || (x.student_name || '').toLowerCase().includes(q) ||
+    (x.student_dept || '').toLowerCase().includes(q) || (x.student_year || '').toLowerCase().includes(q) || x.student_id.toLowerCase().includes(q));
+  document.getElementById('count').textContent = `Showing ${rows.length} of ${items.length}`;
+  document.getElementById('rows').innerHTML = rows.length ? rows.map(x => `<tr data-id="${esc(x.id)}">
+    <td><strong>${esc(x.student_name || 'Student ' + x.student_id.slice(0, 6) + '…')}</strong><div class="muted">${esc(x.student_id.slice(0, 8))}…</div></td>
+    <td>${esc(x.student_dept || '—')}</td><td>${esc(x.student_year || '—')}</td>
+    <td>${x.created_at ? esc(new Date(x.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</td>
+    <td><button class="btn btn-danger" data-act="remove">Remove</button></td></tr>`).join('')
+    : `<tr><td colspan="5" class="muted">No active enrollments.</td></tr>`;
+}
+if (me) {
+  if (!id) location.href = '/admin/problems';
+  else {
+    try {
+      const d = await api(`/api/admin/problems/${id}/enrollments`);
+      document.getElementById('subtitle').textContent = d.problem.title;
+      items = d.enrollments;
+      render();
+    } catch (e) { msg.innerHTML = alertBox(e.message); }
+  }
+}
+document.getElementById('q').addEventListener('input', render);
+document.getElementById('rows').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act="remove"]');
+  if (!btn) return;
+  if (!confirm('Remove this student? They will not be able to submit.')) return;
+  btn.disabled = true;
+  try {
+    await api('/api/enrollments/remove', { method: 'POST', body: { enrollment_id: btn.closest('tr').dataset.id, problem_id: id } });
+    items = items.filter(x => x.id !== btn.closest('tr').dataset.id);
+    render();
+  } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+});
+</script>
+</body>
+</html>

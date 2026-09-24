@@ -2,69 +2,57 @@
 
 ## Quick start
 ```bash
-npm run dev      # local dev server at http://localhost:3000
-npm run build    # production build
-npm run lint     # ESLint 9 flat config (eslint.config.mjs)
-npm run start    # start production server
+npm run serve      # Express server at http://localhost:3001 (PORT env overrides)
+npm run serve:dev  # with node --watch reload
+npm install        # dependencies (no build step)
 ```
 
 ## Stack
-- **Next.js 16.1.6** (App Router) + **React 19.2.3** + **TypeScript 5**
-- **Tailwind CSS v4** via `@tailwindcss/postcss` (minimal usage; most CSS is inline `<style>` tags)
-- **Supabase** (auth, database, storage via `@supabase/ssr`)
-- **Tiptap 3.28** rich text editor (blogs)
-- No testing framework is set up.
+- **Node.js 20+** + **Express 4** REST API, vanilla HTML/CSS/JS frontend
+- **Supabase** (auth, database, storage via `@supabase/supabase-js`)
+- **multer** (memory storage) for uploads, **nodemailer** for OTP email
+- No framework, no bundler, no testing framework.
 
 ## Project structure
 ```
-app/
-  (auth)/login/{student,poster}/  role-based login pages
-  (auth)/join/                     registration (email domain gated)
-  dashboard/                       student dashboard
-  poster/{dashboard,post-problem,problems,solutions}/
-  admin/{judging,analytics,problems}/
-  blogs/{editor,manage,new}/       community blog feed + Tiptap editor
-  problems/[id]/                   dynamic problem detail + submit
-  profile/[slug]/                  public user profile
-  api/{auth,problems,enrollments,submissions,blogs}/
-lib/
-  supabase/{client,server,admin}.ts  3 Supabase client factories
-  blogs.ts + blogs.server.ts          blog feed builder
-  blogs-local.server.ts               local JSON fallback for blogs
-  enrollment-progress.ts              active enrollment limits
-  problem-progress.ts                 progress upload helpers
-  problem-thumbnail.ts                thumbnail upload helpers
-proxy.ts                              auth middleware (see below)
-supabase/migrations/                  raw SQL (apply manually in Supabase dashboard)
+server/
+  server.js                  entry: gzip, static client/ (/assets cached 1h), 60s cache on GET /api/public/*, API mounts
+  supabase.js                getAdmin() (service role) + getUserClient(token)
+  middleware/auth.js         authRequired / optionalAuth / loadProfile / requireRole
+  middleware/upload.js       multer memory storage (replaces req.formData())
+  lib/ + lib/workspace/     ported utilities, same export names as original TS lib
+  routes/                    13 routers with full /api/... paths:
+                             problems, enrollments, submissions, teams, workspaces,
+                             mentors, blogs, auth, admin, misc,
+                             public-reads, student-reads, staff-reads
+client/
+  *.html                     43 pages (clean URLs mapped in server.js)
+  assets/app.js              Supabase browser client, api() helper (Bearer token),
+                             requireAuth/requireRole guards, nav
+  assets/styles.css          shared theme (.card .btn .input .table .badge .alert)
+supabase/migrations/         raw SQL (apply manually in Supabase dashboard)
+scripts/                     tsx utilities: seed mentors/test data, run migrations
 ```
 
 ## Key non-obvious patterns
 
-### Middleware in `proxy.ts` (NOT `middleware.ts`)
-Auth middleware lives in `proxy.ts` with a `config.matcher` export. It:
-- Protects non-public routes by redirecting unauthenticated users to `/login`
-- Redirects authenticated users away from `/login` and `/join`
-- Forbids non-student access to `/problems/[id]/submit`
-- Forbids non-poster/non-admin access to `/post-problem`
-- Public routes are listed inline; add new public routes there too
+### Auth is Bearer-token based
+The browser holds the Supabase session (localStorage) and sends it as `Authorization: Bearer` via the `api()` helper in `client/assets/app.js`. Server middleware verifies the JWT with the anon client (`getUserFromToken`) and attaches `req.user` + `req.supabase`. Service-role work uses `getAdmin()`. All role enforcement lives in the API; page guards are UX only.
 
-### Three Supabase clients
-| File | Usage |
-|------|-------|
-| `lib/supabase/client.ts` | Browser (`createBrowserClient`) — use in `'use client'` components |
-| `lib/supabase/server.ts` | Server (`createServerClient` with cookie store) — use in server components and API routes |
-| `lib/supabase/admin.ts` | Service role (`SUPABASE_SERVICE_ROLE_KEY`), no session — use for admin-only operations |
+### Route files
+Each file in `server/routes/` exports an `express.Router` with full `/api/...` paths and is mounted in `server.js`. `[id]`-style params are Express `:id` params. Upload routes use `upload.single('file')` and pass `req.file.buffer` to Supabase storage.
 
-Admin client (`createAdminClient`) is used in dashboards and API routes for cross-user queries.
+### Read-model routers
+Page data that needs cross-user queries lives in `public-reads.js`, `student-reads.js`, `staff-reads.js` (`GET /api/public|student|staff|...`, admin client). Public single-table reads happen directly from the browser via `sb()`.
 
 ### Blog local fallback
-When Supabase blog tables don't exist (migration not applied), blogs fall back to `.data/blogs.json` (gitignored via `.data/`). Controlled by env `BLOGS_ALLOW_LOCAL_FALLBACK` (default `true`). The fallback is a full read-write store.
+When Supabase blog tables don't exist (migration not applied), blogs fall back to `.data/blogs.json` (gitignored via `.data/`). Controlled by env `BLOGS_ALLOW_LOCAL_FALLBACK` (default `true`).
 
 ### Supabase migrations
-SQL files in `supabase/migrations/` must be applied manually in the Supabase SQL editor. No migration runner is configured.
+SQL files in `supabase/migrations/` must be applied manually in the Supabase SQL editor. No migration runner is configured. `scripts/run-migration.ts` can apply a file via direct Postgres connection.
 
 ### CSS style
-Most styling uses inline `<style>` tags in `page.tsx` with CSS-in-JS via `dangerouslySetInnerHTML`. `globals.css` is minimal (mostly Tailwind import + responsive overrides). **Do not add Tailwind utility classes** — match the existing inline style approach.
+Plain CSS in `client/assets/styles.css` with shared classes (`.card`, `.btn`, `.btn-primary`, `.input`, `.table`, `.badge`, `.alert`). New pages must follow the template: stylesheet link, `#sn-nav`, `.container`, `/assets/config.js` + module script importing `/assets/app.js`.
 
 ### Enrollments
 - Students can have at most `MAX_ACTIVE_ENROLLMENTS = 2` active enrollments at once.
@@ -72,10 +60,10 @@ Most styling uses inline `<style>` tags in `page.tsx` with CSS-in-JS via `danger
 
 ### Registration
 - Student signup checks `allowed_domains` table — only `@jyothyit.ac.in` is configured during Phase 1.
-- New users are created via `supabase.auth.signUp()`, then profile fields updated in the `users` table.
+- New users are created via `supabase.auth.signUp()` in the browser, then profile fields upserted via `POST /api/auth/profile`.
 
 ### Env
-`.env` is **committed** (Supabase URL + keys) despite `.env*` in `.gitignore`. Needed for local dev. Required vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`.
+`.env` is **committed** (Supabase URL + keys) despite `.env*` in `.gitignore`. Needed for local dev. Required vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Optional: `PORT` (default 3001), SMTP settings, `GROQ_API_KEY`.
 
 ### File uploads
 - Problem thumbnails: `problem-thumbnails` bucket, max 5 MB, JPG/PNG/WebP/GIF

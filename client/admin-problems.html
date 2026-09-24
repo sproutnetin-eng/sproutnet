@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Problems — SproutNet Admin</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
+.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
+.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
+.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
+.admin-side .meta{font-size:.75rem;color:#64748b}
+@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+.table-wrap{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:1200px">
+<div class="admin-layout">
+<aside class="admin-side card">
+  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
+  <a href="/admin/problems" class="on"><strong>Problems</strong> <span class="meta">moderation</span></a>
+  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
+  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
+  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
+  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
+  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
+</aside>
+<div>
+  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">PROBLEMS · MODERATION</div>
+  <h1>Problems</h1>
+  <div id="msg"></div>
+  <div class="card">
+    <div class="row">
+      <input class="input" id="q" placeholder="Search by title, domain, poster name…" style="flex:2;min-width:200px">
+      <select class="select" id="status" style="flex:1;min-width:140px"><option value="all">All statuses</option><option value="open">Published (open)</option><option value="pending">Held (pending)</option></select>
+      <select class="select" id="type" style="flex:1;min-width:140px"><option value="all">All types</option><option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option></select>
+      <button class="btn btn-primary" id="seed" type="button">Seed Test Data</button>
+    </div>
+    <div class="muted" id="count"></div>
+  </div>
+  <div class="card table-wrap"><table class="table"><thead><tr><th>Title</th><th>Poster</th><th>Domain</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead><tbody id="rows"><tr><td>Loading…</td></tr></tbody></table></div>
+</div>
+</div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('admin');
+const msg = document.getElementById('msg');
+let items = [];
+function render() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const sf = document.getElementById('status').value;
+  const tf = document.getElementById('type').value;
+  const rows = items.filter(p =>
+    (sf === 'all' || p.status === sf) && (tf === 'all' || p.problem_type === tf) &&
+    (!q || p.title.toLowerCase().includes(q) || (p.domain || '').toLowerCase().includes(q) || (p.poster_name || '').toLowerCase().includes(q)));
+  document.getElementById('count').textContent = `Showing ${rows.length} of ${items.length}`;
+  document.getElementById('rows').innerHTML = rows.length ? rows.map(p => `<tr data-id="${esc(p.id)}">
+    <td><strong>${esc(p.title)}</strong><div class="muted">${p.submission_count} sub · ${esc(p.id.slice(0, 8))}…</div></td>
+    <td>${esc(p.poster_name || p.poster_id.slice(0, 8) + '…')}</td><td>${esc(p.domain)}</td>
+    <td><span class="badge ${p.status === 'open' ? '' : 'amber'}">${esc(p.status)}</span></td>
+    <td>${p.deadline ? esc(new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</td>
+    <td><div class="row">
+      <a class="btn" href="/problems/${esc(p.id)}">View</a>
+      <a class="btn" href="/admin/problems/${esc(p.id)}/enrollments">Enrollments</a>
+      <a class="btn" href="/admin/problems/${esc(p.id)}/edit">Edit</a>
+      <button class="btn" data-act="toggle">${p.status === 'open' ? 'Hold' : 'Publish'}</button>
+      <button class="btn" data-act="eval">Re-evaluate</button>
+      <button class="btn btn-danger" data-act="delete">Delete</button>
+    </div></td></tr>`).join('') : `<tr><td colspan="6" class="muted">No matches.</td></tr>`;
+}
+async function load() {
+  try {
+    const d = await api('/api/admin/problems');
+    items = d.problems;
+    render();
+  } catch (e) { msg.innerHTML = alertBox(e.message); }
+}
+['q', 'status', 'type'].forEach(id => document.getElementById(id === 'q' ? 'q' : id).addEventListener('input', render));
+document.getElementById('status').addEventListener('change', render);
+document.getElementById('type').addEventListener('change', render);
+document.getElementById('rows').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const id = btn.closest('tr').dataset.id;
+  const act = btn.dataset.act;
+  if (act === 'delete' && !confirm('Delete this problem? This cannot be undone.')) return;
+  btn.disabled = true;
+  try {
+    if (act === 'toggle') {
+      const p = items.find(x => x.id === id);
+      await api('/api/problems/status', { method: 'POST', body: { id, status: p.status === 'open' ? 'pending' : 'open' } });
+    } else if (act === 'eval') {
+      await api('/api/problems/evaluate', { method: 'POST', body: { problem_id: id } });
+    } else {
+      await api('/api/problems/delete', { method: 'POST', body: { id } });
+    }
+    await load();
+  } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+});
+document.getElementById('seed').addEventListener('click', async (e) => {
+  e.target.disabled = true; e.target.textContent = 'Seeding…';
+  try {
+    const r = await api('/api/problems/seed-test', { method: 'POST' });
+    const ok = (r.results || []).filter(x => x.success).length;
+    msg.innerHTML = alertBox(`Seeded ${ok} problems.`, true);
+    await load();
+  } catch (err) { msg.innerHTML = alertBox(err.message); }
+  e.target.disabled = false; e.target.textContent = 'Seed Test Data';
+});
+if (me) load();
+</script>
+</body>
+</html>

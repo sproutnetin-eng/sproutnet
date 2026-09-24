@@ -24,7 +24,7 @@
 - Role-based login pages: `/login/student`, `/login/poster`, `/login/mentor`
 - Registration gated by `allowed_domains` table (only `@jyothyit.ac.in` configured for Phase 1)
 - Sign-up flow: `supabase.auth.signUp()` → profile created in `users` table
-- Auth middleware in `proxy.ts` protects non-public routes, redirects authenticated users away from login/join, and enforces role-based access rules
+- Express auth middleware (`server/middleware/auth.js`) verifies the Bearer JWT on API routes and enforces role-based access; pages guard client-side via `requireAuth`/`requireRole`
 
 ---
 
@@ -97,7 +97,7 @@ Each team gets a workspace with:
 - **Capacity enforcement:** Mentors have `max_active_teams` limit checked before assignment or acceptance
 
 ### 4.8 Blogs (Community)
-- Rich text editor via **Tiptap 3.28** (`/blogs/editor`)
+- Plain HTML blog editor (`/blogs/new`) with textarea + fields
 - CRUD via `/api/blogs/posts` with fields: title, body, cover image, slug, excerpt, tags, category, SEO fields, draft/published status
 - Post types: `knowledge`, `question`
 - **Threaded comments** via `/api/blogs/comments` with parent_comment_id
@@ -321,19 +321,19 @@ Each team gets a workspace with:
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 16.1.6 (App Router) |
-| UI Library | React 19.2.3 |
-| Language | TypeScript 5 |
-| Styling | Tailwind CSS v4 + inline `<style>` tags |
+| Runtime | Node.js 20+ |
+| Server | Express 4 (REST API) |
+| Frontend | Vanilla HTML/CSS/JS (static, no build step) |
 | Backend / DB | Supabase (PostgreSQL, Auth, Storage) |
-| Rich Text | Tiptap 3.28 |
+| Uploads | multer (memory) → Supabase Storage |
+| Email | Nodemailer (SMTP) |
 | Testing | None configured |
 
 ---
 
 ## 12. Infrastructure
 
-- **Auth Middleware:** `proxy.ts` (not `middleware.ts`) with `config.matcher` export
-- **Supabase Clients:** 3-tier — browser client (`createBrowserClient`), server client (`createServerClient`), admin client (`createAdminClient` with service role key)
+- **Auth:** Bearer-JWT middleware (`server/middleware/auth.js`: `authRequired`, `loadProfile`, `requireRole`)
+- **Supabase Clients:** browser client (vanilla JS via CDN) + user-scoped server client (carries caller JWT) + admin client (service role key) in `server/supabase.js`
 - **Migrations:** 11 SQL files in `supabase/migrations/`, must be applied manually in Supabase SQL editor
 - **Env Vars:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`, `BLOGS_ALLOW_LOCAL_FALLBACK`

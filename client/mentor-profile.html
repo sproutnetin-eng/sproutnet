@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mentor Profile — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:720px">
+  <a class="btn" href="/mentor/dashboard">← Back to Mentor Dashboard</a>
+  <h1>Mentor profile &amp; availability</h1>
+  <p class="muted">Manage your technology expertise, social profiles, and team capacity.</p>
+  <div id="msg"></div>
+  <form id="f" class="card" style="display:none">
+    <label>Bio &amp; background<textarea class="textarea" name="bio" id="bio" rows="4" placeholder="Tell students about your engineering domain expertise…"></textarea></label>
+    <div class="row">
+      <div style="flex:1;min-width:200px"><label>Primary skills (comma-separated)<input class="input" name="skills" id="skills" placeholder="System Architecture, Machine Learning, UI/UX"></label></div>
+      <div style="flex:1;min-width:200px"><label>Technologies (comma-separated)<input class="input" name="technologies" id="tech" placeholder="Next.js, Python, PostgreSQL, PyTorch"></label></div>
+    </div>
+    <div class="row">
+      <div style="flex:1;min-width:200px"><label>Availability status<select class="select" name="availability_status" id="avail">
+        <option value="available">Available for new teams</option><option value="busy">Busy (Limited capacity)</option><option value="unavailable">Unavailable</option>
+      </select></label></div>
+      <div style="flex:1;min-width:200px"><label>Max active teams<input class="input" type="number" min="1" max="10" name="max_active_teams" id="maxteams"></label></div>
+    </div>
+    <div class="row">
+      <div style="flex:1;min-width:160px"><label>LinkedIn URL<input class="input" name="linkedin_url" id="li" placeholder="https://linkedin.com/in/…"></label></div>
+      <div style="flex:1;min-width:160px"><label>GitHub URL<input class="input" name="github_url" id="gh" placeholder="https://github.com/…"></label></div>
+      <div style="flex:1;min-width:160px"><label>Portfolio URL<input class="input" name="portfolio_url" id="pf" placeholder="https://yourportfolio.com"></label></div>
+    </div>
+    <button class="btn btn-primary" id="save" type="submit" style="width:100%">Save Profile &amp; Availability Settings →</button>
+  </form>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('mentor', 'admin');
+const msg = document.getElementById('msg');
+const f = document.getElementById('f');
+if (me) {
+  try {
+    const { mentorProfile: mp } = await api('/api/mentor/profile-data');
+    document.getElementById('bio').value = mp?.bio || '';
+    document.getElementById('skills').value = Array.isArray(mp?.skills) ? mp.skills.join(', ') : (mp?.skills || '');
+    document.getElementById('tech').value = Array.isArray(mp?.technologies) ? mp.technologies.join(', ') : (mp?.technologies || '');
+    document.getElementById('avail').value = mp?.availability_status || 'available';
+    document.getElementById('maxteams').value = mp?.max_active_teams ?? 3;
+    document.getElementById('li').value = mp?.linkedin_url || '';
+    document.getElementById('gh').value = mp?.github_url || '';
+    document.getElementById('pf').value = mp?.portfolio_url || '';
+    f.style.display = '';
+  } catch (e) { msg.innerHTML = alertBox(e.message); }
+}
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('save');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const fd = new FormData(f);
+    await api('/api/mentors/profile', { method: 'POST', body: {
+      bio: fd.get('bio'), skills: fd.get('skills'), technologies: fd.get('technologies'),
+      availability_status: fd.get('availability_status'), max_active_teams: Number(fd.get('max_active_teams')) || 3,
+      linkedin_url: fd.get('linkedin_url'), github_url: fd.get('github_url'), portfolio_url: fd.get('portfolio_url'),
+    }});
+    msg.innerHTML = alertBox('Profile saved.', true);
+  } catch (err) { msg.innerHTML = alertBox(err.message); }
+  btn.disabled = false; btn.textContent = 'Save Profile & Availability Settings →';
+});
+</script>
+</body>
+</html>

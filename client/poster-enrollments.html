@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enrollments — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container">
+  <a class="btn" href="/poster/problems">← My problems</a>
+  <h1>Enrollments</h1>
+  <p class="muted" id="subtitle">Loading…</p>
+  <div id="statusbar" class="card" style="display:none"></div>
+  <div id="msg"></div>
+  <div id="list"></div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('poster', 'admin');
+const id = location.pathname.split('/')[3];
+const msg = document.getElementById('msg');
+const list = document.getElementById('list');
+let enrollments = [];
+function render() {
+  const bar = document.getElementById('statusbar');
+  if (!enrollments.length) {
+    list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">👥</div><strong>No enrollments yet</strong><p class="muted">Students will appear here after they enroll.</p></div>`;
+    return;
+  }
+  list.innerHTML = enrollments.map(x => `<div class="card row" style="justify-content:space-between">
+    <div class="row"><div style="width:32px;height:32px;border-radius:50%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700">${esc((x.users?.name || '?')[0])}</div>
+    <div><strong>${esc(x.users?.name || 'Student')}</strong><div class="muted">${esc(x.users?.dept || 'Department')} · ${esc(x.users?.year || 'Year')}</div></div></div>
+    <button class="btn btn-danger" data-id="${esc(x.id)}">Remove</button>
+  </div>`).join('');
+}
+if (me) {
+  if (!id) location.href = '/poster/problems';
+  else {
+    try {
+      const { problem, enrollments: rows } = await api(`/api/poster/problems/${id}/enrollments`);
+      document.getElementById('subtitle').textContent = problem.title;
+      const bar = document.getElementById('statusbar');
+      bar.style.display = '';
+      bar.innerHTML = `<div class="row" style="justify-content:space-between"><span>Status: <span class="badge ${problem.status === 'open' ? '' : 'amber'}">${esc(problem.status)}</span></span>
+        <button class="btn" id="toggle">${problem.status === 'open' ? 'Hold problem' : 'Publish problem'}</button></div>`;
+      document.getElementById('toggle').addEventListener('click', async (e) => {
+        e.target.disabled = true;
+        try {
+          await api('/api/problems/status', { method: 'POST', body: { id, status: problem.status === 'open' ? 'pending' : 'open' } });
+          location.reload();
+        } catch (err) { msg.innerHTML = alertBox(err.message); e.target.disabled = false; }
+      });
+      enrollments = rows;
+      render();
+    } catch (e) { msg.innerHTML = alertBox(e.message); }
+  }
+}
+list.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-id]');
+  if (!btn) return;
+  if (!confirm('Remove this student? They will not be able to submit.')) return;
+  btn.disabled = true;
+  try {
+    await api('/api/enrollments/remove', { method: 'POST', body: { enrollment_id: btn.dataset.id, problem_id: id } });
+    enrollments = enrollments.filter(x => x.id !== btn.dataset.id);
+    render();
+  } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+});
+</script>
+</body>
+</html>

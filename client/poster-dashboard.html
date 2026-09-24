@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poster Dashboard — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container">
+  <div id="msg"></div>
+  <h1 id="welcome">Welcome back.</h1>
+  <p class="muted">Post new problems and review student solutions.</p>
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div><strong id="stat-problems">–</strong> <span class="muted">problems posted</span></div>
+      <div><strong id="stat-subs">–</strong> <span class="muted">solutions received</span></div>
+      <div><strong id="stat-open">–</strong> <span class="muted">open now</span></div>
+    </div>
+  </div>
+  <div class="grid">
+    <a class="card" href="/blogs" style="text-decoration:none;color:inherit"><div style="font-size:1.6rem">📝</div><strong>Blogs</strong><p class="muted">Join the public feed to share insights and answer questions.</p></a>
+    <a class="card" href="/poster/post-problem" style="text-decoration:none;color:inherit"><div style="font-size:1.6rem">✏️</div><strong>Post a Problem</strong><p class="muted">Create a new problem statement for students.</p></a>
+    <a class="card" href="/poster/problems" style="text-decoration:none;color:inherit"><div style="font-size:1.6rem">📋</div><strong>My Problems</strong><p class="muted">Manage problems you have posted.</p></a>
+    <a class="card" href="/poster/solutions" style="text-decoration:none;color:inherit"><div style="font-size:1.6rem">📬</div><strong>Student Solutions</strong><p class="muted">View solutions submitted by registered students.</p></a>
+  </div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('poster', 'admin');
+if (me) {
+  const first = (me.profile?.name || 'there').split(' ')[0];
+  document.getElementById('welcome').textContent = `Welcome back, ${first}.`;
+  try {
+    const [p, s] = await Promise.all([api('/api/poster/problems'), api('/api/poster/submissions')]);
+    document.getElementById('stat-problems').textContent = p.problems.length;
+    document.getElementById('stat-open').textContent = p.problems.filter(x => x.status === 'open').length;
+    document.getElementById('stat-subs').textContent = s.submissions.length;
+  } catch (e) {
+    document.getElementById('msg').innerHTML = alertBox(e.message);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <div id="content"><p class="muted">Loading dashboard...</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const msg = document.getElementById('msg');
+const content = document.getElementById('content');
+
+function typeLabel(t) { return t === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact'; }
+
+async function cancelEnrollment(problemId, btn) {
+  if (!confirm('Cancel this enrollment? You can enroll again later if the problem is still open.')) return;
+  btn.disabled = true; btn.textContent = 'Cancelling...';
+  try {
+    await api('/api/enrollments/cancel', { method: 'POST', body: { problem_id: problemId } });
+    location.reload();
+  } catch (err) {
+    msg.innerHTML = alertBox(err.message);
+    btn.disabled = false; btn.textContent = 'Cancel';
+  }
+}
+
+const me = await requireRole('student');
+if (me) {
+  try {
+    const { profile, enrolledProblems, workspaces } = await api('/api/student/overview');
+    const first = esc((profile.name || 'there').split(' ')[0]);
+    const stats = [
+      ['Builder Score', profile.builder_score ?? 0],
+      ['Problems Attempted', profile.attempted ?? 0],
+      ['Avg Score', profile.avg_score ? Number(profile.avg_score).toFixed(1) : '—'],
+      ['Solutions Completed', profile.milestones_done ?? 0],
+    ];
+    let html = `<h1>Good to see you, ${first}.</h1><p class="muted">Browse open problems and start building.</p>`;
+    html += `<div class="grid">` + stats.map(([l, v]) => `<div class="card"><div style="font-size:1.75rem;font-weight:700">${esc(String(v))}</div><div class="muted">${l}</div></div>`).join('') + `</div>`;
+    html += `<h2>Keep building where you left off</h2><p class="muted">You can keep up to 2 active problem enrollments at a time. <a href="/problems">Browse more problems →</a></p>`;
+    if (!enrolledProblems.length) {
+      html += `<div class="card" style="text-align:center"><h3>No enrolled problems yet</h3><p class="muted">Enroll in a problem and it will appear here.</p><a class="btn btn-primary" href="/problems">Explore Open Problems →</a></div>`;
+    } else {
+      html += `<div class="grid">` + enrolledProblems.map(p => `
+        <div class="card">
+          <span class="badge">${esc(p.domain || '')}</span> <span class="badge gray">${esc(typeLabel(p.problem_type))}</span>
+          <h3>${esc(p.title)}</h3>
+          <p class="muted">Deadline: ${p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'} · <span class="badge ${p.status === 'open' ? '' : 'gray'}">${esc(p.status)}</span></p>
+          <div class="row">
+            ${p.teamId ? `<a class="btn" href="/teams/${esc(p.teamId)}">💬 Go to Workspace →</a>` : ''}
+            <a class="btn" href="/problems/${esc(p.id)}">View problem</a>
+            ${p.submissionStatus === 'approved' ? `<a class="btn btn-primary" href="/problems/${esc(p.id)}/final-upload">🎉 Upload Final Work${p.submissionScore != null ? ` · ${p.submissionScore}/10` : ''} →</a>` : ''}
+            ${p.submissionStatus === 'pending' ? `<span class="badge amber">⏳ Awaiting review</span>` : ''}
+            ${p.submissionStatus === 'rejected' ? `<span class="badge gray">✗ Not approved — resubmit</span>` : ''}
+            <a class="btn btn-primary" href="/problems/${esc(p.id)}/submit">${p.hasSubmission ? 'Continue Solving →' : 'Start Solving →'}</a>
+            <button class="btn btn-danger" data-cancel="${esc(p.id)}">Cancel</button>
+          </div>
+        </div>`).join('') + `</div>`;
+    }
+    if (workspaces.length) {
+      html += `<h2>Your Workspaces</h2><div class="grid">` + workspaces.map(w => `
+        <div class="card">
+          <span class="badge">${esc(w.problem_domain || '')}</span> <span class="badge gray">${esc(w.role || '')}</span>
+          <h3>${esc(w.name)}</h3>
+          <p class="muted">${esc(w.problem_title || '')}</p>
+          <div class="row"><a class="btn btn-primary" href="/teams/${esc(w.team_id)}">Open Workspace →</a></div>
+        </div>`).join('') + `</div>`;
+    }
+    html += `<h2>Quick actions</h2><div class="grid">
+      <a class="card" href="/teams"><strong>Teams</strong><br><span class="muted">Create or join a team.</span></a>
+      <a class="card" href="/blogs"><strong>Blogs</strong><br><span class="muted">Community feed.</span></a>
+      <a class="card" href="/problems"><strong>Browse Problems</strong><br><span class="muted">All open problems.</span></a>
+      <a class="card" href="/mentors"><strong>Find a Mentor</strong><br><span class="muted">Expert mentors for your team.</span></a>
+      <a class="card" href="/leaderboard"><strong>Leaderboard</strong><br><span class="muted">Season standings.</span></a>
+      <a class="card" href="/profile/${esc(profile.profile_slug || '')}"><strong>Your Profile</strong><br><span class="muted">Public builder profile.</span></a>
+    </div>`;
+    content.innerHTML = html;
+    content.querySelectorAll('[data-cancel]').forEach(b => b.addEventListener('click', () => cancelEnrollment(b.dataset.cancel, b)));
+  } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
+}
+</script>
+</body>
+</html>

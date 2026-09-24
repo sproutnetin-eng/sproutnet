@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup Admin | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:440px">
+  <div class="card" style="text-align:center">
+    <div id="icon" style="font-size:3rem">⏳</div>
+    <h1 id="title">Checking...</h1>
+    <p class="muted" id="desc"></p>
+    <div id="actions"></div>
+  </div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, renderNav } from '/assets/app.js';
+renderNav('dash');
+const icon = document.getElementById('icon');
+const title = document.getElementById('title');
+const desc = document.getElementById('desc');
+const actions = document.getElementById('actions');
+try {
+  const data = await api('/api/admin/seed', { method: 'POST' });
+  icon.textContent = '✅'; title.textContent = 'You are now an admin!';
+  desc.textContent = data.message || 'Promoted to admin!';
+  actions.innerHTML = '<a class="btn btn-primary" href="/admin">Go to Admin Panel →</a>';
+} catch (err) {
+  if (/401|Unauthorized/.test(err.message)) {
+    title.textContent = 'Not logged in'; desc.textContent = 'You need to be logged in first.';
+    actions.innerHTML = '<a class="btn btn-primary" href="/join">Sign Up First</a> <a class="btn" href="/login/student">Log In</a>';
+  } else {
+    icon.textContent = '❌'; title.textContent = 'Something went wrong'; desc.textContent = err.message;
+    actions.innerHTML = '<a class="btn btn-primary" href="/login/student">Try Logging In First</a>';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:440px">
+  <div class="card" style="text-align:center">
+    <h1>Choose your sign in</h1>
+    <p class="muted">Separate access for students and problem posters.</p>
+  </div>
+  <div class="card">
+    <a class="btn" style="display:block;margin-bottom:0.75rem" href="/login/student"><strong>I'm a Student</strong><br><span class="muted">Sign in to browse problems and submit solutions.</span></a>
+    <a class="btn" style="display:block;margin-bottom:0.75rem" href="/login/poster"><strong>I'm a Problem Poster</strong><br><span class="muted">Sign in to post a problem and review submissions.</span></a>
+    <a class="btn" style="display:block" href="/login/mentor"><strong>I'm a Mentor</strong><br><span class="muted">Sign in to guide student teams and review requests.</span></a>
+  </div>
+  <p class="muted" style="text-align:center">Don't have an account? <a href="/join">Join SproutNet</a></p>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { renderNav } from '/assets/app.js';
+renderNav('login');
+</script>
+</body>
+</html>

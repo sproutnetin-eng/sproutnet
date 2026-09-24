@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team workspace | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.team-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; }
+@media (max-width: 768px) { .team-layout { grid-template-columns: 1fr; } }
+#chatlog { display: flex; flex-direction: column; gap: 0.6rem; max-height: 420px; overflow-y: auto; }
+.bubble { max-width: 78%; padding: 0.5rem 0.8rem; border-radius: 12px; border: 1px solid var(--line); font-size: 0.92rem; }
+.bubble.mine { align-self: flex-end; background: #2D6A4F; color: #fff; border: none; }
+.bubble.theirs { align-self: flex-start; background: #fff; }
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:1200px">
+  <div id="msg"></div>
+  <div id="content"><p class="muted">Loading workspace...</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const msg = document.getElementById('msg');
+const content = document.getElementById('content');
+const teamId = location.pathname.split('/')[2];
+
+const s = await requireAuth();
+if (s) {
+  try {
+    const d = await api(`/api/student/teams/${encodeURIComponent(teamId)}`);
+    const { team, currentUserId, isLeader, isMentor, isAdmin } = d;
+    const ws = d.workspace;
+    const wsId = ws?.id || null;
+
+    // ---- Workspace sub-resources (Express APIs) ----
+    let channels = [], milestones = [], files = [], announcements = [], activity = d.activityLogs || [], members = [];
+    async function loadWs() {
+      if (!wsId) return;
+      try {
+        const [c, m, f, a, act, mem] = await Promise.all([
+          api(`/api/workspaces/${wsId}/channels`).catch(() => ({ channels: [] })),
+          api(`/api/workspaces/${wsId}/milestones`).catch(() => ({ milestones: [] })),
+          api(`/api/workspaces/${wsId}/files`).catch(() => ({ files: [] })),
+          api(`/api/workspaces/${wsId}/announcements`).catch(() => ({ announcements: [] })),
+          api(`/api/workspaces/${wsId}/activity`).catch(() => ({ logs: d.activityLogs || [] })),
+          api(`/api/workspaces/${wsId}/members`).catch(() => ({ members: d.members || [] })),
+        ]);
+        channels = c.channels || []; milestones = m.milestones || [];
+        files = f.files || []; announcements = a.announcements || [];
+        activity = act.logs || act.activity || d.activityLogs || [];
+        members = mem.members || d.members || [];
+      } catch { /* keep defaults */ }
+    }
+    await loadWs();
+
+    content.innerHTML = `
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div class="muted">${esc(team.problems?.domain || '')} · Problem Challenge</div>
+            <h1 style="margin:0.25rem 0">${esc(team.name)}</h1>
+            <p>Problem: <strong>${esc(team.problems?.title || '')}</strong></p>
+          </div>
+          <div class="card" style="margin:0;text-align:right">
+            <div class="muted">Team Invite Code</div>
+            <div class="row"><code>${esc(team.invite_code || '')}</code><button class="btn" id="copy">Copy</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="team-layout">
+        <div>
+          <div class="card">
+            <h3>Members (${(members.length || d.members.length)}/${team.problems?.max_team_size || 4})</h3>
+            <div id="memberlist">${(members.length ? members : d.members).map(m => `
+              <div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:0.4rem 0">
+                <span><strong>${esc(m.users?.name || m.name || '')}</strong><br><span class="muted">${esc(m.users?.email || m.email || '')}</span></span>
+                <span class="badge ${m.role === 'leader' ? '' : 'gray'}">${esc(m.role || '')}</span>
+              </div>`).join('')}</div>
+            ${(isLeader || isAdmin) && wsId ? `
+              <h4>Invite by email</h4>
+              <div class="row"><input class="input" id="invemail" placeholder="teammate@jyothyit.ac.in" style="flex:1"><button class="btn" id="invitebtn">Invite</button></div>
+              <h4>Transfer leadership</h4>
+              <div class="row"><select class="select" id="newleader" style="flex:1">${(d.members || []).filter(m => m.user_id !== currentUserId).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn" id="transferbtn">Transfer</button></div>
+              <h4>Remove member</h4>
+              <div class="row"><select class="select" id="rmmember" style="flex:1">${(d.members || []).filter(m => m.user_id !== currentUserId).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn btn-danger" id="rmbtn">Remove</button></div>` : ''}
+            ${wsId ? `<button class="btn btn-danger" id="leavebtn" style="margin-top:0.75rem">Leave workspace</button>` : ''}
+          </div>
+          <div class="card">
+            <div class="row" style="justify-content:space-between"><h3>Assigned Mentors</h3>${(isLeader || isAdmin) ? '<button class="btn" id="mentorbtn">+ Request Mentor</button>' : ''}</div>
+            <div id="mentors">${(d.assignedMentors || []).length ? d.assignedMentors.map(a => `<div>🛡️ <strong>${esc(a.users?.name || '')}</strong><br><span class="muted">${esc(a.users?.email || '')}</span></div>`).join('') : '<p class="muted">No mentor assigned yet.</p>'}</div>
+            <div id="mentorform" style="display:none">
+              <label>Mentor<select class="select" id="mentorid"><option value="">-- Choose a mentor --</option>${(d.availableMentors || []).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')} (${esc((m.skills || []).join(', ') || 'General Expert')})</option>`).join('')}</select></label>
+              <label>Message<textarea class="textarea" id="mentorreqmsg" placeholder="Introduce your team..."></textarea></label>
+              <button class="btn btn-primary" id="mentorsend">Send Request →</button>
+            </div>
+            ${isAdmin && wsId && d.availableMentors ? `<label style="margin-top:0.5rem">Assign mentor directly<div class="row"><select class="select" id="directmentor" style="flex:1">${(d.availableMentors || []).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn" id="directmentorbtn">Assign</button></div></label>` : ''}
+          </div>
+          ${wsId ? `
+          <div class="card">
+            <h3>Channels</h3>
+            <div id="channels">${channels.map(c => `<div>#${esc(c.name)}</div>`).join('') || '<p class="muted">No channels yet.</p>'}</div>
+            ${(isLeader || isAdmin) ? `<div class="row"><input class="input" id="chname" placeholder="new-channel" style="flex:1"><button class="btn" id="chbtn">Create</button></div>` : ''}
+          </div>
+          <div class="card">
+            <h3>Milestones</h3>
+            <div id="milestones">${milestones.map(m => `<div class="row" style="justify-content:space-between"><span><strong>${esc(m.title)}</strong> <span class="badge ${m.status === 'completed' ? '' : 'gray'}">${esc(m.status || 'open')}</span></span><span>${(isLeader || isAdmin) ? `<button class="btn" data-ms="${esc(m.id)}" data-st="${m.status === 'completed' ? 'open' : 'completed'}">${m.status === 'completed' ? 'Reopen' : 'Complete'}</button>` : ''}</span></div>`).join('') || '<p class="muted">No milestones yet.</p>'}</div>
+            ${(isLeader || isAdmin) ? `<div class="row"><input class="input" id="mstitle" placeholder="Milestone title" style="flex:1"><button class="btn" id="msbtn">Add</button></div>` : ''}
+          </div>
+          <div class="card">
+            <h3>Files</h3>
+            <div id="files">${files.map(f => `<div><a href="${esc(f.file_url || f.url || '#')}" target="_blank" rel="noreferrer">${esc(f.file_name || f.name || 'file')}</a></div>`).join('') || '<p class="muted">No files yet.</p>'}</div>
+            <input class="input" type="file" id="wsfile">
+          </div>
+          <div class="card">
+            <h3>Announcements</h3>
+            <div id="anns">${announcements.map(a => `<div><strong>${esc(a.title)}</strong><p>${esc(a.content)}</p>${(isLeader || isAdmin) ? `<button class="btn btn-danger" data-ann="${esc(a.id)}">Delete</button>` : ''}</div>`).join('') || '<p class="muted">No announcements.</p>'}</div>
+            ${(isLeader || isAdmin) ? `<label>Title<input class="input" id="anntitle"></label><label>Content<textarea class="textarea" id="annbody"></textarea></label><button class="btn" id="annbtn">Post announcement</button>` : ''}
+          </div>` : '<div class="card"><p class="muted">Workspace is being set up — chat and workspace tools will appear shortly.</p></div>'}
+          <div class="card">
+            <h3>Workspace Activity</h3>
+            <div>${activity.map(l => `<div class="muted">${esc(l.description || '')} · ${l.created_at ? new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>`).join('') || '<p class="muted">No recent activity.</p>'}</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row" style="justify-content:space-between"><h3>Realtime Chat</h3><input class="input" id="search" placeholder="Search messages..." style="max-width:180px"></div>
+          <div id="typing" class="muted"></div>
+          <div id="chatlog"><p class="muted">Loading chat history...</p></div>
+          <div id="replybar" style="display:none" class="alert ok"></div>
+          <form id="chatform" class="row">
+            <input class="input" type="file" id="chatfile" style="max-width:180px">
+            <input class="input" id="chatinput" placeholder="Type a message... (Enter to send)" style="flex:1">
+            <button class="btn btn-primary" type="submit">Send →</button>
+          </form>
+        </div>
+      </div>`;
+
+    document.getElementById('copy')?.addEventListener('click', (e) => { navigator.clipboard.writeText(team.invite_code || ''); e.target.textContent = 'Copied! ✓'; setTimeout(() => e.target.textContent = 'Copy', 2000); });
+
+    // ---- Mentor request (POST /api/teams/request-mentor) ----
+    document.getElementById('mentorbtn')?.addEventListener('click', () => {
+      const f = document.getElementById('mentorform'); f.style.display = f.style.display === 'none' ? '' : 'none';
+    });
+    document.getElementById('mentorsend')?.addEventListener('click', async (e) => {
+      const btn = e.target; const mentorId = document.getElementById('mentorid').value;
+      if (!mentorId) return;
+      btn.disabled = true; btn.textContent = 'Sending...';
+      try {
+        await api('/api/teams/request-mentor', { method: 'POST', body: { teamId: team.id, mentorId, message: document.getElementById('mentorreqmsg').value } });
+        msg.innerHTML = alertBox('Mentorship request sent successfully!', true);
+      } catch (err) { msg.innerHTML = alertBox(err.message); }
+      btn.disabled = false; btn.textContent = 'Send Request →';
+    });
+
+    // ---- Workspace admin actions ----
+    const refresh = () => location.reload();
+    if (wsId) {
+      document.getElementById('directmentorbtn')?.addEventListener('click', async () => {
+        const mentor_id = document.getElementById('directmentor').value;
+        if (!mentor_id) return;
+        try { await api(`/api/workspaces/${wsId}/mentors`, { method: 'POST', body: { mentor_id } }); refresh(); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.getElementById('invitebtn')?.addEventListener('click', async () => {
+        try { await api(`/api/workspaces/${wsId}/invites`, { method: 'POST', body: { email: document.getElementById('invemail').value } }); msg.innerHTML = alertBox('Invite sent!', true); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.getElementById('transferbtn')?.addEventListener('click', async () => {
+        const nl = document.getElementById('newleader').value;
+        if (!nl || !confirm('Transfer leadership to this member?')) return;
+        try { await api(`/api/workspaces/${wsId}/transfer`, { method: 'POST', body: { new_leader_id: nl } }); refresh(); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.getElementById('rmbtn')?.addEventListener('click', async () => {
+        const u = document.getElementById('rmmember').value;
+        if (!u || !confirm('Remove this member?')) return;
+        try { await api(`/api/workspaces/${wsId}/members/${u}`, { method: 'DELETE' }); refresh(); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.getElementById('leavebtn')?.addEventListener('click', async () => {
+        if (!confirm('Leave this workspace?')) return;
+        try { await api(`/api/workspaces/${wsId}/leave`, { method: 'POST' }); location.href = '/teams'; }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.getElementById('chbtn')?.addEventListener('click', async () => {
+        const name = document.getElementById('chname').value.trim();
+        if (!name) return;
+        try { await api(`/api/workspaces/${wsId}/channels`, { method: 'POST', body: { name } }); refresh(); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.getElementById('msbtn')?.addEventListener('click', async () => {
+        const title = document.getElementById('mstitle').value.trim();
+        if (!title) return;
+        try { await api(`/api/workspaces/${wsId}/milestones`, { method: 'POST', body: { title } }); refresh(); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.querySelectorAll('[data-ms]').forEach(b => b.addEventListener('click', async () => {
+        try { await api(`/api/workspaces/${wsId}/milestones/${b.dataset.ms}`, { method: 'PATCH', body: { status: b.dataset.st } }); refresh(); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      }));
+      document.getElementById('annbtn')?.addEventListener('click', async () => {
+        try {
+          await api(`/api/workspaces/${wsId}/announcements`, { method: 'POST', body: { title: document.getElementById('anntitle').value, content: document.getElementById('annbody').value } });
+          refresh();
+        } catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+      document.querySelectorAll('[data-ann]').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('Delete this announcement?')) return;
+        try { await api(`/api/workspaces/${wsId}/announcements/${b.dataset.ann}`, { method: 'DELETE' }); refresh(); }
+        catch (err) { msg.innerHTML = alertBox(err.message); }
+      }));
+      document.getElementById('wsfile')?.addEventListener('change', async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          const form = new FormData();
+          form.append('file', file);
+          await api(`/api/workspaces/${wsId}/files`, { method: 'POST', form });
+          refresh();
+        } catch (err) { msg.innerHTML = alertBox(err.message); }
+      });
+    }
+
+    // ---- Realtime chat via sb() (mirrors realtime-chat.tsx) ----
+    const channelId = d.channelId;
+    const log = document.getElementById('chatlog');
+    let messages = [];
+    let replyTo = null;
+    let attachment = null;
+    const supabase = sb();
+    const renderChat = () => {
+      const q = (document.getElementById('search').value || '').toLowerCase();
+      const list = messages.filter(m => !q || (m.content || '').toLowerCase().includes(q) || (m.sender_name || '').toLowerCase().includes(q));
+      log.innerHTML = list.length ? list.map(m => {
+        const mine = m.sender_id === currentUserId;
+        const rx = (m.reactions || []).map(r => r.emoji).join(' ');
+        const atts = (m.attachments || []).map(a => `<div><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
+        return `<div class="bubble ${mine ? 'mine' : 'theirs'}">
+          <div class="muted" style="font-size:0.75rem">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+          <div>${esc(m.content || '')}</div>${atts}
+          ${rx ? `<div>${esc(rx)}</div>` : ''}
+          <div class="row" style="gap:0.25rem;margin-top:0.25rem">
+            <button class="btn" data-reply="${esc(m.id)}" style="padding:0.1rem 0.5rem;font-size:0.75rem">Reply</button>
+            ${['👍', '❤️', '🎉'].map(e2 => `<button class="btn" data-react="${esc(m.id)}" data-emoji="${e2}" style="padding:0.1rem 0.4rem">${e2}</button>`).join('')}
+          </div>
+        </div>`;
+      }).join('') : '<p class="muted">No messages yet. Start the conversation!</p>';
+      log.scrollTop = log.scrollHeight;
+      log.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
+        replyTo = messages.find(x => x.id === b.dataset.reply) || null;
+        const bar = document.getElementById('replybar');
+        if (replyTo) { bar.style.display = ''; bar.innerHTML = `Replying to <strong>${esc(replyTo.sender_name || '')}</strong>: "${esc((replyTo.content || '').slice(0, 40))}..." <a href="#" id="cancelreply">✕</a>`; document.getElementById('cancelreply').addEventListener('click', (e2) => { e2.preventDefault(); replyTo = null; bar.style.display = 'none'; }); }
+      }));
+      log.querySelectorAll('[data-react]').forEach(b => b.addEventListener('click', async () => {
+        try {
+          const r = await api('/api/messages/react', { method: 'POST', body: { messageId: b.dataset.react, emoji: b.dataset.emoji } });
+          messages = messages.map(m => {
+            if (m.id !== b.dataset.react) return m;
+            const rx = m.reactions || [];
+            if (r.reacted) { if (!rx.some(x => x.emoji === b.dataset.emoji && x.user_id === currentUserId)) return { ...m, reactions: [...rx, { emoji: b.dataset.emoji, user_id: currentUserId }] }; return m; }
+            return { ...m, reactions: rx.filter(x => !(x.emoji === b.dataset.emoji && x.user_id === currentUserId)) };
+          });
+          renderChat();
+          rt.send({ type: 'broadcast', event: 'reaction', payload: { messageId: b.dataset.react, emoji: b.dataset.emoji, user_id: currentUserId, reacted: r.reacted } });
+        } catch (err) { msg.innerHTML = alertBox(err.message); }
+      }));
+    };
+    document.getElementById('search').addEventListener('input', renderChat);
+
+    let rt = null;
+    if (channelId) {
+      const { data } = await supabase.from('messages').select('*, sender:sender_id(name), message_reactions(*), message_attachments(*)').eq('conversation_id', channelId).order('created_at', { ascending: true });
+      messages = (data || []).map(m => ({ ...m, sender_name: m.sender?.name || 'Unknown', reactions: m.message_reactions || [], attachments: m.message_attachments || [] }));
+      renderChat();
+      rt = supabase.channel(`chat:${channelId}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${channelId}` }, async (payload) => {
+          const nm = payload.new;
+          const { data: u } = await supabase.from('users').select('name').eq('id', nm.sender_id).single();
+          messages.push({ ...nm, sender_name: u?.name || 'User', reactions: [], attachments: [] });
+          renderChat();
+        })
+        .on('broadcast', { event: 'typing' }, (payload) => {
+          if (payload.payload.userId !== currentUserId) {
+            document.getElementById('typing').textContent = `${payload.payload.userName} is typing...`;
+            setTimeout(() => document.getElementById('typing').textContent = '', 3000);
+          }
+        })
+        .on('broadcast', { event: 'reaction' }, (payload) => {
+          const { messageId, emoji, user_id, reacted } = payload.payload;
+          messages = messages.map(m => {
+            if (m.id !== messageId) return m;
+            const rx = m.reactions || [];
+            if (reacted) { if (rx.some(x => x.emoji === emoji && x.user_id === user_id)) return m; return { ...m, reactions: [...rx, { emoji, user_id }] }; }
+            return { ...m, reactions: rx.filter(x => !(x.emoji === emoji && x.user_id === user_id)) };
+          });
+          renderChat();
+        });
+      rt.subscribe();
+    } else {
+      log.innerHTML = '<p class="muted">Initializing workspace communication channel...</p>';
+    }
+
+    document.getElementById('chatinput').addEventListener('input', (e) => {
+      if (rt) rt.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUserId, userName: me.profile?.name || 'User' } });
+    });
+    document.getElementById('chatfile').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !channelId) return;
+      const ext = file.name.split('.').pop();
+      const path = `${channelId}/${Math.random().toString(36).substring(2)}.${ext}`;
+      const { error } = await supabase.storage.from('message-attachments').upload(path, file);
+      if (error) { msg.innerHTML = alertBox('File upload failed: ' + error.message); return; }
+      const { data } = supabase.storage.from('message-attachments').getPublicUrl(path);
+      attachment = { url: data.publicUrl, name: file.name, size: file.size, type: file.type };
+      msg.innerHTML = alertBox(`Attached: ${file.name}`, true);
+      e.target.value = '';
+    });
+    document.getElementById('chatform').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('chatinput');
+      const text = input.value.trim();
+      if ((!text && !attachment) || !channelId) return;
+      input.value = '';
+      const { data: nm, error } = await supabase.from('messages').insert({
+        conversation_id: channelId, sender_id: currentUserId,
+        parent_id: replyTo?.id || null,
+        content: text || (attachment ? `Attached file: ${attachment.name}` : ''),
+      }).select().single();
+      if (!error && nm && attachment) {
+        await supabase.from('message_attachments').insert({ message_id: nm.id, file_url: attachment.url, file_name: attachment.name, file_size: attachment.size, file_type: attachment.type });
+        attachment = null;
+      }
+      replyTo = null; document.getElementById('replybar').style.display = 'none';
+    });
+  } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
+}
+</script>
+</body>
+</html>

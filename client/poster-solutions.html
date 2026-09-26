@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Solutions — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container">
+  <h1>Student solutions</h1>
+  <p class="muted">Solutions submitted by students for your posted problems. Score 0–10, then approve or reject.</p>
+  <div id="msg"></div>
+  <div class="row" style="margin-bottom:1rem">
+    <select class="select" id="filter" style="max-width:280px"><option value="all">All problems</option></select>
+  </div>
+  <div id="list"><p class="muted">Loading…</p></div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('poster', 'admin');
+const msg = document.getElementById('msg');
+const list = document.getElementById('list');
+const filter = document.getElementById('filter');
+let subs = [];
+function render() {
+  const pid = filter.value;
+  const rows = pid === 'all' ? subs : subs.filter(s => s.problem_id === pid);
+  if (!rows.length) {
+    list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">📝</div><strong>No submissions yet</strong><p class="muted">Once students submit solutions, they will appear here.</p></div>`;
+    return;
+  }
+  list.innerHTML = `<div class="grid">` + rows.map(s => `<div class="card" data-id="${esc(s.id)}">
+    <div class="muted" style="font-size:.8rem">${s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</div>
+    <strong>${esc(s.problems?.title || 'Problem')}</strong>
+    <div class="muted">${esc(s.problems?.domain || '—')}</div>
+    <div class="row" style="margin:.5rem 0"><strong>${esc(s.users?.name || 'Student')}</strong><span class="muted">${esc(s.users?.dept || '')} · ${esc(s.users?.year || '')}</span></div>
+    <span class="badge ${s.status === 'pending' ? 'amber' : ''}">Status: ${esc(s.status || 'pending')}</span>
+    ${s.score != null ? `<span class="badge gray">Score: ${esc(s.score)}</span>` : ''}
+    <div class="judge" style="margin-top:.75rem;display:${s.status === 'pending' ? '' : 'none'}">
+      <div class="row">
+        <label style="flex:1">Score (0–10)<input class="input" type="number" min="0" max="10" value="7" data-f="score"></label>
+      </div>
+      <label>Feedback (optional)<textarea class="textarea" data-f="feedback" rows="2" placeholder="Feedback for the student…"></textarea></label>
+      <div class="row"><button class="btn btn-primary" data-act="approve">✓ Approve</button><button class="btn btn-danger" data-act="reject">✕ Reject</button></div>
+    </div>
+  </div>`).join('') + `</div>`;
+}
+if (me) {
+  try {
+    const { problems, submissions } = await api('/api/poster/submissions');
+    subs = submissions;
+    filter.innerHTML = `<option value="all">All problems (${subs.length})</option>` + problems.map(p => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+    render();
+  } catch (e) { msg.innerHTML = alertBox(e.message); }
+}
+filter.addEventListener('change', render);
+list.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const card = btn.closest('.card');
+  const submission_id = card.dataset.id;
+  const score = Number(card.querySelector('[data-f="score"]').value);
+  const feedback = card.querySelector('[data-f="feedback"]').value || undefined;
+  btn.disabled = true;
+  try {
+    await api('/api/submissions/judge', { method: 'POST', body: { submission_id, score, feedback, decision: btn.dataset.act } });
+    msg.innerHTML = alertBox(`Submission ${btn.dataset.act}d.`, true);
+    subs = subs.map(s => s.id === submission_id ? { ...s, status: btn.dataset.act === 'approve' ? 'approved' : 'rejected', score } : s);
+    render();
+  } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+});
+</script>
+</body>
+</html>

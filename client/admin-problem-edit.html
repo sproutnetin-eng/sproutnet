@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Problem — SproutNet Admin</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
+.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
+.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
+.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
+.admin-side .meta{font-size:.75rem;color:#64748b}
+@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:1200px">
+<div class="admin-layout">
+<aside class="admin-side card">
+  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
+  <a href="/admin/problems" class="on"><strong>Problems</strong> <span class="meta">moderation</span></a>
+  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
+  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
+  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
+  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
+  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
+</aside>
+<div>
+  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">PROBLEM · EDIT</div>
+  <h1>Edit problem</h1>
+  <div class="row"><a class="btn" href="/admin/problems">← Back</a><span id="pid" class="badge gray"></span><span id="pstatus" class="badge"></span></div>
+  <div id="msg"></div>
+  <form id="f" class="card" style="display:none">
+    <label>Problem title<input class="input" name="title" id="title" required></label>
+    <div class="row">
+      <div style="flex:1;min-width:200px"><label>Domain<select class="select" name="domain" id="domain"></select></label></div>
+      <div style="flex:1;min-width:200px"><label>Problem type<select class="select" name="problem_type" id="ptype">
+        <option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option>
+      </select></label></div>
+      <div style="flex:1;min-width:200px"><label>Participation mode<select class="select" name="team_mode" id="tmode">
+        <option value="solo">Individual only</option><option value="team">Team only</option><option value="both">Individual or Team</option>
+      </select></label></div>
+    </div>
+    <div id="reward-wrap" style="display:none"><label>Reward amount (INR)<input class="input" type="number" min="0" name="reward_amount" id="reward"></label></div>
+    <div class="row">
+      <div style="flex:1"><label>Submission deadline<input class="input" type="date" name="deadline" id="deadline" required></label></div>
+      <div style="flex:1"><label>Judging deadline<input class="input" type="date" name="judging_deadline" id="jdeadline" required></label></div>
+    </div>
+    <label>Background &amp; context<textarea class="textarea" name="context" id="context" required></textarea></label>
+    <label>Problem statement<textarea class="textarea" name="problem_stmt" id="stmt" required></textarea></label>
+    <label>Scope<textarea class="textarea" name="scope" id="scope" required></textarea></label>
+    <label>Constraints<textarea class="textarea" name="constraints" id="constraints" required></textarea></label>
+    <label>Deliverables<textarea class="textarea" name="deliverables" id="deliverables" required></textarea></label>
+    <div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="save" type="submit">Save changes</button></div>
+  </form>
+</div>
+</div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('admin');
+const DOMAINS = ['AI & Data','Climate','Public Infrastructure','Healthcare','Agriculture','Education','Urban Mobility','Civic Technology'];
+const msg = document.getElementById('msg');
+const f = document.getElementById('f');
+const id = location.pathname.split('/')[3];
+if (me) {
+  if (!id) location.href = '/admin/problems';
+  else {
+    try {
+      const { problem: p } = await api(`/api/admin/problems/${id}`);
+      document.getElementById('pid').textContent = 'ID: ' + id.slice(0, 8) + '…';
+      document.getElementById('pstatus').textContent = 'Status: ' + p.status;
+      document.getElementById('domain').innerHTML = DOMAINS.map(d => `<option ${d === p.domain ? 'selected' : ''}>${esc(d)}</option>`).join('');
+      document.getElementById('title').value = p.title || '';
+      document.getElementById('ptype').value = p.problem_type || 'public_impact';
+      document.getElementById('tmode').value = ['solo', 'team', 'both'].includes(p.team_mode) ? p.team_mode : 'solo';
+      document.getElementById('reward').value = p.reward_amount ?? '';
+      document.getElementById('deadline').value = (p.deadline || '').slice(0, 10);
+      document.getElementById('jdeadline').value = (p.judging_deadline || '').slice(0, 10);
+      document.getElementById('context').value = p.context || '';
+      document.getElementById('stmt').value = p.problem_stmt || '';
+      document.getElementById('scope').value = p.scope || '';
+      document.getElementById('constraints').value = p.constraints || '';
+      document.getElementById('deliverables').value = p.deliverables || '';
+      document.getElementById('reward-wrap').style.display = document.getElementById('ptype').value === 'industry_challenge' ? '' : 'none';
+      document.getElementById('ptype').addEventListener('change', (e) => {
+        document.getElementById('reward-wrap').style.display = e.target.value === 'industry_challenge' ? '' : 'none';
+      });
+      f.style.display = '';
+    } catch (e) { msg.innerHTML = alertBox(e.message); }
+  }
+}
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('save');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const fd = new FormData(f);
+    if (fd.get('judging_deadline') && fd.get('deadline') && fd.get('judging_deadline') < fd.get('deadline')) {
+      throw new Error('Judging deadline must be on or after the submission deadline.');
+    }
+    await api('/api/problems/update', { method: 'POST', body: {
+      id, title: String(fd.get('title')).trim(), domain: fd.get('domain'),
+      problem_type: fd.get('problem_type'),
+      reward_amount: fd.get('problem_type') === 'industry_challenge' && fd.get('reward_amount') ? Number(fd.get('reward_amount')) : null,
+      milestones: 1, deadline: fd.get('deadline'), judging_deadline: fd.get('judging_deadline'),
+      context: String(fd.get('context')).trim(), problem_stmt: String(fd.get('problem_stmt')).trim(),
+      scope: String(fd.get('scope')).trim(), constraints: String(fd.get('constraints')).trim(),
+      deliverables: String(fd.get('deliverables')).trim(), team_mode: fd.get('team_mode'),
+    }});
+    msg.innerHTML = alertBox('Problem updated.', true);
+    setTimeout(() => location.href = '/admin/problems', 800);
+  } catch (err) {
+    let m = err.message;
+    if (m.includes('min_deadline')) m = 'Submission deadline is too soon. Please choose a later date.';
+    msg.innerHTML = alertBox(m);
+    btn.disabled = false; btn.textContent = 'Save changes';
+  }
+});
+</script>
+</body>
+</html>

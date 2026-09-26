@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mentors | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <p class="muted">// find your guide</p>
+  <h1>Browse Mentors</h1>
+  <p class="muted">Connect with expert mentors who can guide your team. Filter by skills and technologies.</p>
+  <div class="card"><div class="row">
+    <input class="input" id="f-search" placeholder="Search mentors by name, skills, or bio…" style="max-width:260px;">
+    <select class="select" id="f-skill" style="max-width:180px;"><option value="">All Skills</option></select>
+    <select class="select" id="f-tech" style="max-width:180px;"><option value="">All Technologies</option></select>
+    <label><input type="checkbox" id="f-avail"> Available only</label>
+  </div></div>
+  <p class="muted" id="count"></p>
+  <div id="grid" class="grid"><p class="muted">Loading…</p></div>
+  <div id="modal"></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('mentors');
+const msg = (h) => { document.getElementById('msg').innerHTML = h; };
+let mentors = [], ctx = { currentUser: null, pendingMentorIds: [], connectedMentorIds: [] };
+let search = '', fSkill = '', fTech = '', availOnly = false;
+
+function filtered() {
+  let list = mentors;
+  if (availOnly) list = list.filter(m => m.availability_status === 'available');
+  if (fSkill) list = list.filter(m => (m.skills || []).includes(fSkill));
+  if (fTech) list = list.filter(m => (m.technologies || []).includes(fTech));
+  if (search.trim()) { const ql = search.toLowerCase();
+    list = list.filter(m => (m.users?.name || '').toLowerCase().includes(ql) || (m.bio || '').toLowerCase().includes(ql)
+      || (m.skills || []).some(s => s.toLowerCase().includes(ql)) || (m.technologies || []).some(t => t.toLowerCase().includes(ql))); }
+  return list;
+}
+
+function render() {
+  const list = filtered();
+  document.getElementById('count').textContent = `${list.length} mentor(s) found`;
+  document.getElementById('grid').innerHTML = list.length ? list.map(m => {
+    const st = ctx.currentUser?.role === 'student'
+      ? ctx.connectedMentorIds.includes(m.user_id) ? '<span class="badge">Connected ✓</span>'
+      : ctx.pendingMentorIds.includes(m.user_id) ? '<span class="badge amber">Pending</span>'
+      : `<button class="btn" data-connect="${esc(m.user_id)}">Connect</button>` : '';
+    return `<div class="card"><div class="row"><div><h3 style="margin:0;">${esc(m.users?.name || 'Unknown')}</h3>
+      <span class="muted">${m.experience_years > 0 ? `${esc(String(m.experience_years))} year(s) experience` : 'New mentor'}</span></div>
+      <span class="badge ${m.availability_status === 'available' ? '' : 'gray'}">${esc(m.availability_status || '')}</span></div>
+      ${m.bio ? `<p class="muted">${esc(m.bio)}</p>` : ''}
+      ${(m.skills || []).length ? `<div>${(m.skills || []).map(s => `<span class="badge">${esc(s)}</span>`).join(' ')}</div>` : ''}
+      ${(m.technologies || []).length ? `<div style="margin-top:.4rem;">${(m.technologies || []).map(t => `<span class="badge gray">${esc(t)}</span>`).join(' ')}</div>` : ''}
+      <div class="row" style="margin-top:.6rem;">
+        ${m.linkedin_url ? `<a href="${esc(m.linkedin_url)}" target="_blank" rel="noopener">LinkedIn</a>` : ''}
+        ${m.github_url ? `<a href="${esc(m.github_url)}" target="_blank" rel="noopener">GitHub</a>` : ''}
+        <span style="flex:1;"></span>${st}</div></div>`; }).join('')
+    : '<div class="card"><p class="muted">No mentors match your current filters.</p></div>';
+  document.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', () => openModal(b.dataset.connect)));
+}
+
+function openModal(mentorId) {
+  document.getElementById('modal').innerHTML = `<div class="card"><h2>Connect with Mentor</h2>
+    <p class="muted">Send a personal mentorship request. The mentor will be notified.</p>
+    <div id="c-err"></div>
+    <label>Message (optional)</label>
+    <textarea class="textarea" id="c-msg" placeholder="Introduce yourself and explain what you'd like guidance on…"></textarea>
+    <div class="row"><button class="btn" id="c-cancel">Cancel</button>
+    <button class="btn btn-primary" id="c-send">Send Request →</button></div></div>`;
+  document.getElementById('c-cancel').addEventListener('click', () => { document.getElementById('modal').innerHTML = ''; });
+  document.getElementById('c-send').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    try { await api('/api/mentors/connect', { method:'POST', body:{ mentorId, message: document.getElementById('c-msg').value } });
+      ctx.pendingMentorIds.push(mentorId);
+      document.getElementById('modal').innerHTML = alertBox('Connection request sent! The mentor will be notified.', true);
+      render();
+    } catch (err) { document.getElementById('c-err').innerHTML = alertBox(err.message); e.target.disabled = false; }
+  });
+}
+
+try {
+  const [m, c] = await Promise.all([
+    api('/api/public/mentors'),
+    api('/api/public/mentor-context').catch(() => ({ currentUser: null, pendingMentorIds: [], connectedMentorIds: [] })),
+  ]);
+  mentors = m.mentors || []; ctx = { currentUser: c.currentUser || null, pendingMentorIds: c.pendingMentorIds || [], connectedMentorIds: c.connectedMentorIds || [] };
+  const skills = [...new Set(mentors.flatMap(m => m.skills || []))].sort();
+  const techs = [...new Set(mentors.flatMap(m => m.technologies || []))].sort();
+  document.getElementById('f-skill').innerHTML = '<option value="">All Skills</option>' + skills.map(s => `<option>${esc(s)}</option>`).join('');
+  document.getElementById('f-tech').innerHTML = '<option value="">All Technologies</option>' + techs.map(t => `<option>${esc(t)}</option>`).join('');
+  if (!mentors.length) { document.getElementById('grid').innerHTML = `<div class="card" style="text-align:center;"><h2>No mentors registered yet</h2><p class="muted">Mentors will appear here once they set up their profiles.</p></div>`; return; }
+  render();
+  document.getElementById('f-search').oninput = (e) => { search = e.target.value; render(); };
+  document.getElementById('f-skill').onchange = (e) => { fSkill = e.target.value; render(); };
+  document.getElementById('f-tech').onchange = (e) => { fTech = e.target.value; render(); };
+  document.getElementById('f-avail').onchange = (e) => { availOnly = e.target.checked; render(); };
+} catch (e) { msg(alertBox(e.message)); document.getElementById('grid').innerHTML = ''; }
+</script>
+</body>
+</html>

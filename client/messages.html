@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messages | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.messages-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1rem; }
+@media (max-width: 768px) { .messages-layout { grid-template-columns: 1fr; } }
+#chatlog { display: flex; flex-direction: column; gap: 0.6rem; max-height: 52vh; overflow-y: auto; }
+.bubble { max-width: 78%; padding: 0.5rem 0.8rem; border-radius: 12px; border: 1px solid var(--line); font-size: 0.92rem; }
+.bubble.mine { align-self: flex-end; background: #2D6A4F; color: #fff; border: none; }
+.bubble.theirs { align-self: flex-start; background: #fff; }
+.convbtn.on { border-color: var(--green) !important; background: #dcfce7 !important; }
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:1200px">
+  <div id="msg"></div>
+  <div id="content"><p class="muted">Loading conversations...</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const msg = document.getElementById('msg');
+const content = document.getElementById('content');
+
+const s = await requireAuth();
+if (s) {
+  try {
+    const { conversations, currentUserId } = await api('/api/student/conversations');
+    const me = await api('/api/auth/profile').catch(() => ({ profile: null }));
+    let active = conversations[0]?.id || '';
+    let messages = [];
+    let replyTo = null;
+    let rt = null;
+    const supabase = sb();
+
+    content.innerHTML = `
+      <div class="messages-layout">
+        <div class="card" id="side">
+          <h3>Conversations</h3>
+          ${conversations.length ? conversations.map(c => `
+            <button class="btn convbtn ${c.id === active ? 'on' : ''}" data-c="${esc(c.id)}" style="display:block;width:100%;text-align:left;margin-bottom:0.5rem">
+              <strong>#${esc(c.name)}</strong><br><span class="muted">${esc(c.teamName)}</span>
+            </button>`).join('') : '<p class="muted">No active conversations yet. Join a team or request a mentor to get started!</p>'}
+        </div>
+        <div class="card">
+          <div class="row" style="justify-content:space-between"><h3>Realtime Chat</h3><input class="input" id="search" placeholder="Search messages..." style="max-width:180px"></div>
+          <div id="typing" class="muted"></div>
+          <div id="chatlog"></div>
+          <div id="replybar" style="display:none" class="alert ok"></div>
+          <form id="chatform" class="row">
+            <input class="input" type="file" id="chatfile" style="max-width:180px">
+            <input class="input" id="chatinput" placeholder="Type a message... (Enter to send)" style="flex:1">
+            <button class="btn btn-primary" type="submit">Send →</button>
+          </form>
+        </div>
+      </div>`;
+
+    const log = document.getElementById('chatlog');
+    const renderChat = () => {
+      const q = (document.getElementById('search').value || '').toLowerCase();
+      const list = messages.filter(m => !q || (m.content || '').toLowerCase().includes(q) || (m.sender_name || '').toLowerCase().includes(q));
+      log.innerHTML = list.length ? list.map(m => {
+        const mine = m.sender_id === currentUserId;
+        const rx = (m.reactions || []).map(r => r.emoji).join(' ');
+        const atts = (m.attachments || []).map(a => `<div><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
+        return `<div class="bubble ${mine ? 'mine' : 'theirs'}">
+          <div class="muted" style="font-size:0.75rem">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+          <div>${esc(m.content || '')}</div>${atts}${rx ? `<div>${esc(rx)}</div>` : ''}
+          <div class="row" style="gap:0.25rem;margin-top:0.25rem">
+            <button class="btn" data-reply="${esc(m.id)}" style="padding:0.1rem 0.5rem;font-size:0.75rem">Reply</button>
+            ${['👍', '❤️', '🎉'].map(e2 => `<button class="btn" data-react="${esc(m.id)}" data-emoji="${e2}" style="padding:0.1rem 0.4rem">${e2}</button>`).join('')}
+          </div></div>`;
+      }).join('') : '<p class="muted">No messages yet. Start the conversation!</p>';
+      log.scrollTop = log.scrollHeight;
+      log.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
+        replyTo = messages.find(x => x.id === b.dataset.reply) || null;
+        const bar = document.getElementById('replybar');
+        if (replyTo) { bar.style.display = ''; bar.innerHTML = `Replying to <strong>${esc(replyTo.sender_name || '')}</strong> <a href="#" id="cancelreply">✕</a>`; document.getElementById('cancelreply').addEventListener('click', (e2) => { e2.preventDefault(); replyTo = null; bar.style.display = 'none'; }); }
+      }));
+      log.querySelectorAll('[data-react]').forEach(b => b.addEventListener('click', async () => {
+        try {
+          const r = await api('/api/messages/react', { method: 'POST', body: { messageId: b.dataset.react, emoji: b.dataset.emoji } });
+          messages = messages.map(m => {
+            if (m.id !== b.dataset.react) return m;
+            const rx = m.reactions || [];
+            if (r.reacted) { if (!rx.some(x => x.emoji === b.dataset.emoji && x.user_id === currentUserId)) return { ...m, reactions: [...rx, { emoji: b.dataset.emoji, user_id: currentUserId }] }; return m; }
+            return { ...m, reactions: rx.filter(x => !(x.emoji === b.dataset.emoji && x.user_id === currentUserId)) };
+          });
+          renderChat();
+          rt?.send({ type: 'broadcast', event: 'reaction', payload: { messageId: b.dataset.react, emoji: b.dataset.emoji, user_id: currentUserId, reacted: r.reacted } });
+        } catch (err) { msg.innerHTML = alertBox(err.message); }
+      }));
+    };
+    document.getElementById('search').addEventListener('input', renderChat);
+
+    async function openConv(id) {
+      active = id;
+      document.querySelectorAll('.convbtn').forEach(b => b.classList.toggle('on', b.dataset.c === id));
+      if (rt) { await supabase.removeChannel(rt); rt = null; }
+      messages = [];
+      log.innerHTML = '<p class="muted">Loading chat history...</p>';
+      const { data } = await supabase.from('messages').select('*, sender:sender_id(name), message_reactions(*), message_attachments(*)').eq('conversation_id', id).order('created_at', { ascending: true });
+      messages = (data || []).map(m => ({ ...m, sender_name: m.sender?.name || 'Unknown', reactions: m.message_reactions || [], attachments: m.message_attachments || [] }));
+      renderChat();
+      rt = supabase.channel(`chat:${id}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${id}` }, async (payload) => {
+          const nm = payload.new;
+          const { data: u } = await supabase.from('users').select('name').eq('id', nm.sender_id).single();
+          messages.push({ ...nm, sender_name: u?.name || 'User', reactions: [], attachments: [] });
+          renderChat();
+        })
+        .on('broadcast', { event: 'typing' }, (payload) => {
+          if (payload.payload.userId !== currentUserId) {
+            document.getElementById('typing').textContent = `${payload.payload.userName} is typing...`;
+            setTimeout(() => document.getElementById('typing').textContent = '', 3000);
+          }
+        })
+        .on('broadcast', { event: 'reaction' }, (payload) => {
+          const { messageId, emoji, user_id, reacted } = payload.payload;
+          messages = messages.map(m => {
+            if (m.id !== messageId) return m;
+            const rx = m.reactions || [];
+            if (reacted) { if (rx.some(x => x.emoji === emoji && x.user_id === user_id)) return m; return { ...m, reactions: [...rx, { emoji, user_id }] }; }
+            return { ...m, reactions: rx.filter(x => !(x.emoji === emoji && x.user_id === user_id)) };
+          });
+          renderChat();
+        });
+      rt.subscribe();
+    }
+
+    document.querySelectorAll('.convbtn').forEach(b => b.addEventListener('click', () => openConv(b.dataset.c)));
+    document.getElementById('chatinput').addEventListener('input', () => {
+      rt?.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUserId, userName: me.profile?.name || 'User' } });
+    });
+    document.getElementById('chatfile').addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !active) return;
+      const ext = file.name.split('.').pop();
+      const path = `${active}/${Math.random().toString(36).substring(2)}.${ext}`;
+      const { error } = await supabase.storage.from('message-attachments').upload(path, file);
+      if (error) { msg.innerHTML = alertBox('File upload failed: ' + error.message); return; }
+      const { data } = supabase.storage.from('message-attachments').getPublicUrl(path);
+      window._chatAtt = { url: data.publicUrl, name: file.name, size: file.size, type: file.type };
+      msg.innerHTML = alertBox(`Attached: ${file.name}`, true);
+      e.target.value = '';
+    });
+    document.getElementById('chatform').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('chatinput');
+      const text = input.value.trim();
+      const att = window._chatAtt || null;
+      if ((!text && !att) || !active) return;
+      input.value = '';
+      const { data: nm, error } = await supabase.from('messages').insert({
+        conversation_id: active, sender_id: currentUserId,
+        parent_id: replyTo?.id || null,
+        content: text || (att ? `Attached file: ${att.name}` : ''),
+      }).select().single();
+      if (!error && nm && att) {
+        await supabase.from('message_attachments').insert({ message_id: nm.id, file_url: att.url, file_name: att.name, file_size: att.size, file_type: att.type });
+        window._chatAtt = null;
+      }
+      replyTo = null; document.getElementById('replybar').style.display = 'none';
+    });
+
+    if (active) openConv(active);
+    else log.innerHTML = '<p class="muted">Select a conversation from the sidebar to start chatting.</p>';
+  } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
+}
+</script>
+</body>
+</html>

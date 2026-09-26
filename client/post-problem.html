@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post a Problem — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:820px">
+  <h1>Post a problem</h1>
+  <p class="muted">Give students enough context to build serious, structured solutions.</p>
+  <div id="msg"></div>
+  <form id="f" class="card">
+    <label>Problem title<input class="input" name="title" required placeholder="Short, descriptive title"></label>
+    <label>Thumbnail image (optional, JPG/PNG/WebP/GIF ≤ 5 MB)<input class="input" type="file" id="thumb" accept="image/jpeg,image/png,image/webp,image/gif"></label>
+    <div id="thumb-preview"></div>
+    <div class="row">
+      <div style="flex:1;min-width:200px"><label>Domain<select class="select" name="domain">
+        <option>AI &amp; Data</option><option>Climate</option><option>Public Infrastructure</option>
+        <option>Healthcare</option><option>Agriculture</option><option>Education</option>
+        <option>Urban Mobility</option><option>Civic Technology</option>
+      </select></label></div>
+      <div style="flex:1;min-width:200px"><label>Problem type<select class="select" name="problem_type" id="ptype">
+        <option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option>
+      </select></label></div>
+    </div>
+    <div id="reward-wrap" style="display:none"><label>Reward amount (INR)<input class="input" type="number" min="0" name="reward_amount" placeholder="50000"></label></div>
+    <label>Participation type<select class="select" name="team_mode" id="tmode">
+      <option value="solo">Individual Only</option><option value="team">Team Only</option><option value="both">Both Individual &amp; Team</option>
+    </select></label>
+    <div class="row" id="team-sizes" style="display:none">
+      <div style="flex:1"><label>Min team size<input class="input" type="number" min="2" max="10" name="min_team_size" value="2"></label></div>
+      <div style="flex:1"><label>Max team size<input class="input" type="number" min="2" max="10" name="max_team_size" value="4"></label></div>
+    </div>
+    <label class="row"><input type="checkbox" name="mentor_required"> Require mentor guidance for this problem</label>
+    <div class="row">
+      <div style="flex:1"><label>Submission deadline<input class="input" type="date" name="deadline" required></label></div>
+      <div style="flex:1"><label>Judging deadline<input class="input" type="date" name="judging_deadline" required></label></div>
+    </div>
+    <label>Background &amp; context<textarea class="textarea" name="context" required placeholder="Why this problem matters, who is affected, what has been tried."></textarea></label>
+    <label>Problem statement<textarea class="textarea" name="problem_stmt" required placeholder="The exact problem to be solved."></textarea></label>
+    <label>Scope<textarea class="textarea" name="scope" required placeholder="In scope / out of scope."></textarea></label>
+    <label>Constraints<textarea class="textarea" name="constraints" required placeholder="Budget, policy, infrastructure constraints."></textarea></label>
+    <label>Deliverables<textarea class="textarea" name="deliverables" required placeholder="Expected outputs, format, artifacts."></textarea></label>
+    <div class="row" style="justify-content:flex-end">
+      <a class="btn" href="/poster/dashboard">Cancel</a>
+      <button class="btn btn-primary" id="submit" type="submit">Submit for review</button>
+    </div>
+  </form>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('poster', 'admin');
+if (!me) throw new Error('blocked');
+const msg = document.getElementById('msg');
+const f = document.getElementById('f');
+const thumb = document.getElementById('thumb');
+document.getElementById('ptype').addEventListener('change', (e) => {
+  document.getElementById('reward-wrap').style.display = e.target.value === 'industry_challenge' ? '' : 'none';
+});
+document.getElementById('tmode').addEventListener('change', (e) => {
+  document.getElementById('team-sizes').style.display = e.target.value === 'solo' ? 'none' : '';
+});
+thumb.addEventListener('change', () => {
+  const file = thumb.files[0];
+  const prev = document.getElementById('thumb-preview');
+  if (!file) { prev.innerHTML = ''; return; }
+  if (file.size > 5 * 1024 * 1024) { msg.innerHTML = alertBox('Thumbnail must be 5 MB or smaller.'); thumb.value = ''; prev.innerHTML = ''; return; }
+  const url = URL.createObjectURL(file);
+  prev.innerHTML = `<div class="card"><img src="${url}" alt="preview" style="max-width:100%;border-radius:8px"><p class="muted">${esc(file.name)}</p></div>`;
+});
+f.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('submit');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    const fd = new FormData(f);
+    if (fd.get('judging_deadline') && fd.get('deadline') && fd.get('judging_deadline') < fd.get('deadline')) {
+      throw new Error('Judging deadline must be on or after the submission deadline.');
+    }
+    let thumbnail_url = null;
+    if (thumb.files[0]) {
+      btn.textContent = 'Uploading image…';
+      const up = new FormData();
+      up.append('file', thumb.files[0]);
+      const r = await api('/api/problems/thumbnail', { method: 'POST', form: up });
+      thumbnail_url = typeof r.url === 'string' ? r.url : null;
+    }
+    const teamMode = fd.get('team_mode');
+    const payload = {
+      title: String(fd.get('title')).trim(), domain: fd.get('domain'),
+      problem_type: fd.get('problem_type'), status: 'open', thumbnail_url,
+      reward_amount: fd.get('problem_type') === 'industry_challenge' && fd.get('reward_amount') ? Number(fd.get('reward_amount')) : null,
+      milestones: 1, deadline: fd.get('deadline'), judging_deadline: fd.get('judging_deadline'),
+      context: String(fd.get('context')).trim(), problem_stmt: String(fd.get('problem_stmt')).trim(),
+      scope: String(fd.get('scope')).trim(), constraints: String(fd.get('constraints')).trim(),
+      deliverables: String(fd.get('deliverables')).trim(), team_mode: teamMode,
+      min_team_size: teamMode === 'solo' ? 1 : (Number(fd.get('min_team_size')) || 2),
+      max_team_size: teamMode === 'solo' ? 1 : (Number(fd.get('max_team_size')) || 4),
+      mentor_required: !!fd.get('mentor_required'), max_mentors_per_team: 1,
+    };
+    const r = await api('/api/problems/create', { method: 'POST', body: payload });
+    msg.innerHTML = alertBox(r.warning ? r.warning + ' Run supabase/migrations/20260313_add_problem_thumbnail.sql to enable thumbnails.' : 'Problem posted successfully. Redirecting…', true);
+    setTimeout(() => location.href = '/poster/dashboard', 1200);
+  } catch (err) {
+    let m = err.message;
+    if (m.includes('min_deadline')) m = 'Submission deadline is too soon. Please choose a later date.';
+    msg.innerHTML = alertBox(m);
+    btn.disabled = false; btn.textContent = 'Submit for review';
+  }
+});
+</script>
+</body>
+</html>

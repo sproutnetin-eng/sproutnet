@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin login | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:440px">
+  <div class="card" style="text-align:center">
+    <h1>Admin login</h1>
+    <p class="muted">Sign in to manage the platform.</p>
+  </div>
+  <div class="card">
+    <div id="msg"></div>
+    <form id="f">
+      <label>Admin email<input class="input" type="email" id="email" required placeholder="admin@sproutnet.org"></label>
+      <label>Password<input class="input" type="password" id="password" required placeholder="********"></label>
+      <button class="btn btn-primary" style="width:100%" type="submit" id="btn">Sign in as Admin →</button>
+    </form>
+    <p style="text-align:center"><a href="/forgot-password">Forgot password?</a></p>
+  </div>
+  <p class="muted" style="text-align:center">Restricted access · Platform administrators only · <a href="/login">Back to role selection</a></p>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, renderNav, alertBox } from '/assets/app.js';
+renderNav('login');
+const msg = document.getElementById('msg');
+document.getElementById('f').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('btn');
+  btn.disabled = true; btn.textContent = 'Signing in...'; msg.innerHTML = '';
+  try {
+    const supabase = sb();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.user) throw new Error('Invalid email or password. Please try again.');
+    const me = await api('/api/auth/profile');
+    if (!me.profile) { await supabase.auth.signOut(); throw new Error('Profile not found. Please contact support.'); }
+    if (me.profile.role !== 'admin' && !me.profile.is_master) {
+      await supabase.auth.signOut();
+      throw new Error(`This account has role "${me.profile.role}". Please use the appropriate login page.`);
+    }
+    location.href = '/admin';
+  } catch (err) { msg.innerHTML = alertBox(err.message); }
+  btn.disabled = false; btn.textContent = 'Sign in as Admin →';
+});
+</script>
+</body>
+</html>

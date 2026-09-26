@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Final upload | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:860px">
+  <div id="msg"></div>
+  <div id="content"><p class="muted">Loading final upload stage...</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const msg = document.getElementById('msg');
+const content = document.getElementById('content');
+const problemId = location.pathname.split('/')[2];
+const MAX_ITEMS = 10;
+const isUrl = (u) => /^https?:\/\//i.test(u);
+
+const me = await requireRole('student');
+if (!me) throw new Error('redirect');
+try {
+  const ctx = await api(`/api/student/final-context?problem_id=${encodeURIComponent(problemId)}`);
+  const { problem, profile, submission } = ctx;
+  let deliverables = [];
+  try { const p = JSON.parse(submission.final_deliverables || 'null'); if (Array.isArray(p)) deliverables = p; } catch { /* none */ }
+  let participantType = submission.participant_type === 'team' ? 'team' : 'individual';
+  const typeOptions = problem?.team_mode === 'team' ? ['team'] : problem?.team_mode === 'solo' ? ['individual'] : ['individual', 'team'];
+
+  content.innerHTML = `
+    <div class="card">
+      <span class="badge">STAGE 2 · FINAL WORK</span> ${problem?.domain ? `<span class="badge gray">${esc(problem.domain)}</span>` : ''}
+      <h1>${esc(problem?.title || '')}</h1>
+      <div class="alert ok">Your solution was approved${submission.score != null ? ` · Score ${submission.score}/10` : ''}${submission.judge_feedback ? `<br>Judge feedback: ${esc(submission.judge_feedback)}` : ''}</div>
+    </div>
+    <div class="card">
+      <h2>Upload what you have built</h2>
+      <p class="muted">Add up to ${MAX_ITEMS} items — research paper, APK/app build, live app link, GitHub repository, demo video, or any other file (max 25 MB each).</p>
+      <label>This entry is by</label>
+      <div class="row" id="types">${typeOptions.map(o => `<button class="btn" data-t="${o}">${o === 'team' ? '👥 Team' : '🙋 Individual'}</button>`).join('')}</div>
+      <div class="row" style="margin-top:0.75rem">
+        <input class="input" id="linklabel" maxlength="80" placeholder="Label: Research paper / GitHub / Live app…" style="flex:1">
+        <input class="input" id="linkurl" placeholder="https://…" style="flex:2">
+        <button class="btn btn-primary" id="addlink">+ Add link</button>
+      </div>
+      <input class="input" type="file" id="upfile" style="margin-top:0.75rem">
+      <div class="muted" id="count"></div>
+      <div id="list"></div>
+    </div>
+    <div class="card row" style="position:sticky;bottom:12px">
+      <span class="muted" id="status"></span>
+      <a class="btn" href="/problems/${esc(problemId)}">Back to problem</a>
+      <button class="btn btn-primary" id="save">Submit final work</button>
+    </div>`;
+
+  const paintTypes = () => document.querySelectorAll('#types [data-t]').forEach(b => b.classList.toggle('btn-primary', b.dataset.t === participantType));
+  document.querySelectorAll('#types [data-t]').forEach(b => b.addEventListener('click', () => { participantType = b.dataset.t; paintTypes(); }));
+  paintTypes();
+
+  const render = () => {
+    document.getElementById('count').textContent = `${deliverables.length} of ${MAX_ITEMS} items added · any file type, up to 25 MB`;
+    document.getElementById('status').textContent = `${deliverables.length} item(s) ready.`;
+    document.getElementById('list').innerHTML = deliverables.map((d, i) =>
+      `<div class="row"><span><strong>${i + 1}.</strong> <a href="${esc(d.url)}" target="_blank" rel="noreferrer">${esc(d.label)}</a> <span class="badge gray">${esc((d.kind || '').toUpperCase())}</span></span><button class="btn" data-i="${i}">Remove</button></div>`).join('');
+    document.querySelectorAll('#list [data-i]').forEach(b => b.addEventListener('click', () => { deliverables.splice(Number(b.dataset.i), 1); render(); }));
+  };
+  render();
+
+  document.getElementById('addlink').addEventListener('click', () => {
+    if (deliverables.length >= MAX_ITEMS) { msg.innerHTML = alertBox(`You can add up to ${MAX_ITEMS} deliverables.`); return; }
+    const label = document.getElementById('linklabel').value.trim();
+    const url = document.getElementById('linkurl').value.trim();
+    if (!label || !url) { msg.innerHTML = alertBox('Enter a label and the link URL.'); return; }
+    if (!isUrl(url)) { msg.innerHTML = alertBox('Links must start with http:// or https://'); return; }
+    deliverables.push({ kind: 'link', label, url });
+    document.getElementById('linklabel').value = ''; document.getElementById('linkurl').value = '';
+    msg.innerHTML = ''; render();
+  });
+
+  document.getElementById('upfile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (deliverables.length >= MAX_ITEMS) { msg.innerHTML = alertBox(`You can add up to ${MAX_ITEMS} deliverables.`); e.target.value = ''; return; }
+    if (file.size > 25 * 1024 * 1024) { msg.innerHTML = alertBox('Files must be 25 MB or smaller.'); e.target.value = ''; return; }
+    try {
+      const form = new FormData();
+      form.append('problem_id', problemId);
+      form.append('file', file);
+      const data = await api('/api/submissions/deliverable-upload', { method: 'POST', form });
+      if (data.url) deliverables.push({ kind: 'file', label: String(data.name || file.name), url: data.url, name: String(data.name || file.name) });
+      msg.innerHTML = ''; render();
+    } catch (err) { msg.innerHTML = alertBox(err.message); }
+    e.target.value = '';
+  });
+
+  document.getElementById('save').addEventListener('click', async (e) => {
+    if (!confirm('Submit your final work? This replaces everything currently saved for this problem.')) return;
+    const btn = e.target;
+    btn.disabled = true; btn.textContent = 'Submitting...'; msg.innerHTML = '';
+    try {
+      const { error } = await sb().from('submissions').update({ final_deliverables: deliverables, participant_type: participantType }).eq('id', submission.id);
+      if (error) throw error;
+      msg.innerHTML = alertBox(`Final work submitted! ${deliverables.length} item(s) delivered as ${participantType}.`, true);
+      document.getElementById('status').textContent = '✓ Final work saved.';
+    } catch (err) { msg.innerHTML = alertBox(err.message); }
+    btn.disabled = false; btn.textContent = 'Submit final work';
+  });
+} catch (err) {
+  if (err.message !== 'redirect') { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
+}
+</script>
+</body>
+</html>

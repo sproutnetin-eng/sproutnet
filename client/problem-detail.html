@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Problem | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.tabs { display:flex; gap:.25rem; border-bottom:1px solid var(--line); margin-bottom:1rem; overflow-x:auto; }
+.tabs button { border:none; background:none; padding:.6rem 1rem; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; }
+.tabs button.on { border-bottom-color: var(--green); font-weight:700; }
+.reply { margin-left:1.5rem; border-left:2px solid var(--line); padding-left:1rem; }
+pre.wrap { white-space:pre-wrap; font-family:inherit; margin:0; }
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <div id="content"><p class="muted">Loading…</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('problems');
+const id = location.pathname.split('/')[2];
+const SECTIONS = [['context','Background & Context'],['problem_stmt','The Problem'],['scope','Scope'],['constraints','Constraints'],['deliverables','Deliverables']];
+let problem = null, comments = [], me = null, activeSection = 'context';
+let sortBy = 'newest', searchQuery = '', likeCounts = {}, liked = new Set();
+try { liked = new Set(JSON.parse(localStorage.getItem('sn_likes') || '[]')); } catch {}
+
+const msg = (h) => { document.getElementById('msg').innerHTML = h; };
+const rel = (d) => { const s = Math.max(0, (Date.now() - new Date(d).getTime()) / 1000);
+  if (s < 60) return 'Just now'; if (s < 3600) return Math.floor(s/60)+'m ago';
+  if (s < 86400) return Math.floor(s/3600)+'h ago'; if (s < 604800) return Math.floor(s/86400)+'d ago';
+  return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short' }); };
+
+function fmtBody(t) { return esc(t); }
+
+function sortedRoots() {
+  let roots = comments.filter(c => !c.parent_id);
+  if (searchQuery.trim()) { const ql = searchQuery.toLowerCase();
+    roots = roots.filter(c => c.body.toLowerCase().includes(ql) || (c.users?.name || '').toLowerCase().includes(ql)); }
+  roots = [...roots].sort((a, b) => sortBy === 'top'
+    ? ((likeCounts[b.id] ?? 0) - (likeCounts[a.id] ?? 0))
+    : sortBy === 'oldest' ? new Date(a.created_at) - new Date(b.created_at) : new Date(b.created_at) - new Date(a.created_at));
+  return roots;
+}
+
+function commentCard(c, child = false) {
+  const isPoster = c.author_id === problem.poster_id;
+  const likes = likeCounts[c.id] ?? 0;
+  const replies = comments.filter(r => r.parent_id === c.id);
+  return `<div class="${child ? 'reply' : ''}"><div class="card">
+    <div><b>${esc(c.users?.name || 'Community Contributor')}</b>
+    ${isPoster ? ' <span class="badge amber">OP / Poster</span>' : c.users?.role ? ` <span class="badge gray">${esc(c.users.role)}</span>` : ''}
+    <span class="muted"> · ${esc(rel(c.created_at))}</span></div>
+    <pre class="wrap">${fmtBody(c.body)}</pre>
+    <div class="row">
+      <button class="btn" data-like="${esc(c.id)}">${liked.has(c.id) ? '♥' : '♡'} ${likes}</button>
+      ${me ? `<button class="btn" data-reply="${esc(c.id)}">Reply</button>` : ''}
+    </div>
+    <div data-replybox="${esc(c.id)}"></div>
+    ${replies.map(r => commentCard(r, true)).join('')}
+  </div></div>`;
+}
+
+function renderDiscussion() {
+  const roots = sortedRoots();
+  document.getElementById('discussion').innerHTML = `
+    <div class="row">
+      <input class="input" id="d-search" placeholder="Search responses…" value="${esc(searchQuery)}" style="max-width:220px;">
+      <select class="select" id="d-sort" style="max-width:140px;">
+        ${['newest','top','oldest'].map(s => `<option ${sortBy===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <span class="muted">${comments.length} contribution(s)</span>
+    </div>
+    ${me ? `<div class="card"><label>Discuss as ${esc(me.name)}</label>
+      <textarea class="textarea" id="d-body" placeholder="Share a response, ask a question… (Markdown supported)"></textarea>
+      <button class="btn btn-primary" id="d-post">Publish Response →</button></div>`
+      : `<div class="card"><a class="btn btn-primary" href="/login">Sign in to participate →</a></div>`}
+    <div id="d-list">${roots.length ? roots.map(c => commentCard(c)).join('') : '<p class="muted">No comments yet. Start the conversation!</p>'}</div>`;
+  document.getElementById('d-search').oninput = (e) => { searchQuery = e.target.value; renderDiscussion();
+    const s = document.getElementById('d-search'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); };
+  document.getElementById('d-sort').onchange = (e) => { sortBy = e.target.value; renderDiscussion(); };
+  document.getElementById('d-post')?.addEventListener('click', async () => {
+    const body = document.getElementById('d-body').value.trim();
+    if (!body) return;
+    try { const { comment } = await api('/api/discussion', { method:'POST', body:{ problem_id:id, body, parent_id:null } });
+      if (comment) { comments.push(comment); likeCounts[comment.id] = 0; } renderDiscussion();
+    } catch (e) { msg(alertBox(e.message)); }
+  });
+  document.querySelectorAll('[data-like]').forEach(b => b.addEventListener('click', async () => {
+    const cid = b.dataset.like;
+    if (!me) { location.href = '/login'; return; }
+    const on = liked.has(cid);
+    on ? liked.delete(cid) : liked.add(cid);
+    likeCounts[cid] = Math.max(0, (likeCounts[cid] ?? 0) + (on ? -1 : 1));
+    try { localStorage.setItem('sn_likes', JSON.stringify([...liked])); } catch {}
+    renderDiscussion();
+    try { const d = await api('/api/discussion/like', { method:'POST', body:{ commentId: cid } });
+      if (d.likes_count != null) { likeCounts[cid] = d.likes_count; renderDiscussion(); } } catch {}
+  }));
+  document.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
+    const pid = b.dataset.reply;
+    document.querySelector(`[data-replybox="${CSS.escape(pid)}"]`).innerHTML =
+      `<textarea class="textarea" id="rb-${esc(pid)}" placeholder="Write a reply…"></textarea>
+       <button class="btn btn-primary" id="rs-${esc(pid)}">Post reply</button>`;
+    document.getElementById('rs-' + pid).addEventListener('click', async () => {
+      const body = document.getElementById('rb-' + pid).value.trim();
+      if (!body) return;
+      try { const { comment } = await api('/api/discussion', { method:'POST', body:{ problem_id:id, body, parent_id:pid } });
+        if (comment) { comments.push(comment); likeCounts[comment.id] = 0; } renderDiscussion();
+      } catch (e) { msg(alertBox(e.message)); }
+    });
+  }));
+}
+
+function render() {
+  const daysLeft = Math.ceil((new Date(problem.deadline).getTime() - Date.now()) / 86400000);
+  document.getElementById('content').innerHTML = `
+    <div><span class="badge">${esc(problem.domain)}</span>
+      <span class="badge gray">${esc(problem.problem_type === 'industry_challenge' ? '💼 Industry Challenge' : '🌍 Public Impact')}</span>
+      <span class="badge">${esc(problem.status)}</span></div>
+    <h1>${esc(problem.title)}</h1>
+    ${problem.thumbnail_url ? `<img src="${esc(problem.thumbnail_url)}" alt="" style="width:100%;border-radius:12px;">` : ''}
+    <p class="muted">⏳ ${isNaN(daysLeft) ? '—' : daysLeft + ' days left'} · 📝 ${esc(String(problem.submission_count ?? 0))} submissions${problem.reward_amount ? ` · ₹${esc(String(problem.reward_amount))}` : ''}</p>
+    <div class="card" id="act"><p class="muted">Loading actions…</p></div>
+    <div class="tabs">${SECTIONS.map(([k, l]) => `<button data-sec="${k}" class="${activeSection===k?'on':''}">${esc(l)}</button>`).join('')}</div>
+    <div class="card"><pre class="wrap">${esc(problem[activeSection] || '—')}</pre></div>
+    <div class="card"><h2>Discussion Thread</h2><div id="discussion"></div></div>`;
+  document.querySelectorAll('[data-sec]').forEach(b => b.addEventListener('click', () => { activeSection = b.dataset.sec; render(); renderDiscussion(); }));
+  renderActions();
+  renderDiscussion();
+}
+
+async function renderActions() {
+  const el = document.getElementById('act');
+  if (!me) { el.innerHTML = `<a class="btn btn-primary" href="/login/student">Log in to enroll →</a>`; return; }
+  if (me.role !== 'student') { el.innerHTML = `<p class="muted">Only students can enroll in problems.</p>`; return; }
+  let st = {};
+  try { st = await api('/api/enrollments/status', { method:'POST', body:{ problem_id:id } }); }
+  catch (e) { el.innerHTML = alertBox('Could not load enrollment status: ' + e.message); return; }
+  el.innerHTML = `
+    ${st.enrolled ? `<p><span class="badge">Enrolled ✓</span></p>` : ''}
+    ${st.submissionStatus ? `<p class="muted">Submission: ${esc(st.submissionStatus)}</p>` : ''}
+    <div class="row">
+      ${st.enrolled ? `<a class="btn btn-primary" href="/problems/${esc(id)}/submit">Go to Submit →</a>`
+        : `<button class="btn btn-primary" id="enroll">Enroll & Start Solving →</button>`}
+    </div>
+    <div id="enroll-err"></div>
+    ${(problem.team_mode === 'team' || problem.team_mode === 'both') ? `<hr><h3>Team up</h3>
+      <div class="row"><input class="input" id="team-name" placeholder="New team name" style="max-width:220px;">
+      <button class="btn" id="team-create">Create team</button></div>
+      <div class="row"><input class="input" id="invite-code" placeholder="Invite code" style="max-width:220px;">
+      <button class="btn" id="team-join">Join team</button></div>
+      <div id="team-msg"></div>` : ''}`;
+  document.getElementById('enroll')?.addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    try { await api('/api/enrollments/create', { method:'POST', body:{ problem_id:id } });
+      location.href = `/problems/${id}/submit`;
+    } catch (err) { document.getElementById('enroll-err').innerHTML = alertBox(err.message); e.target.disabled = false; }
+  });
+  document.getElementById('team-create')?.addEventListener('click', async () => {
+    const teamName = document.getElementById('team-name').value.trim();
+    if (!teamName) return;
+    try { const d = await api('/api/teams/create', { method:'POST', body:{ problemId:id, teamName } });
+      document.getElementById('team-msg').innerHTML = alertBox(`Team created! Invite code: ${d.inviteCode}`, true);
+    } catch (err) { document.getElementById('team-msg').innerHTML = alertBox(err.message); }
+  });
+  document.getElementById('team-join')?.addEventListener('click', async () => {
+    const inviteCode = document.getElementById('invite-code').value.trim();
+    if (!inviteCode) return;
+    try { const d = await api('/api/teams/join', { method:'POST', body:{ inviteCode } });
+      document.getElementById('team-msg').innerHTML = alertBox(`Joined team ${d.teamName || ''}!`, true);
+    } catch (err) { document.getElementById('team-msg').innerHTML = alertBox(err.message); }
+  });
+}
+
+try {
+  const [{ problem: p }, disc] = await Promise.all([
+    api(`/api/public/problems/${encodeURIComponent(id)}`),
+    api(`/api/discussion?problem_id=${encodeURIComponent(id)}`).catch(() => ({ comments: [] })),
+  ]);
+  problem = p;
+  comments = disc.comments || [];
+  comments.forEach(c => { likeCounts[c.id] = c.likes_count ?? 0; });
+  document.title = `${problem.title} | SproutNet`;
+  const { data: { session } } = await sb().auth.getSession();
+  if (session) {
+    try { const r = await api('/api/auth/profile'); me = r.profile ? { id: r.profile.id, name: r.profile.name, role: r.profile.role } : null; }
+    catch { me = null; }
+  }
+  render();
+} catch (e) {
+  document.getElementById('content').innerHTML = `<div class="card"><h2>Problem not found</h2><a href="/problems">← Back to problems</a></div>`;
+  if (!/404|not found/i.test(e.message)) msg(alertBox(e.message));
+}
+</script>
+</body>
+</html>

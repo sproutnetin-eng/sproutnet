@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Post | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:860px">
+  <div id="msg"></div>
+  <p class="muted">// new post</p>
+  <h1>Write a new post</h1>
+  <div class="card">
+    <div id="coverwrap">
+      <img id="coverimg" style="display:none;max-width:100%;border-radius:8px;margin-bottom:0.5rem" alt="Cover">
+      <div class="row">
+        <input class="input" type="file" id="coverfile" accept="image/png,image/jpeg,image/webp,image/gif" style="flex:1">
+        <button class="btn" id="coverrm" style="display:none">Remove</button>
+      </div>
+      <p class="muted">Cover image — PNG, JPG, WEBP up to 10MB (via /api/blogs/images).</p>
+    </div>
+    <div class="row" id="types">
+      <button class="btn" data-t="knowledge">Knowledge Share</button>
+      <button class="btn" data-t="question">Question / Doubt</button>
+    </div>
+    <label>Title<textarea class="textarea" id="title" rows="1" placeholder="Give your post a sharp title..." style="font-size:1.4rem;font-weight:700"></textarea></label>
+    <label>Slug (optional)<input class="input" id="slug" placeholder="my-post-slug"></label>
+    <label>Excerpt<textarea class="textarea" id="excerpt" rows="2" placeholder="Short summary..."></textarea></label>
+    <label>Tags (comma-separated)<input class="input" id="tags" placeholder="react, startup, design"></label>
+    <label>Category<input class="input" id="category" placeholder="e.g. Web Dev"></label>
+    <label>Body<textarea class="textarea" id="body" rows="12" placeholder="Start writing your story... (plain text; HTML allowed)"></textarea></label>
+    <div class="row">
+      <button class="btn" id="draft">Save Draft</button>
+      <button class="btn btn-primary" id="publish">Publish →</button>
+      <a class="btn" href="/blogs/manage">Manage posts</a>
+    </div>
+  </div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireAuth, renderNav, alertBox } from '/assets/app.js';
+renderNav('blogs');
+const msg = document.getElementById('msg');
+let postType = 'knowledge';
+let coverImage = null;
+
+const s = await requireAuth();
+if (s) {
+  const paint = () => document.querySelectorAll('#types [data-t]').forEach(b => b.classList.toggle('btn-primary', b.dataset.t === postType));
+  document.querySelectorAll('#types [data-t]').forEach(b => b.addEventListener('click', () => { postType = b.dataset.t; paint(); }));
+  paint();
+
+  document.getElementById('coverfile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const data = await api('/api/blogs/images', { method: 'POST', form });
+      coverImage = data.url;
+      const img = document.getElementById('coverimg');
+      img.src = coverImage; img.style.display = '';
+      document.getElementById('coverrm').style.display = '';
+      msg.innerHTML = '';
+    } catch (err) { msg.innerHTML = alertBox(err.message); }
+    e.target.value = '';
+  });
+  document.getElementById('coverrm').addEventListener('click', () => {
+    coverImage = null;
+    document.getElementById('coverimg').style.display = 'none';
+    document.getElementById('coverrm').style.display = 'none';
+  });
+
+  async function submit(status, btn, label) {
+    const title = document.getElementById('title').value.trim();
+    const body = document.getElementById('body').value;
+    if (!title) { msg.innerHTML = alertBox('Please add a title before publishing.'); return; }
+    if (!body.trim()) { msg.innerHTML = alertBox('The editor body is empty. Write something first.'); return; }
+    btn.disabled = true; btn.textContent = 'Publishing…'; msg.innerHTML = '';
+    try {
+      await api('/api/blogs/posts', { method: 'POST', body: {
+        title, body, post_type: postType, cover_image: coverImage,
+        slug: document.getElementById('slug').value.trim(),
+        excerpt: document.getElementById('excerpt').value.trim(),
+        tags: document.getElementById('tags').value.split(',').map(t => t.trim()).filter(Boolean),
+        category: document.getElementById('category').value.trim(),
+        status,
+      } });
+      msg.innerHTML = alertBox(status === 'published' ? 'Published! 🎉' : 'Draft saved.', true);
+      if (status === 'published') setTimeout(() => location.href = '/blogs/manage', 800);
+    } catch (err) { msg.innerHTML = alertBox(err.message); }
+    btn.disabled = false; btn.textContent = label;
+  }
+  document.getElementById('draft').addEventListener('click', (e) => submit('draft', e.target, 'Save Draft'));
+  document.getElementById('publish').addEventListener('click', (e) => submit('published', e.target, 'Publish →'));
+}
+</script>
+</body>
+</html>

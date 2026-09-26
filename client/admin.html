@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
+.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
+.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
+.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
+.admin-side .meta{font-size:.75rem;color:#64748b}
+@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:1200px">
+<div class="admin-layout">
+<aside class="admin-side card" id="side">
+  <a href="/admin" class="on"><strong>Overview</strong> <span class="meta">home</span></a>
+  <a href="/admin/problems"><strong>Problems</strong> <span class="meta">moderation</span></a>
+  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
+  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
+  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
+  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
+  <hr style="border:none;border-top:1px solid #e2e8f0;width:100%">
+  <div class="meta">LEADERBOARD TOOLS</div>
+  <button class="btn" id="seed-btn" type="button">Seed Test Submissions</button>
+  <button class="btn" id="recalc-btn" type="button">Recalculate Scores</button>
+  <div id="tool-msg" class="meta"></div>
+  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
+</aside>
+<div>
+  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">ADMIN OVERVIEW</div>
+  <h1>Control plane</h1>
+  <p class="muted">Moderate problems, keep the judging queue moving, and monitor platform health.</p>
+  <div id="msg"></div>
+  <div class="grid" id="counts" style="margin-bottom:1rem"></div>
+  <div class="grid">
+    <a class="card" href="/admin/problems" style="text-decoration:none;color:inherit"><strong>Problems</strong> <span class="badge gray">moderation</span><p class="muted">Approve/hold, edit, participation mode, delete.</p><div>Open →</div></a>
+    <a class="card" href="/admin/solutions" style="text-decoration:none;color:inherit"><strong>Solutions</strong> <span class="badge gray">uploads</span><p class="muted">View uploaded solutions, files, links, deliverables.</p><div>Open →</div></a>
+    <a class="card" href="/admin/judging" style="text-decoration:none;color:inherit"><strong>Judging</strong> <span class="badge gray">queue</span><p class="muted">Stage 2 pending submissions in the queue.</p><div>Open →</div></a>
+    <a class="card" href="/admin/analytics" style="text-decoration:none;color:inherit"><strong>Analytics</strong> <span class="badge gray">metrics</span><p class="muted">Live counts and domain breakdown.</p><div>Open →</div></a>
+  </div>
+</div>
+</div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('admin');
+if (me) {
+  try {
+    const a = await api('/api/admin/analytics');
+    const j = await api('/api/admin/judging').catch(() => ({ rows: [] }));
+    document.getElementById('counts').innerHTML = `
+      <div class="card"><h2>${a.totalProblems}</h2><div class="muted">Problems</div></div>
+      <div class="card"><h2>${a.pendingProblems}</h2><div class="muted">Pending moderation</div></div>
+      <div class="card"><h2>${j.rows.length}</h2><div class="muted">In judging queue</div></div>
+      <div class="card"><h2>${a.totalUsers}</h2><div class="muted">Users</div></div>`;
+  } catch (e) { document.getElementById('msg').innerHTML = alertBox(e.message); }
+  const tm = document.getElementById('tool-msg');
+  document.getElementById('seed-btn').addEventListener('click', async (e) => {
+    e.target.disabled = true; tm.textContent = 'Seeding…';
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    e.target.disabled = false;
+  });
+  document.getElementById('recalc-btn').addEventListener('click', async (e) => {
+    e.target.disabled = true; tm.textContent = 'Recalculating…';
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    e.target.disabled = false;
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaderboard | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+.podium { display:flex; gap:1rem; justify-content:center; align-items:flex-end; flex-wrap:wrap; margin-bottom:1.5rem; }
+.podium .card { text-align:center; flex:1 1 160px; max-width:220px; }
+.avatar { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; margin:0 auto .5rem; }
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <p class="muted">Season 1 · 2026</p>
+  <h1>The Builders</h1>
+  <p class="muted">Builder Score = avg score × depth × problems solved × avg weight</p>
+  <div id="board"><p class="muted">Loading…</p></div>
+  <div class="card"><div class="row"><span><b>Season 1 · 2026</b><br>Every submission moves your rank.</span>
+    <span id="recalc"></span><a class="btn btn-primary" href="/join">Start Solving →</a></div>
+    <div id="recalc-msg"></div></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('leaderboard');
+const COLORS = ['#2D6A4F','#1E40AF','#9C6344','#6B4C2A','#3D8A65','#4A3F38','#7C3AED','#BE123C'];
+const color = (n) => COLORS[(n || '?').charCodeAt(0) % COLORS.length];
+const initials = (n) => (n || 'SN').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+const profLink = (l) => l.profile_slug ? `/profile/${esc(l.profile_slug)}` : '#';
+
+try {
+  let isAdmin = false;
+  try { const r = await api('/api/auth/profile'); isAdmin = r.profile?.role === 'admin' || !!r.profile?.is_master; } catch {}
+  const { leaders } = await api('/api/public/leaderboard');
+  if (!leaders.length) {
+    document.getElementById('board').innerHTML = `<div class="card" style="text-align:center;"><h2>Season 1 is just getting started</h2>
+      <p class="muted">No submissions scored yet. Be the first builder on the board.</p>
+      <a class="btn btn-primary" href="/problems">Browse Problems →</a></div>`;
+  } else {
+    const ranked = leaders.map((l, i) => ({ ...l, liveRank: i + 1 }));
+    const podium = ranked.slice(0, 3), table = ranked.slice(3);
+    const order = [podium[1], podium[0], podium[2]].filter(Boolean);
+    const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    document.getElementById('board').innerHTML = `
+      <div class="podium">${order.map(e => `<a href="${profLink(e)}" style="text-decoration:none;color:inherit;"><div class="card">
+        <div style="font-size:1.8rem;">${medals[e.liveRank]}</div>
+        <div class="avatar" style="background:${color(e.name)};">${esc(initials(e.name))}</div>
+        <b>${esc(e.name)}</b><br><span class="muted">${esc(e.dept || '')} · ${esc(e.year || '')}</span>
+        <div style="font-size:1.6rem;font-weight:700;">${esc(String(e.builder_score))}</div><span class="muted">pts</span>
+      </div></a>`).join('')}</div>
+      ${table.length ? `<div class="card"><table class="table"><thead><tr><th>Rank</th><th>Builder</th><th>Solved</th><th>Avg</th><th>Depth</th><th>Score</th></tr></thead><tbody>
+        ${table.map(e => `<tr><td>${e.liveRank}</td>
+          <td><a href="${profLink(e)}">${esc(e.name)}</a><br><span class="muted">${esc(e.dept || '')} · ${esc(e.year || '')}</span></td>
+          <td>${esc(String(e.attempted ?? '—'))}</td><td>${e.avg_score != null ? esc(Number(e.avg_score).toFixed(1)) : '—'}</td>
+          <td>${esc(String(e.milestones_done ?? '—'))}</td><td><b>${esc(String(e.builder_score))}</b></td></tr>`).join('')}
+      </tbody></table></div>` : ''}`;
+  }
+  if (isAdmin) {
+    document.getElementById('recalc').innerHTML = `<button class="btn" id="recalc-btn">Recalculate</button>`;
+    document.getElementById('recalc-btn').addEventListener('click', async (e) => {
+      e.target.disabled = true; e.target.textContent = 'Recalculating…';
+      try { const d = await api('/api/leaderboard/recalculate', { method:'POST' });
+        const n = d.recalculated?.length ?? 0;
+        document.getElementById('recalc-msg').innerHTML = alertBox(`${n} student(s) recalculated`, true);
+      } catch (err) { document.getElementById('recalc-msg').innerHTML = alertBox(err.message); }
+      e.target.disabled = false; e.target.textContent = 'Recalculate';
+    });
+  }
+} catch (e) {
+  document.getElementById('msg').innerHTML = alertBox(e.message);
+  document.getElementById('board').innerHTML = '';
+}
+</script>
+</body>
+</html>

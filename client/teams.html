@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teams | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:960px">
+  <div id="msg"></div>
+  <p class="muted">// collaborate</p>
+  <h1>Teams</h1>
+  <p class="muted">Form a team, solve problems together, and build faster.</p>
+  <div id="content"><p class="muted">Loading...</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const msg = document.getElementById('msg');
+const content = document.getElementById('content');
+
+const s = await requireAuth();
+if (s) {
+  try {
+    const { problems, myTeams } = await api('/api/student/teams');
+    content.innerHTML = `
+      ${myTeams.length ? `<h2>Your Teams</h2><div class="grid">` + myTeams.map(t => `
+        <div class="card"><h3>${esc(t.team_name)}</h3><p class="muted">${esc(t.problem_title)} · ${esc(t.role)}</p>
+        <a class="btn btn-primary" href="/teams/${esc(t.team_id)}">Open Workspace →</a></div>`).join('') + `</div>` : ''}
+      <div class="card">
+        <h2>Create a Team</h2>
+        <p class="muted">Pick a problem and name your team.</p>
+        <label>Problem<select class="select" id="prob">
+          <option value="">Select a problem...</option>
+          ${problems.map(p => `<option value="${esc(p.id)}">${esc(p.title)} (${esc(p.domain)}) — ${p.team_mode === 'team' ? 'Team only' : 'Solo or Team'} · up to ${p.max_team_size} members</option>`).join('')}
+        </select></label>
+        <label>Team Name<input class="input" id="tname" placeholder="e.g. The Debuggers"></label>
+        <button class="btn btn-primary" id="create">Create Team →</button>
+        <div id="invite"></div>
+      </div>
+      <div class="card">
+        <h2>Join a Team</h2>
+        <p class="muted">Enter the invite code shared by your team leader.</p>
+        <label>Invite code<input class="input" id="icode" placeholder="e.g. SPROUT-XXXXXX" style="text-transform:uppercase"></label>
+        <button class="btn btn-primary" id="join">Join Team →</button>
+        <div id="joinmsg"></div>
+      </div>
+      ${problems.length ? `<h2>Problems You Can Team Up On</h2><div class="grid">` + problems.map(p => `
+        <div class="card"><h3>${esc(p.title)}</h3><p class="muted">${esc(p.domain)} · ${p.team_mode === 'team' ? 'Team only' : 'Solo or Team'} · ${p.min_team_size}–${p.max_team_size} members</p>
+        ${myTeams.some(t => t.problem_title === p.title) ? '<span class="badge">Already in a team</span>' : `<a class="btn" href="/problems/${esc(p.id)}">View Problem →</a>`}</div>`).join('') + `</div>`
+        : (myTeams.length ? '' : `<div class="card" style="text-align:center">No team-enabled problems right now. <a href="/problems">Browse all problems</a>.</div>`)}`;
+
+    document.getElementById('create').addEventListener('click', async (e) => {
+      const btn = e.target;
+      const problemId = document.getElementById('prob').value;
+      const teamName = document.getElementById('tname').value.trim();
+      if (!problemId || !teamName) return;
+      btn.disabled = true; btn.textContent = 'Creating...'; msg.innerHTML = '';
+      try {
+        const data = await api('/api/teams/create', { method: 'POST', body: { problemId, teamName } });
+        document.getElementById('invite').innerHTML = alertBox(`Team created! Invite code: ${data.inviteCode}`, true);
+        document.getElementById('tname').value = ''; document.getElementById('prob').value = '';
+      } catch (err) { msg.innerHTML = alertBox(err.message); }
+      btn.disabled = false; btn.textContent = 'Create Team →';
+    });
+    document.getElementById('join').addEventListener('click', async (e) => {
+      const btn = e.target;
+      const inviteCode = document.getElementById('icode').value.trim();
+      if (!inviteCode) return;
+      btn.disabled = true; btn.textContent = 'Joining...';
+      try {
+        const data = await api('/api/teams/join', { method: 'POST', body: { inviteCode } });
+        document.getElementById('joinmsg').innerHTML = alertBox(`Joined "${data.teamName}"!`, true);
+        document.getElementById('icode').value = '';
+      } catch (err) { document.getElementById('joinmsg').innerHTML = alertBox(err.message); }
+      btn.disabled = false; btn.textContent = 'Join Team →';
+    });
+  } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
+}
+</script>
+</body>
+</html>

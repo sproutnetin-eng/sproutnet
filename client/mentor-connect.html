@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connection Request — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container" style="max-width:820px">
+  <a class="btn" href="/mentor/dashboard">← Dashboard</a>
+  <div id="msg"></div>
+  <div id="banner"></div>
+  <div id="profile"><p class="muted">Loading…</p></div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('mentor', 'admin');
+const msg = document.getElementById('msg');
+const nid = location.pathname.split('/')[3];
+if (me) {
+  if (!nid) location.href = '/mentor/dashboard';
+  else {
+    try {
+      const { notification, student, message, conversationId, isPending } = await api(`/api/mentor/connect/${nid}`);
+      const resp = notification.metadata?.response;
+      document.getElementById('banner').innerHTML = isPending
+        ? `<div class="card"><strong>Pending connection request</strong><p class="muted">This student has requested mentorship from you.</p>
+           <div class="row"><button class="btn btn-primary" data-act="accept">Accept</button><button class="btn" data-act="decline">Decline</button></div></div>`
+        : `<div class="card"><strong>Request ${resp === 'accepted' ? 'accepted' : 'declined'}</strong>
+           ${resp === 'accepted' ? `<div class="row"><a class="btn btn-primary" href="/messages?user=${esc(student.id)}">Start Chat →</a></div>` : ''}</div>`;
+      const links = [];
+      if (student.github) links.push(`<a href="${esc(student.github)}" target="_blank" rel="noreferrer">⌨ GitHub</a>`);
+      if (student.linkedin) links.push(`<a href="${esc(student.linkedin)}" target="_blank" rel="noreferrer">🔗 LinkedIn</a>`);
+      if (student.twitter) links.push(`<a href="${esc(student.twitter)}" target="_blank" rel="noreferrer">𝕏 Twitter</a>`);
+      document.getElementById('profile').innerHTML = `
+        <div class="card" style="text-align:center">
+          ${student.avatar_url ? `<img src="${esc(student.avatar_url)}" alt="" style="width:96px;height:96px;border-radius:50%;object-fit:cover">`
+            : `<div style="width:96px;height:96px;border-radius:50%;background:#16a34a;color:#fff;font-size:2rem;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto">${esc((student.name || '?')[0])}</div>`}
+          <h2>${esc(student.name)}</h2>
+          <p class="muted">${esc([student.dept, student.year].filter(Boolean).join(' · '))}</p>
+          <span class="badge">Builder score: ${student.builder_score ?? 0}</span>
+        </div>
+        ${message ? `<div class="card"><div class="muted">Message</div><p><i>“${esc(message)}”</i></p></div>` : ''}
+        ${student.bio ? `<div class="card"><div class="muted">About</div><p>${esc(student.bio)}</p></div>` : ''}
+        ${links.length ? `<div class="card"><div class="muted">Connect</div><div class="row">${links.join('')}</div></div>` : ''}
+        ${student.profile_slug ? `<a class="btn" href="/profile/${esc(student.profile_slug)}">View Full Public Profile →</a>` : ''}`;
+      document.getElementById('banner').addEventListener('click', async (e) => {
+        const btn = e.target.closest('button[data-act]');
+        if (!btn) return;
+        btn.disabled = true;
+        try {
+          await api('/api/mentors/respond-connect', { method: 'POST', body: { notificationId: nid, action: btn.dataset.act } });
+          location.reload();
+        } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+      });
+    } catch (e) { msg.innerHTML = alertBox(e.message); }
+  }
+}
+</script>
+</body>
+</html>

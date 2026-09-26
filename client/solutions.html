@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solutions | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <div style="text-align:center;">
+    <p class="muted">// shipped & approved</p>
+    <h1>Completed Solutions</h1>
+    <p class="muted">Real work from SproutNet builders — every solution here passed admin review and delivered its final build, research, and code.</p>
+  </div>
+  <div id="list"><p class="muted">Loading…</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('');
+try {
+  const { solutions } = await api('/api/public/solutions');
+  document.getElementById('list').innerHTML = solutions.length ? solutions.map(s => `
+    <div class="card">
+      <div>${s.problemDomain ? `<span class="badge gray">${esc(s.problemDomain)}</span> ` : ''}
+        <span class="badge ${s.participantType === 'team' ? 'amber' : ''}">${s.participantType === 'team' ? '👥 Team' : 'Individual'}</span>
+        ${s.score != null ? ` <span class="badge">★ ${esc(String(s.score))}/10 judged</span>` : ''}</div>
+      <h2>${esc(s.problemTitle)}</h2>
+      <p class="muted">by ${s.authorSlug ? `<a href="/profile/${esc(s.authorSlug)}">${esc(s.authorName)}</a>` : `<b>${esc(s.authorName)}</b>`}
+        · completed ${esc(new Date(s.completedAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }))}</p>
+      ${s.feedback ? `<p style="font-style:italic;" class="card">Judge's note: ${esc(s.feedback)}</p>` : ''}
+      ${s.deliverables.map((d, i) => `<p><a class="btn" href="${esc(d.url)}" target="_blank" rel="noreferrer">
+        <span class="badge gray">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span> ${esc(`${i + 1}. ${d.label}`)} ↗</a></p>`).join('')}
+      <p><a href="/problems/${esc(s.problemId)}">View the problem →</a></p>
+    </div>`).join('')
+    : `<div class="card" style="text-align:center;"><h2>No completed solutions yet</h2>
+      <p class="muted">A solution appears here once it clears admin review <b>and</b> the builder submits their final work.</p>
+      <a class="btn btn-primary" href="/problems">Browse open problems →</a></div>`;
+} catch (e) {
+  document.getElementById('msg').innerHTML = alertBox(e.message);
+  document.getElementById('list').innerHTML = '';
+}
+</script>
+</body>
+</html>

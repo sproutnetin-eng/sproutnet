@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Problems | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>.pills { display: flex; gap: .5rem; flex-wrap: wrap; margin: .75rem 0; } .pills a.on { border-color: var(--green); background: #dcfce7; }</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container">
+  <div id="msg"></div>
+  <p class="muted">// open problems · season 1</p>
+  <h1>Real problems. Waiting for your thinking.</h1>
+  <p class="muted" id="count"></p>
+  <div class="pills" id="type-pills"></div>
+  <div class="pills" id="domain-pills"></div>
+  <div id="list"><p class="muted">Loading…</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, renderNav, alertBox } from '/assets/app.js';
+renderNav('problems');
+const DOMAINS = ['All','AI & Data','Climate','Public Infrastructure','Healthcare','Agriculture','Education','Urban Mobility','Civic Technology'];
+const TYPES = [['all','All Types'],['public_impact','🌍 Public Impact'],['industry_challenge','💼 Industry Challenge']];
+const q = new URLSearchParams(location.search);
+const domain = q.get('domain') || 'All';
+const type = q.get('type') || 'all';
+const link = (d, t) => `/problems?domain=${encodeURIComponent(d)}&type=${encodeURIComponent(t)}`;
+document.getElementById('type-pills').innerHTML = TYPES.map(([v, l]) =>
+  `<a class="btn ${type === v ? 'on' : ''}" href="${link(domain, v)}">${esc(l)}</a>`).join('');
+document.getElementById('domain-pills').innerHTML = DOMAINS.map(d =>
+  `<a class="btn ${domain === d ? 'on' : ''}" href="${link(d, type)}">${esc(d)}</a>`).join('');
+try {
+  const { problems } = await api(`/api/public/problems?domain=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`);
+  document.getElementById('count').textContent = `${problems.length} open problems across ${domain === 'All' ? '8 domains' : domain}`;
+  document.getElementById('list').innerHTML = problems.length ? `<div class="grid">${
+    problems.map(p => `<div class="card">
+      ${p.thumbnail_url ? `<img src="${esc(p.thumbnail_url)}" alt="" style="width:100%;border-radius:8px;margin-bottom:.5rem;">` : ''}
+      <div><span class="badge">${esc(p.domain || '')}</span> <span class="badge gray">${esc(p.problem_type === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact')}</span></div>
+      <h3><a href="/problems/${esc(p.id)}">${esc(p.title)}</a></h3>
+      <p class="muted">${esc((p.context || '').slice(0, 160))}…</p>
+      <p class="muted">⏳ ${p.deadline ? esc(new Date(p.deadline).toLocaleDateString('en-IN')) : '—'} · 📝 ${esc(String(p.submission_count ?? 0))} submissions</p>
+      <a class="btn" href="/problems/${esc(p.id)}">View →</a>
+    </div>`).join('')
+  }</div>` : '<div class="card"><p>🔍 No problems found. Try a different domain or type filter.</p></div>';
+} catch (e) {
+  document.getElementById('msg').innerHTML = alertBox(e.message);
+  document.getElementById('list').innerHTML = '';
+}
+</script>
+</body>
+</html>

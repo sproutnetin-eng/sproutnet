@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mentor Dashboard — SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<main class="container">
+  <div class="row" style="justify-content:space-between">
+    <div><h1 id="welcome">Welcome, Mentor.</h1><p class="muted">Guide student teams, review requests, and foster engineering impact.</p></div>
+    <a class="btn" href="/mentor/profile">Edit Profile &amp; Availability →</a>
+  </div>
+  <div id="msg"></div>
+  <div class="grid" id="stats"></div>
+  <div class="row" style="margin:1rem 0">
+    <a class="btn" href="/mentors">Browse Mentors →</a>
+    <a class="btn" href="/messages">Open Messages →</a>
+    <a class="btn" href="/notifications">View Notifications →</a>
+  </div>
+  <h2>Team mentorship requests <span class="badge" id="req-count" style="display:none"></span></h2>
+  <div id="requests"><p class="muted">Loading…</p></div>
+  <h2>Individual connections <span class="badge" id="conn-count" style="display:none"></span></h2>
+  <div id="connections"></div>
+  <div id="history"></div>
+  <h2>My teams</h2>
+  <div id="teams"></div>
+</main>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+renderNav('dash');
+const me = await requireRole('mentor', 'admin');
+const msg = document.getElementById('msg');
+async function respondConnect(notificationId, action, btn) {
+  btn.disabled = true;
+  try {
+    await api('/api/mentors/respond-connect', { method: 'POST', body: { notificationId, action } });
+    await load();
+  } catch (e) { msg.innerHTML = alertBox(e.message); btn.disabled = false; }
+}
+async function respondTeam(requestId, action, btn) {
+  btn.disabled = true;
+  try {
+    await api('/api/mentors/request', { method: 'POST', body: { requestId, action } });
+    await load();
+  } catch (e) { msg.innerHTML = alertBox(e.message); btn.disabled = false; }
+}
+async function load() {
+  try {
+    const d = await api('/api/mentor/dashboard');
+    document.getElementById('welcome').textContent = `Welcome, Mentor ${(d.profile.name || '').split(' ')[0]}.`;
+    const pending = d.connections.filter(c => !c.metadata?.response);
+    const done = d.connections.filter(c => c.metadata?.response);
+    document.getElementById('stats').innerHTML = `
+      <div class="card"><div class="muted">Active teams</div><h2>${d.assignments.length} / ${d.mentorProfile?.max_active_teams ?? 3}</h2></div>
+      <div class="card"><div class="muted">Pending</div><h2>${d.requests.length + pending.length}</h2></div>
+      <div class="card"><div class="muted">Availability</div><h2 style="text-transform:capitalize">${esc(d.mentorProfile?.availability_status || 'Set status →')}</h2></div>
+      <div class="card"><div class="muted">Students connected</div><h2>${done.length + (d.mentorProfile?.students_connected || 0)}</h2></div>`;
+    const rc = document.getElementById('req-count');
+    if (d.requests.length) { rc.style.display = ''; rc.textContent = d.requests.length; }
+    document.getElementById('requests').innerHTML = d.requests.length ? d.requests.map(r => `<div class="card">
+      <div class="muted">${esc(r.teams?.problems?.domain || 'Problem')}</div>
+      <strong>${esc(r.teams?.name)}</strong><p class="muted">${esc(r.teams?.problems?.title || '')}</p>
+      ${r.message ? `<p><i>“${esc(r.message)}”</i></p>` : ''}
+      <p class="muted">Requested by <strong>${esc(r.users?.name || r.users?.email || 'Unknown')}</strong></p>
+      <div class="row"><button class="btn btn-primary" data-req="${esc(r.id)}" data-act="accept">Accept ✓</button>
+      <button class="btn" data-req="${esc(r.id)}" data-act="reject">Decline</button></div>
+    </div>`).join('') : `<div class="card" style="text-align:center"><div style="font-size:1.8rem">📭</div><p class="muted">No pending team mentorship requests.</p></div>`;
+    const cc = document.getElementById('conn-count');
+    if (pending.length) { cc.style.display = ''; cc.textContent = pending.length; }
+    document.getElementById('connections').innerHTML = d.connections.length
+      ? (pending.length ? pending.map(c => `<div class="card">
+          <div class="muted">Individual connection</div>
+          <strong>From: ${esc(c.metadata?.student_name || 'A student')}</strong>
+          ${c.metadata?.message ? `<p><i>“${esc(c.metadata.message)}”</i></p>` : ''}
+          <div class="row"><a class="btn" href="/mentor/connect/${esc(c.id)}">View Profile →</a>
+          <button class="btn btn-primary" data-conn="${esc(c.id)}" data-act="accept">Accept</button>
+          <button class="btn" data-conn="${esc(c.id)}" data-act="decline">Decline</button>
+          ${c.metadata?.student_id ? `<a class="btn" href="/messages?user=${esc(c.metadata.student_id)}">Start Chat →</a>` : ''}</div>
+        </div>`).join('') : `<div class="card" style="text-align:center"><p class="muted">All requests processed. Showing history below.</p></div>`)
+      : `<div class="card" style="text-align:center"><div style="font-size:1.8rem">🤝</div><p class="muted">No connection requests yet.</p></div>`;
+    document.getElementById('history').innerHTML = done.length ? `<h3>History (${done.length})</h3>` + done.map(c => {
+      const r = c.metadata?.response;
+      return `<div class="card row" style="justify-content:space-between"><div>${r === 'accepted' ? '✓' : '✕'} <strong>${esc(c.metadata?.student_name || 'Student')}</strong> <span class="badge ${r === 'accepted' ? '' : 'amber'}">${esc(r)}</span></div>
+      ${c.metadata?.student_id ? `<a class="btn" href="/messages?user=${esc(c.metadata.student_id)}">Message →</a>` : ''}</div>`;
+    }).join('') : '';
+    document.getElementById('teams').innerHTML = d.assignments.length ? `<div class="grid">` + d.assignments.map(a => `<div class="card">
+      <div class="muted">${esc(a.teams?.problems?.domain || 'General')}</div>
+      <strong>${esc(a.teams?.name)}</strong><p class="muted">${esc(a.teams?.problems?.title || '')}</p>
+      <a class="btn btn-primary" href="/teams/${esc(a.team_id)}">Open Workspace →</a></div>`).join('') + `</div>`
+      : `<div class="card" style="text-align:center"><div style="font-size:1.8rem">👥</div><p class="muted">No teams assigned yet.</p></div>`;
+  } catch (e) { msg.innerHTML = alertBox(e.message); }
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button[data-req]');
+  if (t) respondTeam(t.dataset.req, t.dataset.act, t);
+  const c = e.target.closest('button[data-conn]');
+  if (c) respondConnect(c.dataset.conn, c.dataset.act, c);
+});
+if (me) load();
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Blogs | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:1180px">
+  <div id="msg"></div>
+  <p class="muted">// your blog desk</p>
+  <div class="row" style="justify-content:space-between">
+    <div><h1>Write new posts and track your history</h1><p class="muted">Everything you publish appears here.</p></div>
+    <div class="row"><a class="btn btn-primary" href="/blogs/new">Write new post →</a><a class="btn" href="/blogs">Back to feed</a></div>
+  </div>
+  <div id="content"><p class="muted">Loading your posts...</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+renderNav('blogs');
+const msg = document.getElementById('msg');
+const content = document.getElementById('content');
+
+const s = await requireAuth();
+if (s) {
+  try {
+    const { posts } = await api('/api/student/posts');
+    const strip = (b) => { try { const j = JSON.parse(b); return bodyText(j); } catch { return (b || '').replace(/<[^>]*>/g, ' '); } };
+    const bodyText = (j) => {
+      if (!j) return '';
+      if (typeof j === 'string') return j;
+      if (Array.isArray(j.content)) return j.content.map(bodyText).join(' ');
+      return (j.text || '') + (Array.isArray(j.content) ? ' ' + j.content.map(bodyText).join(' ') : '');
+    };
+    content.innerHTML = posts.length ? posts.map(p => `
+      <div class="card" data-post="${esc(p.id)}">
+        <div class="row" style="justify-content:space-between">
+          <div><span class="badge ${p.postType === 'question' ? 'amber' : ''}">${esc(p.postType)}</span>
+          <h3 style="margin:0.25rem 0">${esc(p.title)}</h3>
+          <p class="muted">${esc(p.createdAt ? new Date(p.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '')} · ❤️ ${p.likesCount} · 💬 ${p.commentsCount}</p></div>
+          <div class="row">
+            <button class="btn" data-edit="${esc(p.id)}">Edit</button>
+            <button class="btn btn-danger" data-del="${esc(p.id)}">Delete</button>
+          </div>
+        </div>
+        <div data-view>${esc(strip(p.body)).slice(0, 400)}</div>
+        <div data-form style="display:none">
+          <label>Title<input class="input" data-ftitle value="${esc(p.title)}"></label>
+          <label>Body<textarea class="textarea" data-fbody rows="5"></textarea></label>
+          <div class="row"><button class="btn btn-primary" data-save="${esc(p.id)}">Save changes</button><button class="btn" data-cancel="${esc(p.id)}">Cancel</button></div>
+        </div>
+      </div>`).join('')
+      : '<div class="card" style="text-align:center"><h3>No posts from you yet</h3><p class="muted">Write your first knowledge share or question.</p><a class="btn btn-primary" href="/blogs/new">Write new post →</a></div>';
+
+    const bodies = new Map(posts.map(p => [p.id, strip(p.body)]));
+    document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const card = b.closest('[data-post]');
+      card.querySelector('[data-view]').style.display = 'none';
+      card.querySelector('[data-form]').style.display = '';
+      card.querySelector('[data-fbody]').value = bodies.get(b.dataset.edit) || '';
+    }));
+    document.querySelectorAll('[data-cancel]').forEach(b => b.addEventListener('click', () => {
+      const card = b.closest('[data-post]');
+      card.querySelector('[data-view]').style.display = '';
+      card.querySelector('[data-form]').style.display = 'none';
+    }));
+    document.querySelectorAll('[data-save]').forEach(b => b.addEventListener('click', async () => {
+      const card = b.closest('[data-post]');
+      const title = card.querySelector('[data-ftitle]').value.trim();
+      const body = card.querySelector('[data-fbody]').value.trim();
+      if (!title) { msg.innerHTML = alertBox('Title is required.'); return; }
+      if (!body) { msg.innerHTML = alertBox('Post body is required.'); return; }
+      b.disabled = true; b.textContent = 'Saving...';
+      try {
+        await api('/api/blogs/posts', { method: 'PATCH', body: { post_id: b.dataset.save, title, body } });
+        location.reload();
+      } catch (err) { msg.innerHTML = alertBox(err.message); b.disabled = false; b.textContent = 'Save changes'; }
+    }));
+    document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('Delete this post? This cannot be undone.')) return;
+      b.disabled = true; b.textContent = 'Deleting...';
+      try {
+        await api('/api/blogs/posts', { method: 'DELETE', body: { post_id: b.dataset.del } });
+        location.reload();
+      } catch (err) { msg.innerHTML = alertBox(err.message); b.disabled = false; b.textContent = 'Delete'; }
+    }));
+  } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit solution | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="container" style="max-width:860px">
+  <div id="msg"></div>
+  <div id="content"><p class="muted">Loading solution workspace...</p></div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
+renderNav('dash');
+const msg = document.getElementById('msg');
+const content = document.getElementById('content');
+const problemId = location.pathname.split('/')[2];
+
+const FIELDS = [
+  ['f_understanding', 'Problem Understanding', 'In your own words, what is the core problem? Who does it affect and how?'],
+  ['f_solution', 'Proposed Solution', 'What is your solution? Describe it clearly.'],
+  ['f_impact', 'Expected Impact', 'If your solution works, what changes? Quantify where possible.'],
+  ['f_rootcause', 'Root Cause Analysis', 'Why does this problem exist? Go beyond symptoms.'],
+  ['f_feasibility', 'Feasibility Assessment', 'Is it technically, economically, socially feasible?'],
+  ['f_risks', 'Risks & Limitations', 'What could go wrong? Name risks honestly.'],
+  ['f_implementation', 'Implementation Plan', 'Key steps, timeline, team. What is the MVP?'],
+];
+const plain = (s) => (s || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+const ACCEPT = '.pdf,.doc,.docx,.xls,.xlsx,.csv,.zip,.png,.jpg,.jpeg,.webp,.gif';
+
+const me = await requireRole('student');
+if (!me) throw new Error('redirect');
+try {
+  const ctx = await api(`/api/student/submit-context?problem_id=${encodeURIComponent(problemId)}`);
+  const { problem, profile, submission } = ctx;
+  const vals = {
+    f_understanding: submission?.f_understanding || '', f_solution: submission?.f_solution || '',
+    f_impact: submission?.f_impact || '', f_rootcause: submission?.f_rootcause || '',
+    f_feasibility: submission?.f_feasibility || '', f_risks: submission?.f_risks || '',
+    f_implementation: submission?.f_implementation || '',
+  };
+  let files = [];
+  try {
+    const parsed = JSON.parse(vals.f_implementation || 'null');
+    if (parsed && Array.isArray(parsed.files)) { files = parsed.files; vals.f_implementation = parsed.text || ''; }
+  } catch { /* plain text */ }
+  let participantType = submission?.participant_type === 'team' ? 'team' : (problem?.team_mode === 'team' ? 'team' : 'individual');
+  const subId = submission?.id || null;
+
+  const done = () => FIELDS.filter(([k]) => plain(document.getElementById('fld-' + k).value)).length;
+
+  content.innerHTML = `
+    <div class="card">
+      <span class="badge">Solution Workspace</span> ${problem?.domain ? `<span class="badge gray">${esc(problem.domain)}</span>` : ''}
+      <h1>${esc(problem?.title || 'Solution')}</h1>
+      <p class="muted"><strong>Builder:</strong> ${esc(profile.name)}${profile.dept ? ` (${esc(profile.dept)} · ${esc(profile.year || '')})` : ''}</p>
+      <p class="muted" id="progress"></p>
+    </div>
+    <div class="card">
+      <h2>7-Field Solution Framework</h2>
+      ${FIELDS.map(([k, label, ph], i) => `
+        <label>Field ${i + 1} of 7 — ${label}<textarea class="textarea" id="fld-${k}" placeholder="${esc(ph)}">${esc(vals[k])}</textarea></label>`).join('')}
+    </div>
+    <div class="card">
+      <h3>Upload PDF &amp; Supporting Evidence</h3>
+      <p class="muted">Complete all 7 fields above to unlock uploads.</p>
+      <input class="input" type="file" id="upfile" accept="${ACCEPT}">
+      <div class="muted" id="filelist"></div>
+    </div>
+    <div class="card row" style="position:sticky;bottom:12px">
+      <span class="muted" id="remaining"></span>
+      <button class="btn" id="draft">Save Draft</button>
+      <button class="btn btn-primary" id="submit">Submit Solution →</button>
+    </div>`;
+
+  const renderFiles = () => {
+    document.getElementById('filelist').innerHTML = `${files.length} file(s) attached.` +
+      files.map(f => `<div class="row"><a href="${esc(f.url)}" target="_blank" rel="noreferrer">${esc(f.name)}</a><button class="btn" data-rm="${esc(f.url)}">Remove</button></div>`).join('');
+    document.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => { files = files.filter(x => x.url !== b.dataset.rm); renderFiles(); }));
+  };
+  const refresh = () => {
+    const d = done();
+    document.getElementById('progress').textContent = `${d}/7 fields · ${Math.round(d / 7 * 100)}%`;
+    document.getElementById('remaining').textContent = d === 7 ? 'All 7 fields completed.' : `${7 - d} field(s) remaining.`;
+  };
+  FIELDS.forEach(([k]) => document.getElementById('fld-' + k).addEventListener('input', refresh));
+  renderFiles(); refresh();
+
+  document.getElementById('upfile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (done() < 7) { msg.innerHTML = alertBox('Please complete all 7 solution fields above before uploading supporting documents.'); e.target.value = ''; return; }
+    if (file.size > 15 * 1024 * 1024) { msg.innerHTML = alertBox('Files must be 15 MB or smaller.'); e.target.value = ''; return; }
+    msg.innerHTML = '';
+    try {
+      const form = new FormData();
+      form.append('problem_id', problemId);
+      form.append('file', file);
+      const data = await api('/api/submissions/progress-upload', { method: 'POST', form });
+      if (data.url && data.name) files.push({ name: data.name, url: data.url });
+      renderFiles();
+    } catch (err) { msg.innerHTML = alertBox(err.message); }
+    e.target.value = '';
+  });
+
+  const collect = () => {
+    const v = {};
+    FIELDS.forEach(([k]) => v[k] = document.getElementById('fld-' + k).value);
+    v.f_implementation = files.length ? JSON.stringify({ text: v.f_implementation, files }) : v.f_implementation;
+    return v;
+  };
+  async function persist(stage, status, btn, label) {
+    btn.disabled = true; btn.textContent = 'Saving...'; msg.innerHTML = '';
+    try {
+      const v = collect();
+      const payload = {
+        problem_id: problemId, student_id: profile.id, milestone: 1, total_milestones: 1,
+        dept: profile.dept || 'Unknown', year: profile.year || 'Unknown',
+        stage, status, ...v, participant_type: participantType,
+      };
+      const supabase = sb();
+      if (subId) {
+        const { error } = await supabase.from('submissions').update(payload).eq('id', subId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('submissions').insert(payload).select().single();
+        if (error) throw error;
+      }
+      msg.innerHTML = alertBox(stage === 'draft' ? 'Draft saved successfully!' : 'Solution submitted for judging! Redirecting...', true);
+      if (stage === 'full') setTimeout(() => location.href = '/dashboard', 1500);
+    } catch (err) { msg.innerHTML = alertBox(err.message); }
+    btn.disabled = false; btn.textContent = label;
+  }
+  document.getElementById('draft').addEventListener('click', (e) => persist('draft', 'draft', e.target, 'Save Draft'));
+  document.getElementById('submit').addEventListener('click', (e) => {
+    const missing = FIELDS.filter(([k]) => !plain(document.getElementById('fld-' + k).value));
+    if (missing.length) { msg.innerHTML = alertBox('Please complete all 7 fields before submitting your solution.'); return; }
+    persist('full', 'pending', e.target, 'Submit Solution →');
+  });
+} catch (err) {
+  if (err.message !== 'redirect') { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
+}
+</script>
+</body>
+</html>

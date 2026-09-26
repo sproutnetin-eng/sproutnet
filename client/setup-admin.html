@@ -5,21 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Setup Admin | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .setup-wrap { min-height: 100vh; background: #1C1410; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; padding: 24px; box-sizing: border-box; }
+  .setup-card { background: #FAF8F4; border-radius: 16px; padding: 40px; max-width: 440px; width: 100%; text-align: center; box-sizing: border-box; }
+  .setup-icon { font-size: 48px; margin-bottom: 16px; }
+  .setup-card h1 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #1C1410; margin: 0 0 12px; }
+  .setup-card p { font-size: 14px; color: #4A3F38; margin: 0 0 24px; line-height: 1.6; }
+  .setup-card p:empty { margin: 0; }
+  .setup-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 14px 28px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+  .setup-btn-sm { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; border: none; border-radius: 8px; padding: 12px 24px; text-decoration: none; display: inline-block; }
+  .setup-btn-sm.amber { background: #F4A723; }
+  .setup-btn-sm.mint { background: #EAF4EE; }
+  .setup-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:440px">
-  <div class="card" style="text-align:center">
-    <div id="icon" style="font-size:3rem">⏳</div>
+<div class="setup-wrap">
+  <div class="setup-card">
+    <div class="setup-icon" id="icon">⏳</div>
     <h1 id="title">Checking...</h1>
-    <p class="muted" id="desc"></p>
+    <p id="desc"></p>
     <div id="actions"></div>
   </div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const icon = document.getElementById('icon');
 const title = document.getElementById('title');
 const desc = document.getElementById('desc');
@@ -28,14 +41,15 @@ try {
   const data = await api('/api/admin/seed', { method: 'POST' });
   icon.textContent = '✅'; title.textContent = 'You are now an admin!';
   desc.textContent = data.message || 'Promoted to admin!';
-  actions.innerHTML = '<a class="btn btn-primary" href="/admin">Go to Admin Panel →</a>';
+  actions.innerHTML = '<button class="setup-btn" id="go-admin">Go to Admin Panel →</button>';
+  document.getElementById('go-admin').addEventListener('click', () => { location.href = '/admin'; });
 } catch (err) {
   if (/401|Unauthorized/.test(err.message)) {
     title.textContent = 'Not logged in'; desc.textContent = 'You need to be logged in first.';
-    actions.innerHTML = '<a class="btn btn-primary" href="/join">Sign Up First</a> <a class="btn" href="/login/student">Log In</a>';
+    actions.innerHTML = '<div class="setup-actions"><a class="setup-btn-sm amber" href="/join">Sign Up First</a><a class="setup-btn-sm mint" href="/login/student">Log In</a></div>';
   } else {
     icon.textContent = '❌'; title.textContent = 'Something went wrong'; desc.textContent = err.message;
-    actions.innerHTML = '<a class="btn btn-primary" href="/login/student">Try Logging In First</a>';
+    actions.innerHTML = '<a class="setup-btn-sm amber" href="/login/student">Try Logging In First</a>';
   }
 }
 </script>

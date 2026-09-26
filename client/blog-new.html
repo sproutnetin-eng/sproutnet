@@ -5,52 +5,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>New Post | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+.bloged-wrap { max-width: 860px; margin: 0 auto; padding: clamp(20px, 4vw, 40px) clamp(14px, 3vw, 20px); font-family: 'DM Sans', sans-serif; }
+.bloged-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; }
+.bloged-head .left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.bloged-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2D6A4F; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; }
+.bloged-title { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #1C1410; }
+.mode-toggle { display: inline-flex; background: rgba(28,20,16,0.06); border-radius: 10px; padding: 3px; gap: 2px; }
+.mode-toggle button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #7A7068; background: transparent; border: none; border-radius: 8px; padding: 7px 16px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.mode-toggle button.on { color: #1C1410; background: #fff; box-shadow: 0 1px 4px rgba(28,20,16,0.10); }
+.bloged-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.btn-cancel { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #5C524A; background: #F6F2EB; border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; text-decoration: none; }
+.btn-draft { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #1C1410; background: #F6F2EB; border: 1px solid rgba(28,20,16,0.1); border-radius: 10px; padding: 10px 18px; cursor: pointer; }
+.btn-pub { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #1C1410; background: #F4A723; border: none; border-radius: 10px; padding: 10px 20px; cursor: pointer; box-shadow: 0 6px 16px rgba(244,167,35,0.28); }
+.btn-draft:disabled, .btn-pub:disabled { opacity: 0.6; cursor: not-allowed; }
+.bloged-err { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.18); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #B91C1C; margin-bottom: 18px; }
+.bloged-ok { background: rgba(45,106,79,0.08); border: 1px solid rgba(45,106,79,0.2); border-radius: 12px; padding: 12px 16px; font-size: 13px; color: #1B4332; margin-bottom: 18px; font-weight: 600; }
+.bloged-cover { background: #fff; border: 1px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 16px; margin-bottom: 18px; }
+.bloged-cover img { max-width: 100%; border-radius: 8px; margin-bottom: 8px; display: block; }
+.bloged-cover .row { display: flex; gap: 8px; }
+.bloged-cover input[type=file] { flex: 1; font-size: 13px; }
+.post-types { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+.post-types button { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; border: none; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.post-types button.k { color: #2D6A4F; background: #EAF4EE; }
+.post-types button.q { color: #1E40AF; background: rgba(30,64,175,0.08); }
+.post-types button.on { color: #1C1410; background: #F4A723; }
+.bloged-title-input { width: 100%; border: none; border-bottom: 2px solid rgba(28,20,16,0.1); border-radius: 0; padding: 8px 0; font-family: 'Sora', sans-serif; font-size: clamp(22px, 4vw, 32px); font-weight: 700; color: #1C1410; outline: none; resize: none; background: transparent; line-height: 1.25; overflow: hidden; box-sizing: border-box; }
+.bloged-title-input:focus { border-bottom-color: #2D6A4F; }
+.bloged-meta { background: #fff; border: 1px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 16px; margin: 20px 0; display: grid; gap: 12px; }
+.bloged-meta label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 600; color: #4A3F38; }
+.bloged-meta input, .bloged-meta textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 10px 12px; outline: none; width: 100%; box-sizing: border-box; }
+.bloged-body { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.7; color: #1C1410; background: #fff; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 12px; padding: 16px; outline: none; box-sizing: border-box; min-height: 280px; resize: vertical; }
+.bloged-preview-hint { display: flex; align-items: center; gap: 10px; background: rgba(45,106,79,0.06); border: 1px solid rgba(45,106,79,0.14); border-radius: 12px; padding: 10px 16px; margin-bottom: 22px; font-size: 13px; color: #2D6A4F; }
+.bloged-preview-hint button { background: none; border: none; color: #2D6A4F; font-weight: 700; cursor: pointer; padding: 0; font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.bloged-author { margin-top: 18px; display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #fff; border-radius: 12px; border: 1px solid rgba(28,20,16,0.07); }
+.bloged-avatar { width: 36px; height: 36px; border-radius: 50%; background: #EAF4EE; color: #2D6A4F; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:860px">
+<div class="bloged-wrap">
   <div id="msg"></div>
-  <p class="muted">// new post</p>
-  <h1>Write a new post</h1>
-  <div class="card">
-    <div id="coverwrap">
-      <img id="coverimg" style="display:none;max-width:100%;border-radius:8px;margin-bottom:0.5rem" alt="Cover">
-      <div class="row">
-        <input class="input" type="file" id="coverfile" accept="image/png,image/jpeg,image/webp,image/gif" style="flex:1">
-        <button class="btn" id="coverrm" style="display:none">Remove</button>
+  <div class="bloged-head">
+    <div class="left">
+      <div><div class="bloged-eyebrow">// new post</div><div class="bloged-title">Write a new post</div></div>
+      <div class="mode-toggle" role="tablist" aria-label="Editor mode">
+        <button id="m-write" class="on" role="tab" aria-selected="true">✎ Write</button>
+        <button id="m-prev" role="tab" aria-selected="false">👁 Preview</button>
       </div>
-      <p class="muted">Cover image — PNG, JPG, WEBP up to 10MB (via /api/blogs/images).</p>
     </div>
-    <div class="row" id="types">
-      <button class="btn" data-t="knowledge">Knowledge Share</button>
-      <button class="btn" data-t="question">Question / Doubt</button>
+    <div class="bloged-actions">
+      <button class="btn-draft" id="draft">Save Draft</button>
+      <button class="btn-pub" id="publish">Publish →</button>
     </div>
-    <label>Title<textarea class="textarea" id="title" rows="1" placeholder="Give your post a sharp title..." style="font-size:1.4rem;font-weight:700"></textarea></label>
-    <label>Slug (optional)<input class="input" id="slug" placeholder="my-post-slug"></label>
-    <label>Excerpt<textarea class="textarea" id="excerpt" rows="2" placeholder="Short summary..."></textarea></label>
-    <label>Tags (comma-separated)<input class="input" id="tags" placeholder="react, startup, design"></label>
-    <label>Category<input class="input" id="category" placeholder="e.g. Web Dev"></label>
-    <label>Body<textarea class="textarea" id="body" rows="12" placeholder="Start writing your story... (plain text; HTML allowed)"></textarea></label>
-    <div class="row">
-      <button class="btn" id="draft">Save Draft</button>
-      <button class="btn btn-primary" id="publish">Publish →</button>
-      <a class="btn" href="/blogs/manage">Manage posts</a>
+  </div>
+  <div id="feedback"></div>
+  <div id="writepane">
+    <div class="bloged-cover">
+      <img id="coverimg" style="display:none" alt="Cover">
+      <div class="row">
+        <input type="file" id="coverfile" accept="image/png,image/jpeg,image/webp,image/gif">
+        <button class="btn-cancel" id="coverrm" style="display:none">Remove</button>
+      </div>
+      <p style="font-size:12px;color:#8A8078;margin:8px 0 0">Cover image — PNG, JPG, WEBP up to 10MB (via /api/blogs/images).</p>
     </div>
+    <div class="post-types" id="types">
+      <button data-t="knowledge" class="k on">Knowledge Share</button>
+      <button data-t="question" class="q">Question / Doubt</button>
+    </div>
+    <div style="margin-bottom:20px"><textarea class="bloged-title-input" id="title" rows="1" placeholder="Give your post a sharp title…"></textarea></div>
+    <div class="bloged-meta">
+      <label>Slug (optional)<input id="slug" placeholder="my-post-slug"></label>
+      <label>Excerpt<textarea id="excerpt" rows="2" placeholder="Short summary..."></textarea></label>
+      <label>Tags (comma-separated)<input id="tags" placeholder="react, startup, design"></label>
+      <label>Category<input id="category" placeholder="e.g. Web Dev"></label>
+    </div>
+    <textarea class="bloged-body" id="body" placeholder="Start writing your story…"></textarea>
+    <div class="bloged-author" id="authorstrip"></div>
+  </div>
+  <div id="prevpane" style="display:none">
+    <div class="bloged-preview-hint"><span><strong>Preview mode</strong> — this is exactly how readers will see your post. <button id="backwrite">Back to writing →</button></span></div>
+    <div class="bloged-cover" id="prevcard"><h2 id="prevtitle" style="font-family:Sora,sans-serif;margin:0 0 8px"></h2><div id="prevmeta" style="font-size:12px;color:#8A8078;margin-bottom:12px"></div><img id="prevcover" style="display:none;max-width:100%;border-radius:12px;margin-bottom:12px" alt="Cover"><div id="prevbody" style="font-size:15px;line-height:1.7;white-space:pre-wrap"></div></div>
   </div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireAuth, renderNav, alertBox } from '/assets/app.js';
-renderNav('blogs');
+import { api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+renderNav();
 const msg = document.getElementById('msg');
+const feedback = document.getElementById('feedback');
 let postType = 'knowledge';
 let coverImage = null;
+let mode = 'write';
 
 const s = await requireAuth();
 if (s) {
-  const paint = () => document.querySelectorAll('#types [data-t]').forEach(b => b.classList.toggle('btn-primary', b.dataset.t === postType));
+  let viewer = null;
+  try { const me = await api('/api/auth/profile'); viewer = me.profile; } catch { /* ignore */ }
+  if (viewer) {
+    document.getElementById('authorstrip').innerHTML = `<div class="bloged-avatar">${esc((viewer.name || '?').slice(0, 2).toUpperCase())}</div><div><div style="font-family:Sora,sans-serif;font-size:13px;font-weight:700;color:#1C1410">${esc(viewer.name)}</div><div style="font-size:11px;color:#8A8078">Publishing as ${esc(viewer.role)}${viewer.dept ? ` · ${esc(viewer.dept)}` : ''}</div></div>`;
+  }
+  const paint = () => document.querySelectorAll('#types [data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === postType));
   document.querySelectorAll('#types [data-t]').forEach(b => b.addEventListener('click', () => { postType = b.dataset.t; paint(); }));
   paint();
+
+  const setMode = (m) => {
+    mode = m;
+    document.getElementById('m-write').classList.toggle('on', m === 'write');
+    document.getElementById('m-prev').classList.toggle('on', m === 'preview');
+    document.getElementById('writepane').style.display = m === 'write' ? '' : 'none';
+    document.getElementById('prevpane').style.display = m === 'preview' ? '' : 'none';
+    if (m === 'preview') {
+      document.getElementById('prevtitle').textContent = document.getElementById('title').value || 'Untitled';
+      document.getElementById('prevmeta').textContent = `${postType === 'question' ? 'Question / Doubt' : 'Knowledge Share'} · ${viewer?.name || ''}`;
+      document.getElementById('prevbody').textContent = document.getElementById('body').value || 'Nothing to preview yet.';
+      const pc = document.getElementById('prevcover');
+      if (coverImage) { pc.src = coverImage; pc.style.display = ''; } else pc.style.display = 'none';
+    }
+  };
+  document.getElementById('m-write').addEventListener('click', () => setMode('write'));
+  document.getElementById('m-prev').addEventListener('click', () => setMode('preview'));
+  document.getElementById('backwrite').addEventListener('click', () => setMode('write'));
+  const titleEl = document.getElementById('title');
+  titleEl.addEventListener('input', () => { titleEl.style.height = 'auto'; titleEl.style.height = titleEl.scrollHeight + 'px'; });
 
   document.getElementById('coverfile').addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
@@ -76,9 +153,9 @@ if (s) {
   async function submit(status, btn, label) {
     const title = document.getElementById('title').value.trim();
     const body = document.getElementById('body').value;
-    if (!title) { msg.innerHTML = alertBox('Please add a title before publishing.'); return; }
-    if (!body.trim()) { msg.innerHTML = alertBox('The editor body is empty. Write something first.'); return; }
-    btn.disabled = true; btn.textContent = 'Publishing…'; msg.innerHTML = '';
+    if (!title) { feedback.innerHTML = `<div class="bloged-err">Please add a title before publishing.</div>`; return; }
+    if (!body.trim()) { feedback.innerHTML = `<div class="bloged-err">The editor body is empty. Write something first.</div>`; return; }
+    btn.disabled = true; btn.textContent = 'Publishing…'; feedback.innerHTML = '';
     try {
       await api('/api/blogs/posts', { method: 'POST', body: {
         title, body, post_type: postType, cover_image: coverImage,
@@ -88,9 +165,9 @@ if (s) {
         category: document.getElementById('category').value.trim(),
         status,
       } });
-      msg.innerHTML = alertBox(status === 'published' ? 'Published! 🎉' : 'Draft saved.', true);
+      feedback.innerHTML = `<div class="bloged-ok">${status === 'published' ? 'Published! 🎉' : 'Draft saved.'}</div>`;
       if (status === 'published') setTimeout(() => location.href = '/blogs/manage', 800);
-    } catch (err) { msg.innerHTML = alertBox(err.message); }
+    } catch (err) { feedback.innerHTML = `<div class="bloged-err">${esc(err.message)}</div>`; }
     btn.disabled = false; btn.textContent = label;
   }
   document.getElementById('draft').addEventListener('click', (e) => submit('draft', e.target, 'Save Draft'));

@@ -5,19 +5,80 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Blog | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
-<style>pre.wrap { white-space:pre-wrap; font-family:inherit; margin:0; }</style>
+<style>
+  .bd-page { min-height: 100vh; background: #FAF8F4; font-family: 'DM Sans', sans-serif; }
+  .bd-topbar { padding: 12px clamp(16px, 4vw, 52px); display: flex; justify-content: space-between; align-items: center; background: rgba(250,248,244,0.94); border-bottom: 1px solid rgba(28,20,16,0.07); }
+  .bd-back { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #1C1410; font-weight: 600; font-size: 14px; }
+  .bd-topbtn { font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 8px 18px; border-radius: 8px; text-decoration: none; }
+  .bd-wrap { max-width: 760px; margin: 0 auto; padding: clamp(24px, 5vw, 48px) clamp(16px, 4vw, 24px); }
+  .bd-cover { width: 100%; height: 320px; border-radius: 16px; overflow: hidden; margin-bottom: 24px; background: #F6F2EB; }
+  .bd-cover img { width: 100%; height: 100%; object-fit: cover; }
+  .bd-author { display: flex; gap: 14px; margin-bottom: 20px; }
+  .bd-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; flex-shrink: 0; }
+  .bd-avatar.knowledge { background: #EAF4EE; color: #2D6A4F; }
+  .bd-avatar.question { background: rgba(30,64,175,0.08); color: #1E40AF; }
+  .bd-author-name { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #1C1410; }
+  .bd-type { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .bd-type.knowledge { color: #2D6A4F; background: #EAF4EE; }
+  .bd-type.question { color: #1E40AF; background: rgba(30,64,175,0.08); }
+  .bd-author-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+  .bd-date { font-size: 13px; color: #7A7068; }
+  .bd-title { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(32px, 6vw, 48px); font-weight: 400; color: #1C1410; line-height: 1.05; letter-spacing: -0.7px; margin: 0 0 24px; }
+  .bd-body { font-size: 16px; color: #3F352E; line-height: 1.9; white-space: pre-wrap; margin-bottom: 32px; }
+  .sn-blog-body { font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.9; color: #3F352E; margin-bottom: 32px; }
+  .sn-blog-body .ProseMirror { outline: none; padding: 0; }
+  .sn-blog-body h1, .sn-blog-body h2, .sn-blog-body h3 { font-family: 'Sora', sans-serif; color: #1C1410; line-height: 1.25; margin-top: 1.6em; margin-bottom: 0.5em; }
+  .sn-blog-body h1 { font-size: 2rem; font-weight: 700; }
+  .sn-blog-body h2 { font-size: 1.5rem; font-weight: 700; border-bottom: 1.5px solid rgba(28,20,16,0.08); padding-bottom: 0.3em; }
+  .sn-blog-body h3 { font-size: 1.2rem; font-weight: 600; }
+  .sn-blog-body p { margin: 0 0 1em; }
+  .sn-blog-body ul, .sn-blog-body ol { padding-left: 1.7em; margin: 0.5em 0 1em; }
+  .sn-blog-body li { margin: 0.3em 0; }
+  .sn-blog-body blockquote { border-left: 4px solid #F4A723; padding-left: 18px; margin: 1.5em 0; color: #5C524A; font-style: italic; }
+  .sn-blog-body pre { background: #1C1410; border-radius: 12px; padding: 20px 22px; overflow-x: auto; margin: 1.5em 0; color: #FAF8F4; font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; line-height: 1.7; white-space: pre-wrap; }
+  .sn-blog-body img { max-width: 100%; height: auto; border-radius: 12px; display: block; margin: 1.5em auto; box-shadow: 0 4px 20px rgba(28,20,16,0.12); }
+  .bd-actionbar { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 16px 0; border-top: 1px solid rgba(28,20,16,0.07); border-bottom: 1px solid rgba(28,20,16,0.07); margin-bottom: 32px; }
+  .bd-like { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; border: none; border-radius: 999px; padding: 10px 18px; cursor: pointer; }
+  .bd-like.on { color: #1C1410; background: #F4A723; }
+  .bd-like.off { color: #7A7068; background: #F6F2EB; }
+  .bd-like-login { font-size: 14px; font-weight: 700; color: #2D6A4F; background: #F6F2EB; border-radius: 999px; padding: 10px 18px; text-decoration: none; }
+  .bd-count { font-size: 13px; color: #7A7068; }
+  .bd-discuss { margin-bottom: 32px; }
+  .bd-discuss h3 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin: 0 0 16px; }
+  .bd-form { display: grid; gap: 10px; margin-bottom: 24px; }
+  .bd-textarea { width: 100%; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 12px; padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; resize: vertical; outline: none; line-height: 1.65; box-sizing: border-box; }
+  .bd-form-row { display: flex; justify-content: flex-end; }
+  .bd-submit { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #FAF8F4; background: #2D6A4F; border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; }
+  .bd-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .bd-empty { font-size: 14px; color: #7A7068; }
+  .bd-comments { display: grid; gap: 14px; }
+  .bd-comment { background: #fff; border: 1px solid rgba(28,20,16,0.06); border-radius: 14px; padding: 14px; }
+  .bd-comment-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .bd-comment-name { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; color: #1C1410; }
+  .bd-comment-date { font-size: 11px; color: #8A8078; }
+  .bd-del { margin-left: auto; font-size: 12px; font-weight: 600; color: #DC2626; background: none; border: 1px solid rgba(220,38,38,0.25); border-radius: 6px; padding: 3px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .bd-comment-body { font-size: 14px; color: #3F352E; line-height: 1.7; white-space: pre-wrap; }
+  .bd-reply-wrap { margin-left: 24px; margin-top: 10px; padding-left: 16px; border-left: 2px solid rgba(28,20,16,0.06); }
+  .bd-reply { background: #fff; border: 1px solid rgba(28,20,16,0.06); border-radius: 14px; padding: 12px; }
+  .bd-loading, .bd-notfound { min-height: 60vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; font-size: 14px; color: #9CA3A0; }
+  .bd-notfound-title { font-size: 18px; color: #1C1410; font-weight: 700; }
+  .bd-notfound a { font-size: 14px; color: #2D6A4F; text-decoration: none; }
+</style>
 </head>
 <body>
+<div class="bd-page">
 <div id="sn-nav"></div>
-<div class="container">
-  <div id="msg"></div>
-  <p><a href="/blogs">← Back to Blogs</a></p>
-  <div id="content"><p class="muted">Loading…</p></div>
+<div id="msg"></div>
+<div id="topbar-slot"></div>
+<div class="bd-wrap" id="wrap" style="display:none;">
+  <div id="content"></div>
+</div>
+<div class="bd-loading" id="loading">Loading...</div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
-renderNav('blogs');
+renderNav();
 const id = location.pathname.split('/')[2];
 const plain = (body) => { try { const t = (body || '').trim();
     if (t.startsWith('{')) { const j = JSON.parse(t);
@@ -25,48 +86,68 @@ const plain = (body) => { try { const t = (body || '').trim();
       return walk(j); } } catch {} return body || ''; };
 let post = null, me = null, liked = false, likeCount = 0, comments = [];
 const msg = (h) => { document.getElementById('msg').innerHTML = h; };
+const fmtDate = (v) => new Date(v).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+const aini = (n) => (n || 'SN').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
 function render() {
-  const meta = post.postType === 'question' ? 'Question / Doubt' : 'Knowledge Share';
+  const isQ = post.postType === 'question';
+  const meta = isQ ? 'Question / Doubt' : 'Knowledge Share';
+  const cls = isQ ? 'question' : 'knowledge';
   const roots = comments.filter(c => !c.parentId);
   document.title = `${post.title} | SproutNet`;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('wrap').style.display = '';
+  document.getElementById('topbar-slot').innerHTML = `
+    <nav class="bd-topbar">
+      <a class="bd-back" href="/blogs">← Back to Blogs</a>
+      ${me ? `<a class="bd-topbtn" href="/dashboard">Dashboard →</a>` : `<a class="bd-topbtn" href="/login">Log in →</a>`}
+    </nav>`;
   document.getElementById('content').innerHTML = `
-    ${post.cover_image ? `<img src="${esc(post.cover_image)}" alt="" style="width:100%;max-height:320px;object-fit:cover;border-radius:12px;">` : ''}
-    <div><b>${esc(post.author?.name || 'SproutNet member')}</b> <span class="badge">${esc(meta)}</span>
-      <span class="muted"> · ${esc(new Date(post.createdAt).toLocaleString('en-IN'))}</span></div>
-    <h1>${esc(post.title)}</h1>
-    <div class="card"><pre class="wrap">${esc(plain(post.body))}</pre></div>
-    <div class="row">
-      ${me ? `<button class="btn ${liked ? 'btn-primary' : ''}" id="like">${liked ? 'Liked' : 'Like'} · ${likeCount}</button>`
-        : `<a class="btn" href="/login">Log in to like · ${likeCount}</a>`}
-      <span class="muted">${comments.length} comment(s)</span>
+    ${post.cover_image ? `<div class="bd-cover"><img src="${esc(post.cover_image)}" alt=""></div>` : ''}
+    <div class="bd-author">
+      <div class="bd-avatar ${cls}">${esc(aini(post.author?.name))}</div>
+      <div><div class="bd-author-top"><span class="bd-author-name">${esc(post.author?.name || 'SproutNet member')}</span><span class="bd-type ${cls}">${esc(meta)}</span></div>
+      <div class="bd-date">${esc(fmtDate(post.createdAt))}</div></div>
     </div>
-    <h3>Discussion</h3>
-    ${me ? `<div class="card"><textarea class="textarea" id="c-body" placeholder="Add a comment…"></textarea>
-      <button class="btn btn-primary" id="c-post">Post comment</button></div>` : ''}
-    <div id="clist">${roots.length ? roots.map(c => {
-      const reps = comments.filter(r => r.parentId === c.id);
-      const canDel = me && c.author?.id === me.id;
-      return `<div class="card"><div><b>${esc(c.author?.name || 'SproutNet member')}</b>
-        <span class="muted"> · ${esc(new Date(c.createdAt).toLocaleString('en-IN'))}</span>
-        ${canDel ? `<button class="btn btn-danger" data-del="${esc(c.id)}" style="float:right;">Delete</button>` : ''}</div>
-        <pre class="wrap">${esc(c.body)}</pre>
-        ${reps.map(r => `<div class="card" style="margin-left:1.5rem;"><div><b>${esc(r.author?.name || 'SproutNet member')}</b>
-          <span class="muted"> · ${esc(new Date(r.createdAt).toLocaleString('en-IN'))}</span>
-          ${me && r.author?.id === me.id ? `<button class="btn btn-danger" data-del="${esc(r.id)}" style="float:right;">Delete</button>` : ''}</div>
-          <pre class="wrap">${esc(r.body)}</pre></div>`).join('')}
-      </div>`; }).join('') : '<p class="muted">No comments yet.</p>'}</div>`;
+    <h1 class="bd-title">${esc(post.title)}</h1>
+    <div class="sn-blog-body"><div class="bd-body">${esc(plain(post.body))}</div></div>
+    <div class="bd-actionbar">
+      ${me ? `<button class="bd-like ${liked ? 'on' : 'off'}" id="like">${liked ? `Liked - ${likeCount}` : `Like - ${likeCount}`}</button>`
+        : `<a class="bd-like-login" href="/login">Log in to like - ${likeCount}</a>`}
+      <span class="bd-count">${comments.length} comment${comments.length !== 1 ? 's' : ''}</span>
+    </div>
+    <div class="bd-discuss">
+      <h3>Discussion</h3>
+      ${me ? `<form class="bd-form" id="c-form"><textarea class="bd-textarea" id="c-body" placeholder="Add a comment..." rows="3"></textarea>
+        <div class="bd-form-row"><button class="bd-submit" type="submit" id="c-post">Post comment</button></div></form>` : ''}
+      <div class="bd-comments" id="clist">${roots.length ? roots.map(c => {
+        const reps = comments.filter(r => r.parentId === c.id);
+        const canDel = me && c.author?.id === me.id;
+        return `<div><div class="bd-comment"><div class="bd-comment-head"><span class="bd-comment-name">${esc(c.author?.name || 'SproutNet member')}</span>
+          <span class="bd-comment-date">${esc(fmtDate(c.createdAt))}</span>
+          ${canDel ? `<button class="bd-del" data-del="${esc(c.id)}" title="Delete comment">Delete</button>` : ''}</div>
+          <div class="bd-comment-body">${esc(c.body)}</div></div>
+          ${reps.map(r => `<div class="bd-reply-wrap"><div class="bd-reply"><div class="bd-comment-head"><span class="bd-comment-name">${esc(r.author?.name || 'SproutNet member')}</span>
+            <span class="bd-comment-date">${esc(fmtDate(r.createdAt))}</span>
+            ${me && r.author?.id === me.id ? `<button class="bd-del" data-del="${esc(r.id)}" title="Delete reply">Delete</button>` : ''}</div>
+            <div class="bd-comment-body">${esc(r.body)}</div></div></div>`).join('')}
+        </div>`; }).join('') : `<div class="bd-empty">${me ? 'No comments yet. Be the first!' : 'No comments yet.'}</div>`}</div>
+    </div>`;
   document.getElementById('like')?.addEventListener('click', async () => {
     try { const d = await api('/api/blogs/likes', { method:'POST', body:{ post_id:id } });
-      liked = d.liked; likeCount += liked ? 1 : -1; render();
+      liked = d.liked; likeCount += liked ? 1 : -1; if (likeCount < 0) likeCount = 0; render();
     } catch (e) { msg(alertBox(e.message)); }
   });
-  document.getElementById('c-post')?.addEventListener('click', async (e) => {
-    const body = document.getElementById('c-body').value.trim();
-    if (!body) return; e.target.disabled = true;
+  document.getElementById('c-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ta = document.getElementById('c-body');
+    const body = ta.value.trim();
+    if (!body) return;
+    const btn = document.getElementById('c-post');
+    btn.disabled = true; btn.textContent = 'Posting...';
     try { const d = await api('/api/blogs/comments', { method:'POST', body:{ post_id:id, body } });
-      if (d.comment) comments.push(d.comment); document.getElementById('c-body').value = ''; render();
-    } catch (err) { msg(alertBox(err.message)); } e.target.disabled = false;
+      if (d.comment) comments.push(d.comment); render();
+    } catch (err) { msg(alertBox(err.message)); btn.disabled = false; btn.textContent = 'Post comment'; }
   });
   document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
     if (!confirm('Delete this comment? Replies under it will also be removed.')) return;
@@ -83,7 +164,7 @@ try {
   post = d.post; liked = !!post.likedByViewer; likeCount = post.likesCount || 0; comments = post.comments || [];
   render();
 } catch (e) {
-  document.getElementById('content').innerHTML = `<div class="card"><h2>Post not found</h2><a href="/blogs">← Back to blogs</a></div>`;
+  document.getElementById('loading').innerHTML = `<div class="bd-notfound-title">Post not found</div><a href="/blogs">← Back to blogs</a>`;
   if (!/404|not found/i.test(e.message)) msg(alertBox(e.message));
 }
 </script>

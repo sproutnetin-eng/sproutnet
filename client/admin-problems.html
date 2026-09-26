@@ -6,88 +6,232 @@
 <title>Problems — SproutNet Admin</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
-.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
-.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
-.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
-.admin-side .meta{font-size:.75rem;color:#64748b}
-@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
-.table-wrap{overflow-x:auto}
+  .admin-theme { --bg-main: #F6F7F8; --bg-surface: #FFFFFF; --bg-card: #FFFFFF; --bg-hover: #F0F2F4; --border-primary: #E5E7EB; --border-secondary: #D1D5DB; --border-input: #D1D5DB; --text-primary: #000000; --text-secondary: #000000; --text-muted: #000000; --text-disabled: #000000; --accent-primary: #10A37F; --accent-hover: #1DBF93; --danger: #EF4444; --warning: #F59E0B; background: var(--bg-main); color: var(--text-primary); }
+  .admin-theme * { box-sizing: border-box; color: #000000 !important; }
+  .admin-theme ::placeholder { color: #000000 !important; opacity: 0.55; }
+  .admin-shell { min-height: 100vh; background: var(--bg-main); color: var(--text-primary); font-family: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; --admin-columns: 260px 1fr; --admin-aside-position: sticky; --admin-aside-height: 100vh; }
+  .admin-grid { display: grid; grid-template-columns: var(--admin-columns, 260px 1fr); min-height: 100vh; }
+  .admin-sidebar { border-right: 1px solid var(--border-primary); background: var(--bg-surface); padding: clamp(16px, 3vw, 22px) clamp(14px, 3vw, 18px); position: var(--admin-aside-position, sticky); top: 0; height: var(--admin-aside-height, 100vh); overflow-y: auto; }
+  .admin-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
+  .admin-brand .nm { font-family: Sora, sans-serif; font-weight: 900; font-size: 15px; line-height: 1.1; }
+  .admin-brand .sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 2px; }
+  .admin-access { padding: 12px; margin-bottom: 14px; }
+  .admin-access .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-bottom: 8px; }
+  .admin-access .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .admin-access .who { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-surface { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-sidebar-link { text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-primary); }
+  .admin-sidebar-link--active { background: var(--bg-hover); border-color: var(--border-secondary); box-shadow: inset 3px 0 0 var(--accent-primary); }
+  .admin-links { display: grid; gap: 8px; }
+  .admin-links .t { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; }
+  .admin-links .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .admin-tools { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-primary); display: grid; gap: 6px; }
+  .admin-tools .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .admin-tools button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; background: transparent; border: 1px solid var(--border-primary); border-radius: 8px; padding: 8px 12px; cursor: pointer; text-align: left; }
+  .admin-tools button:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-tools .tmsg { font-size: 11px; font-family: 'JetBrains Mono', monospace; line-height: 1.4; }
+  .admin-back { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(148,163,184,0.12); }
+  .admin-back a { justify-content: center; }
+  .admin-pill { font-family: "JetBrains Mono", monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-secondary); background: var(--bg-hover); }
+  .admin-pill--accent { border-color: rgba(16,163,127,0.35); background: rgba(16,163,127,0.12); }
+  .admin-pill--warning { border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.12); }
+  .admin-input, .admin-select { width: 100%; font-family: "DM Sans", sans-serif; font-size: 14px; background: var(--bg-hover); border: 1px solid var(--border-input); border-radius: 12px; padding: 10px 12px; outline: none; }
+  .admin-btn { font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 800; border-radius: 12px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--border-secondary); background: var(--bg-surface); }
+  .admin-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-btn--primary { background: var(--accent-primary); border-color: rgba(16,163,127,0.7); }
+  .admin-btn--warning { background: var(--warning); border-color: rgba(245,158,11,0.7); }
+  .admin-btn--danger { background: rgba(239,68,68,0.18); border-color: rgba(239,68,68,0.35); }
+  .admin-linkbtn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .admin-table { overflow: hidden; overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-primary); background: var(--bg-surface); }
+  .admin-head { min-height: 64px; padding: 10px clamp(16px, 3vw, 26px); display: flex; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--border-primary); background: rgba(246,247,248,0.9); position: sticky; top: 0; z-index: 50; }
+  .admin-main { padding: clamp(20px, 3vw, 28px) clamp(16px, 3vw, 26px) 70px; }
+  .ap-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .ap-title { font-family: Sora, sans-serif; font-size: clamp(22px, 4.5vw, 28px); font-weight: 950; letter-spacing: -0.6px; margin: 0 0 8px; }
+  .ap-sub { font-size: 14px; font-weight: 500; max-width: 820px; margin: 0 0 16px; }
+  .ap-filters { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 16px; padding: 14px; margin-bottom: 16px; }
+  .ap-fgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; align-items: center; }
+  .ap-fmeta { margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  .ap-seed { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; background: #F4A723; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; }
+  .ap-seed:disabled { cursor: not-allowed; opacity: 0.6; }
+  .ap-hrow, .ap-row { display: grid; grid-template-columns: 1.6fr 180px 160px 130px 120px 110px 360px; min-width: 980px; gap: 10px; padding: 12px 14px; align-items: center; }
+  .ap-hrow { background: var(--bg-hover); border-bottom: 1px solid var(--border-primary); }
+  .ap-hrow .h { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; }
+  .ap-row { border-bottom: 1px solid var(--border-primary); }
+  .ap-pt { font-family: Sora, sans-serif; font-size: 13px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ap-ps { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 3px; }
+  .ap-cell { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ap-type { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ap-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .ap-acts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .ap-eval { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.2); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+  .ap-eval:disabled { cursor: not-allowed; opacity: 0.6; }
+  .ap-err { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 16px; padding: 16px; }
+  .ap-err .t { font-family: Sora, sans-serif; font-size: 15px; font-weight: 900; margin-bottom: 6px; }
+  .ap-err .d { font-family: 'JetBrains Mono', monospace; font-size: 12px; opacity: 0.85; }
+  .ap-none { text-align: center; padding: 80px 24px; }
+  .ap-none .big { font-size: 40px; margin-bottom: 16px; }
+  .ap-none .t { font-family: Sora, sans-serif; font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+  .ap-none .d { font-size: 14px; }
+  @media (max-width: 1024px) { .admin-shell { --admin-columns: 1fr; --admin-aside-position: static; --admin-aside-height: auto; } }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container" style="max-width:1200px">
-<div class="admin-layout">
-<aside class="admin-side card">
-  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
-  <a href="/admin/problems" class="on"><strong>Problems</strong> <span class="meta">moderation</span></a>
-  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
-  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
-  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
-  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
-  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
-</aside>
-<div>
-  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">PROBLEMS · MODERATION</div>
-  <h1>Problems</h1>
-  <div id="msg"></div>
-  <div class="card">
-    <div class="row">
-      <input class="input" id="q" placeholder="Search by title, domain, poster name…" style="flex:2;min-width:200px">
-      <select class="select" id="status" style="flex:1;min-width:140px"><option value="all">All statuses</option><option value="open">Published (open)</option><option value="pending">Held (pending)</option></select>
-      <select class="select" id="type" style="flex:1;min-width:140px"><option value="all">All types</option><option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option></select>
-      <button class="btn btn-primary" id="seed" type="button">Seed Test Data</button>
+<div class="admin-theme admin-shell">
+<div class="admin-grid">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="/admin">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#10A37F"/><line x1="17" y1="27" x2="17" y2="15" stroke="#0D0D0D" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F59E0B"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(236,236,236,0.88)"/></svg>
+      <div><div class="nm">SproutNet</div><div class="sub">admin panel</div></div>
+    </a>
+    <div class="admin-card admin-access">
+      <div class="lbl">YOUR ACCESS</div>
+      <div class="row"><div class="who" id="access-name">…</div><span class="admin-pill admin-pill--accent" id="access-pill">ADMIN</span></div>
     </div>
-    <div class="muted" id="count"></div>
+    <div class="admin-links">
+      <a class="admin-sidebar-link" href="/admin"><span class="t">Overview</span><span class="m">home</span></a>
+      <a class="admin-sidebar-link admin-sidebar-link--active" href="/admin/problems" aria-current="page"><span class="t">Problems</span><span class="m">moderation</span></a>
+      <a class="admin-sidebar-link" href="/admin/solutions"><span class="t">Solutions</span><span class="m">uploads</span></a>
+      <a class="admin-sidebar-link" href="/admin/judging"><span class="t">Judging</span><span class="m">queue</span></a>
+      <a class="admin-sidebar-link" href="/admin/analytics"><span class="t">Analytics</span><span class="m">metrics</span></a>
+      <a class="admin-sidebar-link" href="/leaderboard"><span class="t">Leaderboard</span><span class="m">scores</span></a>
+    </div>
+    <div class="admin-tools">
+      <div class="lbl">LEADERBOARD TOOLS</div>
+      <button type="button" id="seed-btn">Seed Test Submissions</button>
+      <button type="button" id="recalc-btn">Recalculate Scores</button>
+      <div class="tmsg" id="tool-msg"></div>
+    </div>
+    <div class="admin-back"><a class="admin-sidebar-link" href="/dashboard">← Back to Dashboard</a></div>
+  </aside>
+  <div>
+    <header class="admin-head"><button type="button" class="admin-btn" id="signout">Sign out</button></header>
+    <main class="admin-main">
+      <div style="margin-bottom:16px">
+        <div class="ap-eyebrow">PROBLEMS · MODERATION</div>
+        <h1 class="ap-title">Problems</h1>
+        <p class="ap-sub">View all problems and manage them (publish/hold, edit, delete, and check enrollments).</p>
+      </div>
+      <div id="msg"></div>
+      <div id="body"><p style="font-family:'DM Sans',sans-serif;font-size:13px">Loading…</p></div>
+    </main>
   </div>
-  <div class="card table-wrap"><table class="table"><thead><tr><th>Title</th><th>Poster</th><th>Domain</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead><tbody id="rows"><tr><td>Loading…</td></tr></tbody></table></div>
 </div>
 </div>
-</main>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+renderNav();
 const me = await requireRole('admin');
 const msg = document.getElementById('msg');
+const body = document.getElementById('body');
 let items = [];
+let query = '', statusFilter = 'all', domainFilter = 'All', typeFilter = 'all';
+async function evaluateProblem(problemId) {
+  try {
+    await api('/api/problems/evaluate', { method: 'POST', body: { problem_id: problemId } });
+    return { ok: true };
+  } catch (err) { return { ok: false, error: err.message || 'Network error' }; }
+}
+function filtered() {
+  const q = query.trim().toLowerCase();
+  return items.filter(p => {
+    if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+    if (domainFilter !== 'All' && p.domain !== domainFilter) return false;
+    if (typeFilter !== 'all' && p.problem_type !== typeFilter) return false;
+    if (!q) return true;
+    return (p.title.toLowerCase().includes(q) || p.domain.toLowerCase().includes(q) ||
+      (p.poster_name || '').toLowerCase().includes(q) || p.poster_id.toLowerCase().includes(q));
+  });
+}
 function render() {
-  const q = document.getElementById('q').value.trim().toLowerCase();
-  const sf = document.getElementById('status').value;
-  const tf = document.getElementById('type').value;
-  const rows = items.filter(p =>
-    (sf === 'all' || p.status === sf) && (tf === 'all' || p.problem_type === tf) &&
-    (!q || p.title.toLowerCase().includes(q) || (p.domain || '').toLowerCase().includes(q) || (p.poster_name || '').toLowerCase().includes(q)));
-  document.getElementById('count').textContent = `Showing ${rows.length} of ${items.length}`;
-  document.getElementById('rows').innerHTML = rows.length ? rows.map(p => `<tr data-id="${esc(p.id)}">
-    <td><strong>${esc(p.title)}</strong><div class="muted">${p.submission_count} sub · ${esc(p.id.slice(0, 8))}…</div></td>
-    <td>${esc(p.poster_name || p.poster_id.slice(0, 8) + '…')}</td><td>${esc(p.domain)}</td>
-    <td><span class="badge ${p.status === 'open' ? '' : 'amber'}">${esc(p.status)}</span></td>
-    <td>${p.deadline ? esc(new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</td>
-    <td><div class="row">
-      <a class="btn" href="/problems/${esc(p.id)}">View</a>
-      <a class="btn" href="/admin/problems/${esc(p.id)}/enrollments">Enrollments</a>
-      <a class="btn" href="/admin/problems/${esc(p.id)}/edit">Edit</a>
-      <button class="btn" data-act="toggle">${p.status === 'open' ? 'Hold' : 'Publish'}</button>
-      <button class="btn" data-act="eval">Re-evaluate</button>
-      <button class="btn btn-danger" data-act="delete">Delete</button>
-    </div></td></tr>`).join('') : `<tr><td colspan="6" class="muted">No matches.</td></tr>`;
+  const domains = ['All', ...Array.from(new Set(items.map(p => p.domain).filter(Boolean))).sort()];
+  const rows = filtered();
+  if (!items.length) {
+    body.innerHTML = `<div class="admin-surface ap-none"><div class="big">📦</div><div class="t">No problems yet</div><div class="d">If you already have problems, verify they exist in the \`problems\` table and that this environment points at the right Supabase project.</div></div>`;
+    return;
+  }
+  body.innerHTML = `
+    <div class="ap-filters">
+      <div class="ap-fgrid">
+        <input class="admin-input" id="q" placeholder="Search by title, domain, poster name, or poster id…" value="${esc(query)}">
+        <select class="admin-select" id="fstatus">
+          <option value="all"${statusFilter === 'all' ? ' selected' : ''}>All statuses</option>
+          <option value="open"${statusFilter === 'open' ? ' selected' : ''}>Published (open)</option>
+          <option value="pending"${statusFilter === 'pending' ? ' selected' : ''}>Held (pending)</option>
+        </select>
+        <select class="admin-select" id="fdomain">${domains.map(d => `<option${d === domainFilter ? ' selected' : ''}>${esc(d)}</option>`).join('')}</select>
+        <select class="admin-select" id="ftype">
+          <option value="all"${typeFilter === 'all' ? ' selected' : ''}>All types</option>
+          <option value="public_impact"${typeFilter === 'public_impact' ? ' selected' : ''}>Public Impact</option>
+          <option value="industry_challenge"${typeFilter === 'industry_challenge' ? ' selected' : ''}>Industry Challenge</option>
+        </select>
+      </div>
+      <div class="ap-fmeta"><span>Showing ${rows.length} of ${items.length}</span>
+        <span><span id="seed-result" style="font-size:11px"></span> <button type="button" class="ap-seed" id="seed">Seed Test Data</button></span></div>
+    </div>
+    ${!rows.length ? `<div class="admin-surface ap-none"><div class="big">🔎</div><div class="t">No matches</div><div class="d">Try clearing filters or changing the search query.</div></div>` : `
+    <div class="admin-table">
+      <div class="ap-hrow">${['Title', 'Poster', 'Domain', 'Type', 'Status', 'Deadline', 'Actions'].map(h => `<div class="h">${h}</div>`).join('')}</div>
+      <div style="max-height:680px;overflow-y:auto">
+        ${rows.map(p => {
+          const isOpen = p.status === 'open';
+          const dl = p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+          const posterLabel = p.poster_name ? p.poster_name : `${p.poster_id.slice(0, 8)}…`;
+          const typeLabel = p.problem_type === 'industry_challenge' ? 'Industry' : 'Public';
+          return `<div class="ap-row" data-id="${esc(p.id)}">
+            <div style="min-width:0"><div class="ap-pt">${esc(p.title)}</div><div class="ap-ps">${p.submission_count} sub · ${esc(p.id.slice(0, 8))}…</div></div>
+            <div class="ap-cell">${esc(posterLabel)}</div>
+            <div class="ap-cell">${esc(p.domain)}</div>
+            <div class="ap-type">${esc(typeLabel)}</div>
+            <div><span class="admin-pill ${isOpen ? 'admin-pill--accent' : 'admin-pill--warning'}">${esc(p.status)}</span></div>
+            <div class="ap-date">${esc(dl)}</div>
+            <div class="ap-acts">
+              <a class="admin-btn admin-linkbtn" href="/problems/${esc(p.id)}">View</a>
+              <a class="admin-btn admin-linkbtn" href="/admin/problems/${esc(p.id)}/enrollments">Enrollments</a>
+              <a class="admin-btn admin-linkbtn" href="/admin/problems/${esc(p.id)}/edit">Edit</a>
+              <button type="button" class="admin-btn ${isOpen ? 'admin-btn--warning' : 'admin-btn--primary'}" data-act="toggle">${isOpen ? 'Hold' : 'Publish'}</button>
+              <button type="button" class="ap-eval" data-act="eval">Re-evaluate</button>
+              <button type="button" class="admin-btn admin-btn--danger" data-act="delete">Delete</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`}`;
+  document.getElementById('q').addEventListener('input', (e) => { query = e.target.value; render(); restoreFocus('q'); });
+  document.getElementById('fstatus').addEventListener('change', (e) => { statusFilter = e.target.value; render(); });
+  document.getElementById('fdomain').addEventListener('change', (e) => { domainFilter = e.target.value; render(); });
+  document.getElementById('ftype').addEventListener('change', (e) => { typeFilter = e.target.value; render(); });
+  document.getElementById('seed').addEventListener('click', async (e) => {
+    e.target.disabled = true; e.target.textContent = 'Seeding…';
+    try {
+      const r = await api('/api/problems/seed-test', { method: 'POST' });
+      const ok = (r.results || []).filter(x => x.success).length;
+      const fail = (r.results || []).filter(x => !x.success).length;
+      document.getElementById('seed-result').textContent = `Seeded ${ok} problem${ok !== 1 ? 's' : ''}${fail ? `, ${fail} failed` : ''}`;
+      await load();
+    } catch (err) { document.getElementById('seed-result').textContent = 'error: ' + err.message; }
+    const b = document.getElementById('seed'); if (b) { b.disabled = false; b.textContent = 'Seed Test Data'; }
+  });
+}
+function restoreFocus(id) {
+  const el = document.getElementById(id);
+  if (el) { el.focus(); const v = el.value; el.value = ''; el.value = v; }
 }
 async function load() {
   try {
     const d = await api('/api/admin/problems');
     items = d.problems;
     render();
-  } catch (e) { msg.innerHTML = alertBox(e.message); }
+  } catch (e) {
+    body.innerHTML = `<div class="ap-err"><div class="t">Couldn’t load problems</div><div class="d">${esc(e.message)}</div></div>`;
+  }
 }
-['q', 'status', 'type'].forEach(id => document.getElementById(id === 'q' ? 'q' : id).addEventListener('input', render));
-document.getElementById('status').addEventListener('change', render);
-document.getElementById('type').addEventListener('change', render);
-document.getElementById('rows').addEventListener('click', async (e) => {
+body.addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
-  const id = btn.closest('tr').dataset.id;
+  const id = btn.closest('.ap-row').dataset.id;
   const act = btn.dataset.act;
   if (act === 'delete' && !confirm('Delete this problem? This cannot be undone.')) return;
   btn.disabled = true;
@@ -96,24 +240,33 @@ document.getElementById('rows').addEventListener('click', async (e) => {
       const p = items.find(x => x.id === id);
       await api('/api/problems/status', { method: 'POST', body: { id, status: p.status === 'open' ? 'pending' : 'open' } });
     } else if (act === 'eval') {
-      await api('/api/problems/evaluate', { method: 'POST', body: { problem_id: id } });
+      const r = await evaluateProblem(id);
+      if (!r.ok) { alert(r.error || 'Re-evaluation failed'); btn.disabled = false; return; }
     } else {
       await api('/api/problems/delete', { method: 'POST', body: { id } });
     }
     await load();
   } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
 });
-document.getElementById('seed').addEventListener('click', async (e) => {
-  e.target.disabled = true; e.target.textContent = 'Seeding…';
-  try {
-    const r = await api('/api/problems/seed-test', { method: 'POST' });
-    const ok = (r.results || []).filter(x => x.success).length;
-    msg.innerHTML = alertBox(`Seeded ${ok} problems.`, true);
-    await load();
-  } catch (err) { msg.innerHTML = alertBox(err.message); }
-  e.target.disabled = false; e.target.textContent = 'Seed Test Data';
-});
-if (me) load();
+if (me) {
+  document.getElementById('access-name').textContent = me.profile?.name || 'Admin';
+  document.getElementById('access-pill').textContent = me.profile?.is_master ? 'MASTER' : 'ADMIN';
+  load();
+  const tm = document.getElementById('tool-msg');
+  document.getElementById('seed-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
+  });
+  document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
+  });
+}
+document.getElementById('signout').addEventListener('click', logout);
 </script>
 </body>
 </html>

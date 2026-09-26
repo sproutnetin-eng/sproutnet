@@ -5,21 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+.dash-wrap { max-width: 1100px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); }
+.dash-welcome { margin-bottom: 48px; }
+.dash-welcome h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(30px, 6vw, 42px); font-weight: 400; color: #1C1410; letter-spacing: -0.5px; margin: 0 0 8px; }
+.dash-welcome p { font-size: 16px; color: #4A3F38; font-weight: 300; margin: 0; }
+.dash-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 48px; }
+.dash-stat { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 12px; padding: 24px; }
+.dash-stat .v { font-family: 'JetBrains Mono', monospace; font-size: 28px; font-weight: 500; margin-bottom: 6px; }
+.dash-stat .l { font-size: 12px; color: #9CA3A0; text-transform: uppercase; letter-spacing: 0.08em; }
+.dash-sec { margin-bottom: 48px; }
+.dash-sec-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.dash-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.dash-sec-head h2 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #1C1410; margin: 0; }
+.dash-sub { font-size: 13px; color: #7A7068; margin-top: 6px; }
+.dash-browse { font-size: 14px; font-weight: 600; color: #2D6A4F; text-decoration: none; }
+.dash-empty { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 16px; padding: 28px; text-align: center; }
+.dash-empty .t { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 600; color: #1C1410; margin-bottom: 8px; }
+.dash-empty .d { font-size: 14px; color: #9CA3A0; margin-bottom: 18px; }
+.dash-empty .cta { display: inline-block; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 12px 20px; border-radius: 8px; text-decoration: none; }
+.dash-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+.dash-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 16px; padding: 22px; }
+.dash-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.pill-dom { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.15); padding: 4px 10px; border-radius: 999px; }
+.pill-type { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: #4A3F38; background: rgba(28,20,16,0.05); border: 1px solid rgba(28,20,16,0.1); padding: 4px 10px; border-radius: 999px; }
+.dash-card .pt { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: #1C1410; margin-bottom: 10px; }
+.dash-dl-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.dash-dl { font-size: 14px; color: #1C1410; }
+.dash-dl-wrap { margin-bottom: 18px; }
+.dash-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.dash-status { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 6px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em; }
+.dash-status.open { color: #2D6A4F; background: #EAF4EE; }
+.dash-status.closed { color: #9CA3A0; background: rgba(28,20,16,0.06); }
+.dash-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.btn-ws { font-size: 13px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.25); padding: 9px 12px; border-radius: 8px; text-decoration: none; }
+.btn-view { font-size: 13px; font-weight: 600; color: #2D6A4F; text-decoration: none; }
+.btn-final { font-size: 13px; font-weight: 600; color: #FAF8F4; background: #2D6A4F; padding: 10px 14px; border-radius: 8px; text-decoration: none; }
+.badge-pending { font-size: 12px; font-weight: 600; color: #B45309; background: rgba(244,167,35,0.12); border: 1px solid rgba(244,167,35,0.3); padding: 9px 12px; border-radius: 8px; }
+.badge-rejected { font-size: 12px; font-weight: 600; color: #991B1B; background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.25); padding: 9px 12px; border-radius: 8px; }
+.btn-solve { font-size: 13px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 10px 14px; border-radius: 8px; text-decoration: none; }
+.btn-cancel { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #7C2D12; background: rgba(234,88,12,0.08); border: 1px solid rgba(234,88,12,0.18); border-radius: 8px; padding: 10px 14px; cursor: pointer; }
+.dash-ws-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.dash-ws { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 22px; }
+.dash-ws .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.tag-dom { font-size: 11px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em; }
+.tag-role { font-size: 11px; font-weight: 600; color: #1C1410; padding: 3px 8px; border-radius: 999px; text-transform: capitalize; background: rgba(28,20,16,0.06); }
+.tag-role.leader { background: #F4A723; }
+.dash-ws .wt { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin-bottom: 4px; }
+.dash-ws .wp { font-size: 13px; color: #4A3F38; margin-bottom: 16px; }
+.dash-ws-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dash-ws-foot .act { font-size: 11px; color: #9CA3A0; }
+.btn-open { font-size: 13px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 8px 14px; border-radius: 8px; text-decoration: none; }
+.dash-quick { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.action-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 12px; padding: clamp(20px, 3vw, 28px); text-decoration: none; display: block; }
+.action-card .at { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; margin-bottom: 6px; }
+.action-card .ad { font-size: 13px; color: #4A3F38; font-weight: 300; line-height: 1.5; }
+.action-card .ai { margin-bottom: 12px; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container">
+<div class="dash-wrap">
   <div id="msg"></div>
-  <div id="content"><p class="muted">Loading dashboard...</p></div>
+  <div id="content"><p style="font-size:14px;color:#9CA3A0">Loading dashboard...</p></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
 
 function typeLabel(t) { return t === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact'; }
+const ICONS = {
+  teams: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  blog: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+  search: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  compass: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+  trophy: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F4A723" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>',
+  profile: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+};
 
 async function cancelEnrollment(problemId, btn) {
   if (!confirm('Cancel this enrollment? You can enroll again later if the problem is still open.')) return;
@@ -39,50 +104,56 @@ if (me) {
     const { profile, enrolledProblems, workspaces } = await api('/api/student/overview');
     const first = esc((profile.name || 'there').split(' ')[0]);
     const stats = [
-      ['Builder Score', profile.builder_score ?? 0],
-      ['Problems Attempted', profile.attempted ?? 0],
-      ['Avg Score', profile.avg_score ? Number(profile.avg_score).toFixed(1) : '—'],
-      ['Solutions Completed', profile.milestones_done ?? 0],
+      ['Builder Score', profile.builder_score ?? 0, '#F4A723'],
+      ['Problems Attempted', profile.attempted ?? 0, '#2D6A4F'],
+      ['Avg Score', profile.avg_score ? Number(profile.avg_score).toFixed(1) : '—', '#2D6A4F'],
+      ['Solutions Completed', profile.milestones_done ?? 0, '#2D6A4F'],
     ];
-    let html = `<h1>Good to see you, ${first}.</h1><p class="muted">Browse open problems and start building.</p>`;
-    html += `<div class="grid">` + stats.map(([l, v]) => `<div class="card"><div style="font-size:1.75rem;font-weight:700">${esc(String(v))}</div><div class="muted">${l}</div></div>`).join('') + `</div>`;
-    html += `<h2>Keep building where you left off</h2><p class="muted">You can keep up to 2 active problem enrollments at a time. <a href="/problems">Browse more problems →</a></p>`;
+    let html = `<div class="dash-welcome"><h1>Good to see you, ${first}.</h1><p>Browse open problems and start building.</p></div>`;
+    html += `<div class="dash-stats">` + stats.map(([l, v, a]) => `<div class="dash-stat"><div class="v" style="color:${a}">${esc(String(v))}</div><div class="l">${l}</div></div>`).join('') + `</div>`;
+    html += `<div class="dash-sec"><div class="dash-sec-head"><div><div class="dash-eyebrow">// enrolled problems</div><h2>Keep building where you left off</h2><div class="dash-sub">You can keep up to 2 active problem enrollments at a time.</div></div><a class="dash-browse" href="/problems">Browse more problems →</a></div>`;
     if (!enrolledProblems.length) {
-      html += `<div class="card" style="text-align:center"><h3>No enrolled problems yet</h3><p class="muted">Enroll in a problem and it will appear here.</p><a class="btn btn-primary" href="/problems">Explore Open Problems →</a></div>`;
+      html += `<div class="dash-empty"><div style="margin-bottom:10px;display:flex;justify-content:center">${ICONS.compass}</div><div class="t">No enrolled problems yet</div><div class="d">Enroll in a problem and it will appear here so you can jump back in quickly.</div><a class="cta" href="/problems">Explore Open Problems →</a></div>`;
     } else {
-      html += `<div class="grid">` + enrolledProblems.map(p => `
-        <div class="card">
-          <span class="badge">${esc(p.domain || '')}</span> <span class="badge gray">${esc(typeLabel(p.problem_type))}</span>
-          <h3>${esc(p.title)}</h3>
-          <p class="muted">Deadline: ${p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'} · <span class="badge ${p.status === 'open' ? '' : 'gray'}">${esc(p.status)}</span></p>
-          <div class="row">
-            ${p.teamId ? `<a class="btn" href="/teams/${esc(p.teamId)}">💬 Go to Workspace →</a>` : ''}
-            <a class="btn" href="/problems/${esc(p.id)}">View problem</a>
-            ${p.submissionStatus === 'approved' ? `<a class="btn btn-primary" href="/problems/${esc(p.id)}/final-upload">🎉 Upload Final Work${p.submissionScore != null ? ` · ${p.submissionScore}/10` : ''} →</a>` : ''}
-            ${p.submissionStatus === 'pending' ? `<span class="badge amber">⏳ Awaiting review</span>` : ''}
-            ${p.submissionStatus === 'rejected' ? `<span class="badge gray">✗ Not approved — resubmit</span>` : ''}
-            <a class="btn btn-primary" href="/problems/${esc(p.id)}/submit">${p.hasSubmission ? 'Continue Solving →' : 'Start Solving →'}</a>
-            <button class="btn btn-danger" data-cancel="${esc(p.id)}">Cancel</button>
+      html += `<div class="dash-cards">` + enrolledProblems.map(p => `
+        <div class="dash-card">
+          <div class="dash-pills"><span class="pill-dom">${esc(p.domain || '')}</span><span class="pill-type">${esc(typeLabel(p.problem_type))}</span></div>
+          <div class="pt">${esc(p.title)}</div>
+          <div class="dash-dl-wrap"><div class="dash-dl-label">Deadline</div><div class="dash-dl">${p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</div></div>
+          <div class="dash-card-foot">
+            <span class="dash-status ${p.status === 'open' ? 'open' : 'closed'}">${esc(p.status)}</span>
+            <div class="dash-actions">
+              ${p.teamId ? `<a class="btn-ws" title="Team ${esc(p.teamName || '')} — chat & collaborate" href="/teams/${esc(p.teamId)}">💬 Go to Workspace →</a>` : ''}
+              <a class="btn-view" href="/problems/${esc(p.id)}">View problem</a>
+              ${p.submissionStatus === 'approved' ? `<a class="btn-final" href="/problems/${esc(p.id)}/final-upload">🎉 Upload Final Work${p.submissionScore != null ? ` · ${p.submissionScore}/10` : ''} →</a>` : ''}
+              ${p.submissionStatus === 'pending' ? `<span class="badge-pending">⏳ Awaiting review</span>` : ''}
+              ${p.submissionStatus === 'rejected' ? `<span class="badge-rejected">✗ Not approved — resubmit</span>` : ''}
+              <a class="btn-solve" href="/problems/${esc(p.id)}/submit">${p.hasSubmission ? 'Continue Solving →' : 'Start Solving →'}</a>
+              <button class="btn-cancel" data-cancel="${esc(p.id)}">Cancel</button>
+            </div>
           </div>
         </div>`).join('') + `</div>`;
     }
+    html += `</div>`;
     if (workspaces.length) {
-      html += `<h2>Your Workspaces</h2><div class="grid">` + workspaces.map(w => `
-        <div class="card">
-          <span class="badge">${esc(w.problem_domain || '')}</span> <span class="badge gray">${esc(w.role || '')}</span>
-          <h3>${esc(w.name)}</h3>
-          <p class="muted">${esc(w.problem_title || '')}</p>
-          <div class="row"><a class="btn btn-primary" href="/teams/${esc(w.team_id)}">Open Workspace →</a></div>
-        </div>`).join('') + `</div>`;
+      html += `<div class="dash-sec"><div class="dash-sec-head"><div><div class="dash-eyebrow">// team workspaces</div><h2>Your Workspaces</h2><div class="dash-sub">Collaborate with your team in your shared workspace.</div></div></div>`;
+      html += `<div class="dash-ws-grid">` + workspaces.map(w => `
+        <div class="dash-ws">
+          <div class="tags"><span class="tag-dom">${esc(w.problem_domain || '')}</span><span class="tag-role ${w.role === 'leader' ? 'leader' : ''}">${esc(w.role || '')}</span></div>
+          <div class="wt">${esc(w.name)}</div>
+          <div class="wp">${esc(w.problem_title || '')}</div>
+          <div class="dash-ws-foot"><div class="act">${w.last_activity_at ? `Active ${new Date(w.last_activity_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}` : 'No activity yet'}</div><a class="btn-open" href="/teams/${esc(w.team_id)}">Open Workspace →</a></div>
+        </div>`).join('') + `</div></div>`;
     }
-    html += `<h2>Quick actions</h2><div class="grid">
-      <a class="card" href="/teams"><strong>Teams</strong><br><span class="muted">Create or join a team.</span></a>
-      <a class="card" href="/blogs"><strong>Blogs</strong><br><span class="muted">Community feed.</span></a>
-      <a class="card" href="/problems"><strong>Browse Problems</strong><br><span class="muted">All open problems.</span></a>
-      <a class="card" href="/mentors"><strong>Find a Mentor</strong><br><span class="muted">Expert mentors for your team.</span></a>
-      <a class="card" href="/leaderboard"><strong>Leaderboard</strong><br><span class="muted">Season standings.</span></a>
-      <a class="card" href="/profile/${esc(profile.profile_slug || '')}"><strong>Your Profile</strong><br><span class="muted">Public builder profile.</span></a>
-    </div>`;
+    const quick = [
+      ['/teams', ICONS.teams, 'Teams', 'Create or join a team and collaborate on problems.'],
+      ['/blogs', ICONS.blog, 'Blogs', 'Share knowledge, ask doubts, and join the community feed.'],
+      ['/problems', ICONS.search, 'Browse Problems', 'See all open problems across 8 domains.'],
+      ['/mentors', ICONS.compass, 'Find a Mentor', 'Browse expert mentors for your team.'],
+      ['/leaderboard', ICONS.trophy, 'Leaderboard', 'See where you stand this season.'],
+      [`/profile/${esc(profile.profile_slug || '')}`, ICONS.profile, 'Your Profile', 'View your public builder profile.'],
+    ];
+    html += `<div class="dash-quick">` + quick.map(([h, ic, t, d]) => `<a class="action-card" href="${h}"><div class="ai">${ic}</div><div class="at">${t}</div><div class="ad">${d}</div></a>`).join('') + `</div>`;
     content.innerHTML = html;
     content.querySelectorAll('[data-cancel]').forEach(b => b.addEventListener('click', () => cancelEnrollment(b.dataset.cancel, b)));
   } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }

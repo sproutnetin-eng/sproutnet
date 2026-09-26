@@ -6,60 +6,154 @@
 <title>Enrollments — SproutNet Admin</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
-.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
-.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
-.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
-.admin-side .meta{font-size:.75rem;color:#64748b}
-@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
-.table-wrap{overflow-x:auto}
+  .admin-theme { --bg-main: #F6F7F8; --bg-surface: #FFFFFF; --bg-card: #FFFFFF; --bg-hover: #F0F2F4; --border-primary: #E5E7EB; --border-secondary: #D1D5DB; --border-input: #D1D5DB; --text-primary: #000000; --text-secondary: #000000; --text-muted: #000000; --text-disabled: #000000; --accent-primary: #10A37F; --accent-hover: #1DBF93; --danger: #EF4444; --warning: #F59E0B; background: var(--bg-main); color: var(--text-primary); }
+  .admin-theme * { box-sizing: border-box; color: #000000 !important; }
+  .admin-theme ::placeholder { color: #000000 !important; opacity: 0.55; }
+  .admin-shell { min-height: 100vh; background: var(--bg-main); color: var(--text-primary); font-family: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; --admin-columns: 260px 1fr; --admin-aside-position: sticky; --admin-aside-height: 100vh; }
+  .admin-grid { display: grid; grid-template-columns: var(--admin-columns, 260px 1fr); min-height: 100vh; }
+  .admin-sidebar { border-right: 1px solid var(--border-primary); background: var(--bg-surface); padding: clamp(16px, 3vw, 22px) clamp(14px, 3vw, 18px); position: var(--admin-aside-position, sticky); top: 0; height: var(--admin-aside-height, 100vh); overflow-y: auto; }
+  .admin-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
+  .admin-brand .nm { font-family: Sora, sans-serif; font-weight: 900; font-size: 15px; line-height: 1.1; }
+  .admin-brand .sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 2px; }
+  .admin-access { padding: 12px; margin-bottom: 14px; }
+  .admin-access .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-bottom: 8px; }
+  .admin-access .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .admin-access .who { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-surface { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-sidebar-link { text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-primary); }
+  .admin-sidebar-link--active { background: var(--bg-hover); border-color: var(--border-secondary); box-shadow: inset 3px 0 0 var(--accent-primary); }
+  .admin-links { display: grid; gap: 8px; }
+  .admin-links .t { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; }
+  .admin-links .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .admin-tools { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-primary); display: grid; gap: 6px; }
+  .admin-tools .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .admin-tools button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; background: transparent; border: 1px solid var(--border-primary); border-radius: 8px; padding: 8px 12px; cursor: pointer; text-align: left; }
+  .admin-tools button:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-tools .tmsg { font-size: 11px; font-family: 'JetBrains Mono', monospace; line-height: 1.4; }
+  .admin-back { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(148,163,184,0.12); }
+  .admin-back a { justify-content: center; }
+  .admin-pill { font-family: "JetBrains Mono", monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-secondary); background: var(--bg-hover); }
+  .admin-pill--accent { border-color: rgba(16,163,127,0.35); background: rgba(16,163,127,0.12); }
+  .admin-input { width: 100%; font-family: "DM Sans", sans-serif; font-size: 14px; background: var(--bg-hover); border: 1px solid var(--border-input); border-radius: 12px; padding: 10px 12px; outline: none; }
+  .admin-btn { font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 800; border-radius: 12px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--border-secondary); background: var(--bg-surface); }
+  .admin-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-btn--danger { background: rgba(239,68,68,0.18); border-color: rgba(239,68,68,0.35); }
+  .admin-table { overflow: hidden; overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-primary); background: var(--bg-surface); }
+  .admin-head { min-height: 64px; padding: 10px clamp(16px, 3vw, 26px); display: flex; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--border-primary); background: rgba(246,247,248,0.9); position: sticky; top: 0; z-index: 50; }
+  .admin-main { padding: clamp(20px, 3vw, 28px) clamp(16px, 3vw, 26px) 70px; }
+  .aen-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  .aen-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .aen-title { font-family: Sora, sans-serif; font-size: clamp(20px, 4vw, 26px); font-weight: 950; letter-spacing: -0.5px; margin: 0 0 8px; }
+  .aen-sub { font-size: 14px; font-weight: 500; margin: 0; }
+  .aen-back { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 900; text-decoration: none; border: 1px solid rgba(148,163,184,0.18); border-radius: 12px; padding: 9px 12px; background: rgba(148,163,184,0.08); }
+  .aen-search { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 16px; padding: 14px; margin-bottom: 16px; }
+  .aen-count { margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .aen-hrow, .aen-row { display: grid; grid-template-columns: 1.2fr 160px 160px 150px 220px; min-width: 780px; gap: 10px; padding: 12px 14px; align-items: center; }
+  .aen-hrow { background: var(--bg-hover); border-bottom: 1px solid var(--border-primary); }
+  .aen-hrow .h { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; }
+  .aen-row { border-bottom: 1px solid var(--border-primary); }
+  .aen-nm { font-family: Sora, sans-serif; font-size: 13px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .aen-id { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 3px; }
+  .aen-cell { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .aen-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .aen-none { text-align: center; padding: 80px 24px; }
+  .aen-none .big { font-size: 40px; margin-bottom: 16px; }
+  .aen-none .t { font-family: Sora, sans-serif; font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+  .aen-none .d { font-size: 14px; }
+  @media (max-width: 1024px) { .admin-shell { --admin-columns: 1fr; --admin-aside-position: static; --admin-aside-height: auto; } }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container" style="max-width:1200px">
-<div class="admin-layout">
-<aside class="admin-side card">
-  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
-  <a href="/admin/problems" class="on"><strong>Problems</strong> <span class="meta">moderation</span></a>
-  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
-  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
-  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
-  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
-  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
-</aside>
-<div>
-  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">PROBLEM · ENROLLMENTS</div>
-  <h1>Enrollments</h1>
-  <p class="muted" id="subtitle">Loading…</p>
-  <a class="btn" href="/admin/problems">← Back to Problems</a>
-  <div id="msg"></div>
-  <div class="card"><input class="input" id="q" placeholder="Search students…"><div class="muted" id="count"></div></div>
-  <div class="card table-wrap"><table class="table"><thead><tr><th>Student</th><th>Dept</th><th>Year</th><th>Enrolled</th><th>Actions</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="admin-theme admin-shell">
+<div class="admin-grid">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="/admin">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#10A37F"/><line x1="17" y1="27" x2="17" y2="15" stroke="#0D0D0D" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F59E0B"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(236,236,236,0.88)"/></svg>
+      <div><div class="nm">SproutNet</div><div class="sub">admin panel</div></div>
+    </a>
+    <div class="admin-card admin-access">
+      <div class="lbl">YOUR ACCESS</div>
+      <div class="row"><div class="who" id="access-name">…</div><span class="admin-pill admin-pill--accent" id="access-pill">ADMIN</span></div>
+    </div>
+    <div class="admin-links">
+      <a class="admin-sidebar-link" href="/admin"><span class="t">Overview</span><span class="m">home</span></a>
+      <a class="admin-sidebar-link admin-sidebar-link--active" href="/admin/problems" aria-current="page"><span class="t">Problems</span><span class="m">moderation</span></a>
+      <a class="admin-sidebar-link" href="/admin/solutions"><span class="t">Solutions</span><span class="m">uploads</span></a>
+      <a class="admin-sidebar-link" href="/admin/judging"><span class="t">Judging</span><span class="m">queue</span></a>
+      <a class="admin-sidebar-link" href="/admin/analytics"><span class="t">Analytics</span><span class="m">metrics</span></a>
+      <a class="admin-sidebar-link" href="/leaderboard"><span class="t">Leaderboard</span><span class="m">scores</span></a>
+    </div>
+    <div class="admin-tools">
+      <div class="lbl">LEADERBOARD TOOLS</div>
+      <button type="button" id="seed-btn">Seed Test Submissions</button>
+      <button type="button" id="recalc-btn">Recalculate Scores</button>
+      <div class="tmsg" id="tool-msg"></div>
+    </div>
+    <div class="admin-back"><a class="admin-sidebar-link" href="/dashboard">← Back to Dashboard</a></div>
+  </aside>
+  <div>
+    <header class="admin-head"><button type="button" class="admin-btn" id="signout">Sign out</button></header>
+    <main class="admin-main">
+      <div class="aen-top">
+        <div>
+          <div class="aen-eyebrow">PROBLEM · ENROLLMENTS</div>
+          <h1 class="aen-title">Enrollments</h1>
+          <p class="aen-sub" id="subtitle">Loading…</p>
+        </div>
+        <a class="aen-back" href="/admin/problems">← Back to Problems</a>
+      </div>
+      <div id="msg"></div>
+      <div id="body"></div>
+    </main>
+  </div>
 </div>
 </div>
-</main>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+renderNav();
 const me = await requireRole('admin');
 const msg = document.getElementById('msg');
+const body = document.getElementById('body');
 const id = location.pathname.split('/')[3];
 let items = [];
+let query = '';
 function render() {
-  const q = document.getElementById('q').value.trim().toLowerCase();
+  if (!items.length) {
+    body.innerHTML = `<div class="admin-surface aen-none"><div class="big">👥</div><div class="t">No active enrollments</div><div class="d">Students will appear here after they enroll.</div></div>`;
+    return;
+  }
+  const q = query.trim().toLowerCase();
   const rows = items.filter(x => !q || (x.student_name || '').toLowerCase().includes(q) ||
     (x.student_dept || '').toLowerCase().includes(q) || (x.student_year || '').toLowerCase().includes(q) || x.student_id.toLowerCase().includes(q));
-  document.getElementById('count').textContent = `Showing ${rows.length} of ${items.length}`;
-  document.getElementById('rows').innerHTML = rows.length ? rows.map(x => `<tr data-id="${esc(x.id)}">
-    <td><strong>${esc(x.student_name || 'Student ' + x.student_id.slice(0, 6) + '…')}</strong><div class="muted">${esc(x.student_id.slice(0, 8))}…</div></td>
-    <td>${esc(x.student_dept || '—')}</td><td>${esc(x.student_year || '—')}</td>
-    <td>${x.created_at ? esc(new Date(x.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</td>
-    <td><button class="btn btn-danger" data-act="remove">Remove</button></td></tr>`).join('')
-    : `<tr><td colspan="5" class="muted">No active enrollments.</td></tr>`;
+  body.innerHTML = `
+    <div class="aen-search">
+      <input class="admin-input" id="q" placeholder="Search students…" value="${esc(query)}">
+      <div class="aen-count">Showing ${rows.length} of ${items.length}</div>
+    </div>
+    <div class="admin-table">
+      <div class="aen-hrow">${['Student', 'Dept', 'Year', 'Enrolled', 'Actions'].map(h => `<div class="h">${h}</div>`).join('')}</div>
+      <div style="max-height:680px;overflow-y:auto">
+        ${rows.length ? rows.map(x => `<div class="aen-row" data-id="${esc(x.id)}">
+          <div style="min-width:0"><div class="aen-nm">${esc(x.student_name || 'Student ' + x.student_id.slice(0, 6) + '…')}</div><div class="aen-id">${esc(x.student_id.slice(0, 8))}…</div></div>
+          <div class="aen-cell">${esc(x.student_dept || '—')}</div>
+          <div class="aen-cell">${esc(x.student_year || '—')}</div>
+          <div class="aen-date">${x.created_at ? esc(new Date(x.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })) : '—'}</div>
+          <div style="display:flex;justify-content:flex-end"><button type="button" class="admin-btn admin-btn--danger" data-act="remove">Remove</button></div>
+        </div>`).join('') : `<div style="padding:18px;font-family:'DM Sans',sans-serif;font-size:13px">No active enrollments.</div>`}
+      </div>
+    </div>`;
+  document.getElementById('q').addEventListener('input', (e) => { query = e.target.value; render(); restoreFocus(); });
+}
+function restoreFocus() {
+  const el = document.getElementById('q');
+  if (el) { el.focus(); const v = el.value; el.value = ''; el.value = v; }
 }
 if (me) {
+  document.getElementById('access-name').textContent = me.profile?.name || 'Admin';
+  document.getElementById('access-pill').textContent = me.profile?.is_master ? 'MASTER' : 'ADMIN';
   if (!id) location.href = '/admin/problems';
   else {
     try {
@@ -69,19 +163,32 @@ if (me) {
       render();
     } catch (e) { msg.innerHTML = alertBox(e.message); }
   }
+  const tm = document.getElementById('tool-msg');
+  document.getElementById('seed-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
+  });
+  document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
+  });
 }
-document.getElementById('q').addEventListener('input', render);
-document.getElementById('rows').addEventListener('click', async (e) => {
+body.addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act="remove"]');
   if (!btn) return;
   if (!confirm('Remove this student? They will not be able to submit.')) return;
   btn.disabled = true;
   try {
-    await api('/api/enrollments/remove', { method: 'POST', body: { enrollment_id: btn.closest('tr').dataset.id, problem_id: id } });
-    items = items.filter(x => x.id !== btn.closest('tr').dataset.id);
+    await api('/api/enrollments/remove', { method: 'POST', body: { enrollment_id: btn.closest('.aen-row').dataset.id, problem_id: id } });
+    items = items.filter(x => x.id !== btn.closest('.aen-row').dataset.id);
     render();
   } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
 });
+document.getElementById('signout').addEventListener('click', logout);
 </script>
 </body>
 </html>

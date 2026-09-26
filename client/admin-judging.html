@@ -6,79 +6,188 @@
 <title>Judging Queue — SproutNet Admin</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
-.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
-.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
-.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
-.admin-side .meta{font-size:.75rem;color:#64748b}
-@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
-.score-grid{display:flex;gap:.3rem;flex-wrap:wrap;margin:.5rem 0}
-.score-grid button.on{background:#16a34a;color:#fff;border-color:#16a34a}
-.review{white-space:pre-wrap}
+  .admin-theme { --bg-main: #F6F7F8; --bg-surface: #FFFFFF; --bg-card: #FFFFFF; --bg-hover: #F0F2F4; --border-primary: #E5E7EB; --border-secondary: #D1D5DB; --border-input: #D1D5DB; --text-primary: #000000; --text-secondary: #000000; --text-muted: #000000; --text-disabled: #000000; --accent-primary: #10A37F; --accent-hover: #1DBF93; --danger: #EF4444; --warning: #F59E0B; background: var(--bg-main); color: var(--text-primary); }
+  .admin-theme * { box-sizing: border-box; color: #000000 !important; }
+  .admin-theme ::placeholder { color: #000000 !important; opacity: 0.55; }
+  .admin-shell { min-height: 100vh; background: var(--bg-main); color: var(--text-primary); font-family: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; --admin-columns: 260px 1fr; --admin-aside-position: sticky; --admin-aside-height: 100vh; }
+  .admin-grid { display: grid; grid-template-columns: var(--admin-columns, 260px 1fr); min-height: 100vh; }
+  .admin-sidebar { border-right: 1px solid var(--border-primary); background: var(--bg-surface); padding: clamp(16px, 3vw, 22px) clamp(14px, 3vw, 18px); position: var(--admin-aside-position, sticky); top: 0; height: var(--admin-aside-height, 100vh); overflow-y: auto; }
+  .admin-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
+  .admin-brand .nm { font-family: Sora, sans-serif; font-weight: 900; font-size: 15px; line-height: 1.1; }
+  .admin-brand .sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 2px; }
+  .admin-access { padding: 12px; margin-bottom: 14px; }
+  .admin-access .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-bottom: 8px; }
+  .admin-access .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .admin-access .who { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-surface { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-sidebar-link { text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-primary); }
+  .admin-sidebar-link--active { background: var(--bg-hover); border-color: var(--border-secondary); box-shadow: inset 3px 0 0 var(--accent-primary); }
+  .admin-links { display: grid; gap: 8px; }
+  .admin-links .t { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; }
+  .admin-links .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .admin-tools { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-primary); display: grid; gap: 6px; }
+  .admin-tools .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .admin-tools button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; background: transparent; border: 1px solid var(--border-primary); border-radius: 8px; padding: 8px 12px; cursor: pointer; text-align: left; }
+  .admin-tools button:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-tools .tmsg { font-size: 11px; font-family: 'JetBrains Mono', monospace; line-height: 1.4; }
+  .admin-back { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(148,163,184,0.12); }
+  .admin-back a { justify-content: center; }
+  .admin-pill { font-family: "JetBrains Mono", monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-secondary); background: var(--bg-hover); }
+  .admin-pill--accent { border-color: rgba(16,163,127,0.35); background: rgba(16,163,127,0.12); }
+  .admin-btn { font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 800; border-radius: 12px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--border-secondary); background: var(--bg-surface); }
+  .admin-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-linkbtn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .admin-table { overflow: hidden; overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-primary); background: var(--bg-surface); }
+  .admin-head { min-height: 64px; padding: 10px clamp(16px, 3vw, 26px); display: flex; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--border-primary); background: rgba(246,247,248,0.9); position: sticky; top: 0; z-index: 50; }
+  .admin-main { padding: clamp(20px, 3vw, 28px) clamp(16px, 3vw, 26px) 70px; }
+  .jg-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .jg-title { font-family: Sora, sans-serif; font-size: clamp(22px, 4.5vw, 28px); font-weight: 950; letter-spacing: -0.6px; margin: 0 0 8px; }
+  .jg-sub { font-size: 14px; font-weight: 500; margin: 0 0 16px; }
+  .jg-note { margin-top: 18px; font-family: 'DM Sans', sans-serif; font-size: 12px; }
+  .jg-empty { text-align: center; padding: 80px 24px; background: var(--bg-surface); border-radius: 18px; border: 1px solid var(--border-primary); }
+  .jg-empty .big { font-size: 40px; margin-bottom: 16px; }
+  .jg-empty .t { font-family: Sora, sans-serif; font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+  .jg-empty .d { font-size: 14px; }
+  .jg-hrow, .jg-row { display: grid; grid-template-columns: minmax(220px, 1.6fr) 120px 110px 140px 100px; min-width: 860px; gap: 10px; padding: 12px 14px; align-items: center; }
+  .jg-hrow { background: var(--bg-hover); border-bottom: 1px solid var(--border-primary); padding: 12px 14px; }
+  .jg-hrow .h { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; }
+  .jg-item { border-bottom: 1px solid var(--border-primary); }
+  .jg-row { padding: 13px 14px; cursor: pointer; }
+  .jg-row.open { background: var(--bg-hover); }
+  .jg-pt { font-family: Sora, sans-serif; font-size: 13px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jg-sn { font-family: 'DM Sans', sans-serif; font-size: 11px; margin-top: 2px; }
+  .jg-dom { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jg-entry { display: inline-block; justify-self: start; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 999px; text-transform: uppercase; }
+  .jg-entry.team { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.35); }
+  .jg-entry.indiv { background: rgba(45,212,191,0.12); border: 1px solid rgba(45,212,191,0.35); }
+  .jg-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .jg-panel { background: var(--bg-surface); padding: 18px 16px 22px; display: grid; gap: 18px; }
+  .jg-judge { border: 1px solid rgba(244,167,35,0.35); background: rgba(244,167,35,0.05); border-radius: 14px; padding: 16px; display: grid; gap: 12px; }
+  .jg-judge .top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .jg-judge .cap { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .jg-judge .meta { font-family: 'DM Sans', sans-serif; font-size: 11px; }
+  .jg-scores { display: flex; gap: 5px; flex-wrap: wrap; }
+  .jg-scores button { width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--border-input); background: #1A1A1A; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .jg-scores button.on { border-color: #F4A723; background: rgba(244,167,35,0.15); }
+  .jg-fb { width: 100%; box-sizing: border-box; background: #1A1A1A; border: 1px solid var(--border-input); border-radius: 10px; padding: 10px 12px; font-size: 13px; resize: vertical; font-family: 'DM Sans', sans-serif; outline: none; }
+  .jg-err { font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .jg-verdict { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .jg-verdict button { padding: 11px 0; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; }
+  .jg-reject { background: rgba(239,68,68,0.14); border: 1px solid rgba(239,68,68,0.45); }
+  .jg-approve { background: rgba(52,211,153,0.16); border: 1px solid rgba(52,211,153,0.5); }
+  .jg-verdict button:disabled { cursor: not-allowed; }
+  .jg-foot { font-size: 10.5px; font-family: 'JetBrains Mono', monospace; text-align: center; }
+  .jg-sec { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .jg-link { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-primary); text-decoration: none; }
+  .jg-link .k { font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .jg-link .t { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .jg-link .go { margin-left: auto; font-size: 11px; }
+  .jg-flabel { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+  .jg-fbody { font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.65; }
+  .jg-na { font-size: 12px; font-style: italic; }
+  @media (max-width: 1024px) { .admin-shell { --admin-columns: 1fr; --admin-aside-position: static; --admin-aside-height: auto; } }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container" style="max-width:1200px">
-<div class="admin-layout">
-<aside class="admin-side card">
-  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
-  <a href="/admin/problems"><strong>Problems</strong> <span class="meta">moderation</span></a>
-  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
-  <a href="/admin/judging" class="on"><strong>Judging</strong> <span class="meta">queue</span></a>
-  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
-  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
-  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
-</aside>
-<div>
-  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">JUDGING · STAGE-1 QUEUE</div>
-  <h1>Judging queue</h1>
-  <p class="muted">Review each written solution, score it 0–10, then Approve to unlock the builder's Stage-2 final upload — or Reject to send it back.</p>
-  <div id="msg"></div>
-  <div id="list"><p class="muted">Loading…</p></div>
-  <p class="muted">Approved solutions sync to the leaderboard automatically.</p>
+<div class="admin-theme admin-shell">
+<div class="admin-grid">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="/admin">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#10A37F"/><line x1="17" y1="27" x2="17" y2="15" stroke="#0D0D0D" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F59E0B"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(236,236,236,0.88)"/></svg>
+      <div><div class="nm">SproutNet</div><div class="sub">admin panel</div></div>
+    </a>
+    <div class="admin-card admin-access">
+      <div class="lbl">YOUR ACCESS</div>
+      <div class="row"><div class="who" id="access-name">…</div><span class="admin-pill admin-pill--accent" id="access-pill">ADMIN</span></div>
+    </div>
+    <div class="admin-links">
+      <a class="admin-sidebar-link" href="/admin"><span class="t">Overview</span><span class="m">home</span></a>
+      <a class="admin-sidebar-link" href="/admin/problems"><span class="t">Problems</span><span class="m">moderation</span></a>
+      <a class="admin-sidebar-link" href="/admin/solutions"><span class="t">Solutions</span><span class="m">uploads</span></a>
+      <a class="admin-sidebar-link admin-sidebar-link--active" href="/admin/judging" aria-current="page"><span class="t">Judging</span><span class="m">queue</span></a>
+      <a class="admin-sidebar-link" href="/admin/analytics"><span class="t">Analytics</span><span class="m">metrics</span></a>
+      <a class="admin-sidebar-link" href="/leaderboard"><span class="t">Leaderboard</span><span class="m">scores</span></a>
+    </div>
+    <div class="admin-tools">
+      <div class="lbl">LEADERBOARD TOOLS</div>
+      <button type="button" id="seed-btn">Seed Test Submissions</button>
+      <button type="button" id="recalc-btn">Recalculate Scores</button>
+      <div class="tmsg" id="tool-msg"></div>
+    </div>
+    <div class="admin-back"><a class="admin-sidebar-link" href="/dashboard">← Back to Dashboard</a></div>
+  </aside>
+  <div>
+    <header class="admin-head"><button type="button" class="admin-btn" id="signout">Sign out</button></header>
+    <main class="admin-main">
+      <div style="margin-bottom:16px">
+        <div class="jg-eyebrow">JUDGING · STAGE-1 QUEUE</div>
+        <h1 class="jg-title">Judging queue</h1>
+        <p class="jg-sub">Review each written solution, score it 0–10, then Approve to unlock the builder&#8217;s Stage-2 final upload — or Reject to send it back.</p>
+      </div>
+      <div id="msg"></div>
+      <div id="list"><p style="font-family:'DM Sans',sans-serif;font-size:13px">Loading…</p></div>
+      <div class="jg-note">Click <strong>Review</strong> to read the full submission inline — no page hops needed. Approved solutions sync to the leaderboard automatically; approved builders get the green “Upload Final Work” button on their dashboard and the public /solutions page.</div>
+    </main>
+  </div>
 </div>
 </div>
-</main>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+renderNav();
 const me = await requireRole('admin');
 const msg = document.getElementById('msg');
 const list = document.getElementById('list');
-const LABELS = { f_understanding: 'Problem Understanding', f_solution: 'Proposed Solution', f_impact: 'Expected Impact', f_rootcause: 'Root Cause Analysis', f_feasibility: 'Feasibility Assessment', f_risks: 'Risks & Limitations', f_implementation: 'Implementation Plan' };
-const strip = (h) => String(h || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-const delivLabel = (d) => typeof d === 'string' ? d : (d.label || d.url || 'file');
-const delivUrl = (d) => typeof d === 'string' ? d : (d.url || '#');
+const LABELS = [['f_understanding', 'Problem Understanding'], ['f_solution', 'Proposed Solution'], ['f_impact', 'Expected Impact'], ['f_rootcause', 'Root Cause Analysis'], ['f_feasibility', 'Feasibility Assessment'], ['f_risks', 'Risks & Limitations'], ['f_implementation', 'Implementation Plan']];
+const sanitize = (h) => String(h || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/\son\w+\s*=\s*"[^"]*"/gi, '').replace(/\son\w+\s*=\s*'[^']*'/gi, '').replace(/javascript:/gi, '');
+const delivs = (arr) => (Array.isArray(arr) ? arr : []).map(d => typeof d === 'string' ? { url: d, label: d, kind: 'link' } : d);
 let rows = [];
+let openId = null;
+const scores = {};
+const feedbacks = {};
+function submitted(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
 function render() {
   if (!rows.length) {
-    list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">⚖️</div><strong>The queue is clear</strong><p class="muted">New Stage-1 submissions will appear here for review.</p></div>`;
+    list.innerHTML = `<div class="jg-empty"><div class="big">⚖️</div><div class="t">The queue is clear</div><div class="d">New Stage-1 submissions will appear here for review.</div></div>`;
     return;
   }
-  list.innerHTML = rows.map(r => {
-    const answered = Object.values(r.fields).filter(v => String(v || '').trim()).length;
-    const dl = (r.deliverables || []).map((d, i) => `<a href="${esc(delivUrl(d))}" target="_blank" rel="noreferrer">${i + 1}. ${esc(delivLabel(d))}</a>`).join('<br>');
-    const fields = Object.entries(LABELS).map(([k, l]) => `<div style="margin:.5rem 0"><div class="muted">${l}</div><div class="review">${esc(strip(r.fields[k]) || 'Not answered.')}</div></div>`).join('');
-    return `<div class="card" data-id="${esc(r.id)}">
-      <div class="row" style="justify-content:space-between">
-        <div><strong>${esc(r.problemTitle)}</strong><div class="muted">${esc(r.studentName)}${r.studentDept ? ' · ' + esc(r.studentDept) : ''}${r.studentYear ? ' · ' + esc(r.studentYear) : ''}</div></div>
-        <div><span class="badge gray">${esc(r.problemDomain || '—')}</span> <span class="badge ${r.participantType === 'team' ? 'amber' : ''}">${r.participantType === 'team' ? '👥 Team' : 'Indiv.'}</span></div>
-        <button class="btn" data-act="toggle">Review</button>
-      </div>
-      <div class="detail" style="display:none;border-top:1px solid #e2e8f0;margin-top:.75rem;padding-top:.75rem">
-        <div class="muted">${answered}/7 sections answered · ${(r.deliverables || []).length} final items</div>
-        ${dl ? `<div style="margin:.5rem 0"><strong>Final deliverables</strong><br>${dl}</div>` : ''}
-        ${fields}
-        <div class="muted">Score — <span data-f="score-label">7</span>/10</div>
-        <div class="score-grid" data-f="scores">${Array.from({ length: 11 }, (_, n) => `<button type="button" class="btn ${n === 7 ? 'on' : ''}" data-score="${n}">${n}</button>`).join('')}</div>
-        <label>Feedback (optional)<textarea class="textarea" data-f="feedback" rows="2"></textarea></label>
-        <div class="row"><button class="btn btn-primary" data-act="approve">✓ Approve</button><button class="btn btn-danger" data-act="reject">✕ Reject</button></div>
-        <div class="row"><a href="/problems/${esc(r.problemId)}">View problem page ↗</a></div>
-      </div>
-    </div>`;
-  }).join('');
+  list.innerHTML = `<div class="admin-table">
+    <div class="jg-hrow">${['Problem / Student', 'Domain', 'Entry', 'Submitted', 'Action'].map(h => `<div class="h">${h}</div>`).join('')}</div>
+    <div style="overflow-y:auto">` + rows.map(r => {
+      const open = openId === r.id;
+      const dl = delivs(r.deliverables);
+      const answered = LABELS.filter(([k]) => String(r.fields[k] || '').trim()).length;
+      const score = scores[r.id] ?? 7;
+      const fields = LABELS.map(([k, l]) => `<div><div class="jg-flabel">${l}</div>${
+        String(r.fields[k] || '').trim() ? `<div class="jg-fbody">${sanitize(r.fields[k])}</div>` : `<div class="jg-na">Not answered.</div>`}</div>`).join('');
+      return `<div class="jg-item" data-id="${esc(r.id)}">
+        <div class="jg-row${open ? ' open' : ''}" data-act="toggle">
+          <div style="min-width:0"><div class="jg-pt">${esc(r.problemTitle)}</div><div class="jg-sn">${esc(r.studentName)}${r.studentDept ? ` · ${esc(r.studentDept)}` : ''}${r.studentYear ? ` · ${esc(r.studentYear)}` : ''}</div></div>
+          <div class="jg-dom">${esc(r.problemDomain || '—')}</div>
+          <span class="jg-entry ${r.participantType === 'team' ? 'team' : 'indiv'}">${r.participantType === 'team' ? '👥 Team' : 'Indiv.'}</span>
+          <div class="jg-date">${esc(submitted(r.submittedAt))}</div>
+          <button type="button" class="admin-btn" data-act="toggle-btn" style="font-size:11px">${open ? 'Close' : 'Review'}</button>
+        </div>
+        ${open ? `<div class="jg-panel">
+          <div class="jg-judge">
+            <div class="top"><span class="cap">Judge this submission</span><span class="meta">${answered}/7 sections answered · ${dl.length} final items</span></div>
+            <div><div class="jg-flabel" style="margin-bottom:6px">Score — ${score}/10</div>
+              <div class="jg-scores">${Array.from({ length: 11 }, (_, n) => `<button type="button" data-score="${n}" class="${n === score ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+            <textarea class="jg-fb" rows="2" data-f="feedback" placeholder="Feedback for the builder (optional) — shown with the result…">${esc(feedbacks[r.id] || '')}</textarea>
+            <div class="jg-err" data-f="error" style="display:none"></div>
+            <div class="jg-verdict"><button type="button" class="jg-reject" data-act="reject">✗ Reject</button><button type="button" class="jg-approve" data-act="approve">✓ Approve</button></div>
+            <div class="jg-foot">APPROVAL UNLOCKS THE STUDENT&#8217;S STAGE-2 FINAL UPLOAD · SCORE FEEDS THE LEADERBOARD</div>
+          </div>
+          ${dl.length ? `<div><div class="jg-sec">Final deliverables (${dl.length})</div><div style="display:grid;gap:8px">${dl.map((d, i) => `<a class="jg-link" href="${esc(d.url)}" target="_blank" rel="noreferrer"><span class="k">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span><span class="t">${i + 1}. ${esc(d.label || d.url)}</span><span class="go">open ↗</span></a>`).join('')}</div></div>` : ''}
+          <div><div class="jg-sec">Written solution</div><div style="display:grid;gap:12px">${fields}</div></div>
+          <div><a class="admin-btn admin-linkbtn" style="font-size:12px;text-decoration:none" href="/problems/${esc(r.problemId)}">View problem page ↗</a></div>
+        </div>` : ''}
+      </div>`;
+    }).join('') + `</div></div>`;
+  const ta = list.querySelector('textarea[data-f="feedback"]');
+  if (ta) ta.addEventListener('input', (e) => { feedbacks[openId] = e.target.value; });
 }
 async function load() {
   try {
@@ -90,35 +199,50 @@ async function load() {
 list.addEventListener('click', async (e) => {
   const scoreBtn = e.target.closest('button[data-score]');
   if (scoreBtn) {
-    const card = scoreBtn.closest('.card');
-    card.querySelectorAll('[data-score]').forEach(b => b.classList.remove('on'));
-    scoreBtn.classList.add('on');
-    card.querySelector('[data-f="score-label"]').textContent = scoreBtn.dataset.score;
+    const card = scoreBtn.closest('.jg-item');
+    scores[card.dataset.id] = Number(scoreBtn.dataset.score);
+    render();
     return;
   }
-  const btn = e.target.closest('button[data-act]');
+  const btn = e.target.closest('[data-act]');
   if (!btn) return;
-  const card = btn.closest('.card');
-  if (btn.dataset.act === 'toggle') {
-    const det = card.querySelector('.detail');
-    det.style.display = det.style.display === 'none' ? '' : 'none';
-    btn.textContent = det.style.display === 'none' ? 'Review' : 'Close';
-    return;
-  }
+  const card = btn.closest('.jg-item');
+  const id = card.dataset.id;
+  const act = btn.dataset.act;
+  if (act === 'toggle' || act === 'toggle-btn') { openId = openId === id ? null : id; render(); return; }
   btn.disabled = true;
   try {
     await api('/api/submissions/judge', { method: 'POST', body: {
-      submission_id: card.dataset.id,
-      score: Number(card.querySelector('[data-score].on')?.dataset.score ?? 7),
-      feedback: card.querySelector('[data-f="feedback"]').value || undefined,
-      decision: btn.dataset.act,
+      submission_id: id,
+      score: scores[id] ?? 7,
+      feedback: (card.querySelector('[data-f="feedback"]') || {}).value || undefined,
+      decision: act,
     }});
-    rows = rows.filter(r => r.id !== card.dataset.id);
+    rows = rows.filter(r => r.id !== id);
+    if (openId === id) openId = null;
     render();
-    msg.innerHTML = alertBox(`Submission ${btn.dataset.act}d.`, true);
+    msg.innerHTML = alertBox(`Submission ${act}d.`, true);
   } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
 });
-if (me) load();
+if (me) {
+  document.getElementById('access-name').textContent = me.profile?.name || 'Admin';
+  document.getElementById('access-pill').textContent = me.profile?.is_master ? 'MASTER' : 'ADMIN';
+  load();
+  const tm = document.getElementById('tool-msg');
+  document.getElementById('seed-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
+  });
+  document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
+  });
+}
+document.getElementById('signout').addEventListener('click', logout);
 </script>
 </body>
 </html>

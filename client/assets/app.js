@@ -67,32 +67,79 @@ export async function logout() {
   location.href = '/login';
 }
 
-// Renders the shared top nav into <div id="sn-nav">. Call with an active key.
-export async function renderNav(active = '') {
+// Renders the shared top nav into <div id="sn-nav"> (matches original navbar.tsx).
+// Call with no args; active link is derived from location.pathname.
+const AVATAR_COLORS = ['#2D6A4F', '#1E40AF', '#9C6344', '#6B4C2A', '#3D8A65', '#4A3F38', '#7C3AED', '#BE123C'];
+function avatarColor(name) {
+  return AVATAR_COLORS[(name || '?').charCodeAt(0) % AVATAR_COLORS.length];
+}
+function initials(name) {
+  return String(name || '?').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
+}
+const LOGO_SVG = `<svg width="34" height="34" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="8" fill="#2D6A4F"/><line x1="17" y1="27" x2="17" y2="15" stroke="#FAF8F4" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F4A723"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(250,248,244,0.88)"/></svg>`;
+
+export async function renderNav() {
   const el = document.getElementById('sn-nav');
   if (!el) return;
-  const { data } = await sb().auth.getSession();
-  const authed = !!data.session;
-  const links = [
-    ['problems', '/problems', 'Problems'],
-    ['blogs', '/blogs', 'Blogs'],
-    ['mentors', '/mentors', 'Mentors'],
-    ['leaderboard', '/leaderboard', 'Leaderboard'],
-    ['how', '/how-it-works', 'How it works'],
-  ];
+  const path = location.pathname;
+  const isActive = (p) => (p === '/' ? path === '/' : path.startsWith(p));
+  const link = (href, label) =>
+    `<a class="navlink${isActive(href) ? ' on' : ''}" href="${href}">${label}</a>`;
+
+  let user = null;
+  try {
+    const { data } = await sb().auth.getSession();
+    if (data.session) {
+      const me = await api('/api/auth/profile');
+      user = me.profile || null;
+    }
+  } catch { user = null; }
+
+  const isPoster = user?.role === 'poster';
+  const dashboardHref = isPoster ? '/poster/dashboard' : '/dashboard';
+  const roleLabel = user?.is_master ? 'Master Admin' : user?.role;
+  const profileHref = user ? `/profile/${user.profile_slug || user.id}` : '/login';
+
   el.innerHTML = `
-    <a class="brand" href="/">SproutNet</a>
-    <nav>${links.map(([k, h, t]) =>
-      `<a href="${h}" class="${active === k ? 'on' : ''}">${t}</a>`).join('')}
-      ${authed ? `<a href="/dashboard" class="${active === 'dash' ? 'on' : ''}">Dashboard</a>
-      <a href="#" id="sn-logout">Logout</a>` :
-      `<a href="/login" class="${active === 'login' ? 'on' : ''}">Login</a>
-       <a href="/join" class="cta">Join</a>`}
-    </nav>`;
-  document.getElementById('sn-logout')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    logout();
-  });
+    <a class="brand" href="/">${LOGO_SVG}<span>SproutNet</span></a>
+    <nav class="sn-nav-links">
+      ${link('/problems', 'Problems')}
+      ${link('/solutions', 'Solutions')}
+      ${link('/blogs', 'Blogs')}
+      ${link('/leaderboard', 'Leaderboard')}
+      ${link('/mentors', 'Mentors')}
+      ${user?.name && user?.role ? link('/profile', 'My Portfolio') : ''}
+      ${user ? `
+        ${user.role === 'admin' ? `<a class="sn-pill" href="/admin">Admin Panel</a>` : ''}
+        ${isPoster ? `<a class="sn-pill" href="/poster/post-problem">Post a Problem</a>` : ''}
+        ${user.name && user.role ? `<span class="sn-role">${esc(roleLabel)}</span>` : ''}
+        ${user.name ? `<a class="navlink" style="display:flex;align-items:center;gap:8px" href="${profileHref}">
+          <span class="sn-avatar" style="background:${avatarColor(user.name)}">${esc(initials(user.name))}</span>
+          <span>${esc(user.name)}</span></a>` : ''}
+        <a class="sn-pill amber" href="/messages">Messages</a>
+        <a class="sn-pill" href="/notifications">Notifications</a>
+        <a class="sn-pill amber" style="padding:8px 20px;border-radius:6px" href="${dashboardHref}">Dashboard →</a>
+        <button class="sn-signout" id="sn-logout">Sign out</button>
+      ` : `
+        <a class="navlink${isActive('/login') ? ' on' : ''}" href="/login">Sign In</a>
+        <a class="sn-pill amber" style="padding:8px 20px;border-radius:6px" href="/join">Join →</a>
+      `}
+    </nav>
+    <details class="sn-mobile-menu">
+      <summary aria-label="Open navigation menu"><span class="sn-menu-icon" aria-hidden="true"></span><span>Menu</span></summary>
+      <div class="sn-mobile-panel">
+        <a href="/problems">Problems</a>
+        <a href="/solutions">Solutions</a>
+        <a href="/blogs">Blogs</a>
+        <a href="/leaderboard">Leaderboard</a>
+        <a href="/mentors">Mentors</a>
+        ${user ? `<a href="${dashboardHref}">Dashboard</a><a href="#" id="sn-logout-m">Sign out</a>`
+               : `<a href="/login">Sign In</a><a href="/join">Join</a>`}
+      </div>
+    </details>`;
+  const doLogout = (e) => { e.preventDefault(); logout(); };
+  document.getElementById('sn-logout')?.addEventListener('click', doLogout);
+  document.getElementById('sn-logout-m')?.addEventListener('click', doLogout);
 }
 
 export function alertBox(msg, ok = false) {

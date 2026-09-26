@@ -6,68 +6,155 @@
 <title>Leaderboard | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.podium { display:flex; gap:1rem; justify-content:center; align-items:flex-end; flex-wrap:wrap; margin-bottom:1.5rem; }
-.podium .card { text-align:center; flex:1 1 160px; max-width:220px; }
-.avatar { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; margin:0 auto .5rem; }
+  .lb-page { min-height: 100vh; background: #FAF8F4; font-family: 'DM Sans', sans-serif; }
+  .lb-wrap-outer { max-width: 960px; margin: 0 auto; padding: clamp(28px, 5vw, 48px) clamp(16px, 4vw, 24px); }
+  .lb-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2D6A4F; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .lb-title { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(30px, 6vw, 46px); font-weight: 400; color: #1C1410; letter-spacing: -0.4px; margin: 0 0 6px; }
+  .lb-sub { font-size: 14px; color: #6B5E52; font-weight: 400; margin: 0 0 44px; }
+  .lb-empty { text-align: center; padding: 72px 24px; background: #fff; border-radius: 16px; border: 1.5px solid rgba(28,20,16,0.06); }
+  .lb-empty h2 { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: #1C1410; margin: 0 0 8px; }
+  .lb-empty p { font-size: 14px; color: #6B5E52; margin: 0 0 24px; }
+  .lb-empty-cta { font-size: 14px; font-weight: 600; color: #fff; background: #1C1410; padding: 12px 28px; border-radius: 10px; text-decoration: none; display: inline-block; }
+  .lb-podium { display: flex; justify-content: center; align-items: flex-end; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; }
+  .lb-podium-link { text-decoration: none; flex: 1 1 180px; max-width: 220px; min-width: 150px; }
+  .lb-podium-card { border-radius: 16px; padding: 20px 16px; text-align: center; min-height: 170px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .lb-podium-card.gold { background: #FFFBEB; border: 1.5px solid rgba(244,167,35,0.31); padding: 28px 16px 24px; min-height: 206px; box-shadow: 0 4px 24px rgba(244,167,35,0.1); }
+  .lb-podium-card.silver { background: #F9FAFB; border: 1.5px solid rgba(28,20,16,0.06); box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .lb-podium-card.bronze { background: #FFF7ED; border: 1.5px solid rgba(28,20,16,0.06); min-height: 160px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+  .lb-medal { font-size: 28px; line-height: 1; display: block; margin-bottom: 10px; }
+  .lb-pavatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 10px; border: 3px solid; }
+  .lb-pname { font-size: 15px; font-weight: 600; color: #1C1410; margin-bottom: 2px; }
+  .lb-pmeta { font-size: 12px; color: #9CA3A0; margin-bottom: 12px; line-height: 1.3; }
+  .lb-pscore { font-family: 'JetBrains Mono', monospace; font-weight: 600; line-height: 1; margin-bottom: 2px; }
+  .lb-pscore.gold { font-size: 32px; color: #F4A723; }
+  .lb-pscore.silver { font-size: 26px; color: #9CA3A0; }
+  .lb-pscore.bronze { font-size: 26px; color: #CD7F32; }
+  .lb-pts { font-size: 11px; color: #9CA3A0; }
+  .lb-pbadges { display: flex; gap: 4px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .lb-pbadge { font-size: 10px; font-weight: 600; color: #2D6A4F; background: #DCFCE7; padding: 3px 10px; border-radius: 999px; line-height: 1.2; }
+  .lb-table-wrap { background: #fff; border: 1.5px solid rgba(28,20,16,0.06); border-radius: 16px; overflow: hidden; }
+  .lb-row { display: grid; grid-template-columns: 56px 1fr 80px 80px 80px 100px; align-items: center; padding: 14px 20px; border-bottom: 1px solid rgba(28,20,16,0.04); transition: background 0.15s; }
+  a.lb-row-link { text-decoration: none; display: block; color: inherit; }
+  a.lb-row-link:last-child .lb-row { border-bottom: none; }
+  .lb-row:hover { background: #FAF8F4; }
+  .lb-hdr { display: grid; grid-template-columns: 56px 1fr 80px 80px 80px 100px; align-items: center; padding: 10px 20px; background: #F4F1EC; border-bottom: 1px solid rgba(28,20,16,0.06); }
+  .lb-hdr span { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: #6B5E52; text-transform: uppercase; letter-spacing: 0.08em; }
+  .lb-bar { height: 4px; border-radius: 2px; background: #F2EEE8; margin-top: 4px; overflow: hidden; }
+  .lb-fill { height: 100%; border-radius: 2px; }
+  .lb-rank { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #6B5E52; background: #F2EEE8; flex-shrink: 0; }
+  .lb-rank.r1 { width: 34px; height: 34px; background: #FEF3C7; border: 2.5px solid #F4A723; color: #F4A723; font-size: 14px; font-weight: 700; box-shadow: 0 0 0 4px #FEF3C7; }
+  .lb-rank.r2 { background: #F3F4F6; border: 2.5px solid #9CA3A0; color: #9CA3A0; font-size: 14px; font-weight: 700; box-shadow: 0 0 0 4px #F3F4F6; }
+  .lb-rank.r3 { background: #FFF1E6; border: 2.5px solid #CD7F32; color: #CD7F32; font-size: 14px; font-weight: 700; box-shadow: 0 0 0 4px #FFF1E6; }
+  .lb-builder { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .lb-tavatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .lb-bname { font-size: 14px; font-weight: 500; color: #1C1410; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-bmeta { font-size: 11px; color: #9CA3A0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #4A3F38; }
+  .lb-score { text-align: right; }
+  .lb-score-val { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #4A3F38; }
+  .lb-footer { margin-top: 40px; padding: 20px 24px; background: #1C1410; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .lb-footer-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: rgba(250,248,244,0.35); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+  .lb-footer-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 18px; color: #FAF8F4; }
+  .lb-footer-actions { display: flex; gap: 8px; align-items: center; }
+  .lb-start { font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 11px 24px; border-radius: 10px; text-decoration: none; white-space: nowrap; }
+  .lb-recalc-wrap { display: flex; align-items: center; gap: 8px; }
+  .lb-recalc-msg { font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .lb-recalc-msg.ok { color: #34D399; }
+  .lb-recalc-msg.err { color: #F87171; }
+  .lb-recalc-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 6px; padding: 6px 14px; cursor: pointer; white-space: nowrap; }
+  .lb-recalc-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  @media (max-width: 640px) {
+    .lb-row, .lb-hdr { grid-template-columns: 44px 1fr 80px; padding: 12px 14px; }
+    .lb-hide { display: none; }
+    .lb-bar { display: none; }
+  }
 </style>
 </head>
 <body>
+<div class="lb-page">
 <div id="sn-nav"></div>
-<div class="container">
+<div class="lb-wrap-outer">
   <div id="msg"></div>
-  <p class="muted">Season 1 · 2026</p>
-  <h1>The Builders</h1>
-  <p class="muted">Builder Score = avg score × depth × problems solved × avg weight</p>
-  <div id="board"><p class="muted">Loading…</p></div>
-  <div class="card"><div class="row"><span><b>Season 1 · 2026</b><br>Every submission moves your rank.</span>
-    <span id="recalc"></span><a class="btn btn-primary" href="/join">Start Solving →</a></div>
-    <div id="recalc-msg"></div></div>
+  <div class="lb-eyebrow">Season 1 · 2026</div>
+  <h1 class="lb-title">The Builders</h1>
+  <p class="lb-sub">Builder Score = avg score × depth × problems solved × avg weight</p>
+  <div id="board"><p class="lb-sub">Loading…</p></div>
+  <div class="lb-footer">
+    <div><div class="lb-footer-eyebrow">Season 1 · 2026</div><div class="lb-footer-title">Every submission moves your rank.</div></div>
+    <div class="lb-footer-actions"><span class="lb-recalc-wrap" id="recalc"></span><a class="lb-start" href="/login/student">Start Solving →</a></div>
+  </div>
+  <div id="recalc-msg" style="margin-top:8px;"></div>
+</div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
-renderNav('leaderboard');
+renderNav();
 const COLORS = ['#2D6A4F','#1E40AF','#9C6344','#6B4C2A','#3D8A65','#4A3F38','#7C3AED','#BE123C'];
 const color = (n) => COLORS[(n || '?').charCodeAt(0) % COLORS.length];
 const initials = (n) => (n || 'SN').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 const profLink = (l) => l.profile_slug ? `/profile/${esc(l.profile_slug)}` : '#';
+const rankLabel = (r) => r === 1 ? '1st' : r === 2 ? '2nd' : r === 3 ? '3rd' : String(r);
 
 try {
   let isAdmin = false;
   try { const r = await api('/api/auth/profile'); isAdmin = r.profile?.role === 'admin' || !!r.profile?.is_master; } catch {}
   const { leaders } = await api('/api/public/leaderboard');
   if (!leaders.length) {
-    document.getElementById('board').innerHTML = `<div class="card" style="text-align:center;"><h2>Season 1 is just getting started</h2>
-      <p class="muted">No submissions scored yet. Be the first builder on the board.</p>
-      <a class="btn btn-primary" href="/problems">Browse Problems →</a></div>`;
+    document.getElementById('board').innerHTML = `<div class="lb-empty">
+      <div style="margin-bottom:20px;display:flex;justify-content:center;"><svg width="48" height="48" viewBox="0 0 34 34" fill="none"><rect width="34" height="34" rx="8" fill="#EAF4EE"/><line x1="17" y1="27" x2="17" y2="15" stroke="#2D6A4F" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F4A723"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="#2D6A4F"/></svg></div>
+      <h2>Season 1 is just getting started</h2>
+      <p>No submissions scored yet. Be the first builder on the board.</p>
+      <a class="lb-empty-cta" href="/problems">Browse Problems →</a></div>`;
   } else {
     const ranked = leaders.map((l, i) => ({ ...l, liveRank: i + 1 }));
     const podium = ranked.slice(0, 3), table = ranked.slice(3);
+    const maxScore = Number(ranked[0]?.builder_score) || 1;
     const order = [podium[1], podium[0], podium[2]].filter(Boolean);
+    const orderRank = [2, 1, 3].slice(0, order.length);
     const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    const podiumCls = { 1: 'gold', 2: 'silver', 3: 'bronze' };
+    const accent = { 1: '#F4A723', 2: '#9CA3A0', 3: '#CD7F32' };
     document.getElementById('board').innerHTML = `
-      <div class="podium">${order.map(e => `<a href="${profLink(e)}" style="text-decoration:none;color:inherit;"><div class="card">
-        <div style="font-size:1.8rem;">${medals[e.liveRank]}</div>
-        <div class="avatar" style="background:${color(e.name)};">${esc(initials(e.name))}</div>
-        <b>${esc(e.name)}</b><br><span class="muted">${esc(e.dept || '')} · ${esc(e.year || '')}</span>
-        <div style="font-size:1.6rem;font-weight:700;">${esc(String(e.builder_score))}</div><span class="muted">pts</span>
-      </div></a>`).join('')}</div>
-      ${table.length ? `<div class="card"><table class="table"><thead><tr><th>Rank</th><th>Builder</th><th>Solved</th><th>Avg</th><th>Depth</th><th>Score</th></tr></thead><tbody>
-        ${table.map(e => `<tr><td>${e.liveRank}</td>
-          <td><a href="${profLink(e)}">${esc(e.name)}</a><br><span class="muted">${esc(e.dept || '')} · ${esc(e.year || '')}</span></td>
-          <td>${esc(String(e.attempted ?? '—'))}</td><td>${e.avg_score != null ? esc(Number(e.avg_score).toFixed(1)) : '—'}</td>
-          <td>${esc(String(e.milestones_done ?? '—'))}</td><td><b>${esc(String(e.builder_score))}</b></td></tr>`).join('')}
-      </tbody></table></div>` : ''}`;
+      <div class="lb-podium">${order.map((e, idx) => {
+        const actualRank = orderRank[idx];
+        return `<a class="lb-podium-link" href="${profLink(e)}"><div class="lb-podium-card ${podiumCls[actualRank]}">
+        <span class="lb-medal">${medals[actualRank]}</span>
+        <div class="lb-pavatar" style="background:${color(e.name)};border-color:${accent[actualRank]};">${esc(initials(e.name))}</div>
+        <div class="lb-pname">${esc(e.name)}</div><div class="lb-pmeta">${esc(e.dept || '')} · ${esc(e.year || '')}</div>
+        <div class="lb-pscore ${podiumCls[actualRank]}">${esc(String(e.builder_score))}</div><div class="lb-pts">pts</div>
+        ${(e.badges && e.badges.length) ? `<div class="lb-pbadges">${e.badges.slice(0, 2).map(b => `<span class="lb-pbadge">${esc(b)}</span>`).join('')}</div>` : ''}
+      </div></a>`; }).join('')}</div>
+      ${table.length ? `<div class="lb-table-wrap">
+        <div class="lb-hdr"><span>Rank</span><span>Builder</span><span class="lb-hide">Solved</span><span class="lb-hide">Avg</span><span class="lb-hide">Depth</span><span style="text-align:right;">Score</span></div>
+        ${table.map(e => {
+          const pct = Math.min(Number(e.builder_score) / maxScore * 100, 100);
+          return `<a class="lb-row-link" href="${profLink(e)}"><div class="lb-row">
+          <div><div class="lb-rank">${e.liveRank}</div></div>
+          <div class="lb-builder"><div class="lb-tavatar" style="background:${color(e.name)};">${esc(initials(e.name))}</div>
+            <div style="min-width:0;"><div class="lb-bname">${esc(e.name)}</div><div class="lb-bmeta">${esc(e.dept || '')} · ${esc(e.year || '')}</div></div></div>
+          <div class="lb-num lb-hide">${esc(String(e.attempted ?? '—'))}</div>
+          <div class="lb-num lb-hide">${e.avg_score != null ? esc(Number(e.avg_score).toFixed(1)) : '—'}</div>
+          <div class="lb-num lb-hide">${esc(String(e.milestones_done ?? '—'))}</div>
+          <div class="lb-score"><div class="lb-score-val">${esc(String(Number(e.builder_score).toLocaleString()))}</div>
+            <div class="lb-bar"><div class="lb-fill" style="width:${pct}%;background:#D4D0C8;"></div></div></div>
+        </div></a>`; }).join('')}
+      </div>` : ''}`;
   }
   if (isAdmin) {
-    document.getElementById('recalc').innerHTML = `<button class="btn" id="recalc-btn">Recalculate</button>`;
+    document.getElementById('recalc').innerHTML = `<span class="lb-recalc-msg" id="recalc-out"></span><button class="lb-recalc-btn" id="recalc-btn">Recalculate</button>`;
     document.getElementById('recalc-btn').addEventListener('click', async (e) => {
-      e.target.disabled = true; e.target.textContent = 'Recalculating…';
-      try { const d = await api('/api/leaderboard/recalculate', { method:'POST' });
-        const n = d.recalculated?.length ?? 0;
-        document.getElementById('recalc-msg').innerHTML = alertBox(`${n} student(s) recalculated`, true);
-      } catch (err) { document.getElementById('recalc-msg').innerHTML = alertBox(err.message); }
-      e.target.disabled = false; e.target.textContent = 'Recalculate';
+      const btn = e.target; btn.disabled = true; btn.textContent = 'Recalculating...';
+      const out = document.getElementById('recalc-out'); out.textContent = ''; out.className = 'lb-recalc-msg';
+      try {
+        const res = await fetch('/api/leaderboard/recalculate', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json().catch(() => ({}));
+        if (data.ok) {
+          const n = data.recalculated?.length ?? 0;
+          out.textContent = `${n} student${n !== 1 ? 's' : ''} recalculated`; out.classList.add('ok');
+        } else { out.textContent = `Error: ${data.error ?? 'unknown'}`; out.classList.add('err'); }
+      } catch { out.textContent = 'Error: network failure'; out.classList.add('err'); }
+      btn.disabled = false; btn.textContent = 'Recalculate';
     });
   }
 } catch (e) {

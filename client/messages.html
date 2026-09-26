@@ -6,25 +6,51 @@
 <title>Messages | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.messages-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1rem; }
-@media (max-width: 768px) { .messages-layout { grid-template-columns: 1fr; } }
-#chatlog { display: flex; flex-direction: column; gap: 0.6rem; max-height: 52vh; overflow-y: auto; }
-.bubble { max-width: 78%; padding: 0.5rem 0.8rem; border-radius: 12px; border: 1px solid var(--line); font-size: 0.92rem; }
-.bubble.mine { align-self: flex-end; background: #2D6A4F; color: #fff; border: none; }
-.bubble.theirs { align-self: flex-start; background: #fff; }
-.convbtn.on { border-color: var(--green) !important; background: #dcfce7 !important; }
+.msg-wrap { max-width: 1200px; margin: 24px auto; padding: 0 20px; height: calc(100vh - 130px); }
+.messages-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; height: 100%; }
+.messages-sidebar { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+.messages-sidebar h3 { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #1C1410; margin: 0 0 12px; }
+.conv-btn { text-align: left; background: #FAF8F4; border: 1px solid rgba(28,20,16,0.08); border-radius: 10px; padding: 12px 14px; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; }
+.conv-btn.on { background: #EAF4EE; border: 1.5px solid #2D6A4F; }
+.conv-btn .cn { font-size: 14px; font-weight: 600; color: #1C1410; }
+.conv-btn.on .cn { color: #2D6A4F; }
+.conv-btn .ct { font-size: 12px; color: #9CA3A0; margin-top: 2px; }
+.chat-box { display: flex; flex-direction: column; height: 100%; min-height: 480px; background: #fff; border-radius: 14px; border: 1.5px solid rgba(28,20,16,0.08); overflow: hidden; }
+.chat-top { padding: 12px 18px; background: #FAF8F4; border-bottom: 1px solid rgba(28,20,16,0.07); display: flex; justify-content: space-between; align-items: center; }
+.chat-top .t { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #1C1410; }
+.chat-top input { font-family: 'DM Sans', sans-serif; font-size: 13px; background: #fff; border: 1px solid rgba(28,20,16,0.12); border-radius: 6px; padding: 5px 10px; width: 180px; }
+#chatlog { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+.msg-col { display: flex; flex-direction: column; }
+.msg-col.mine { align-items: flex-end; }
+.msg-col.theirs { align-items: flex-start; }
+.msg-meta { font-size: 11px; color: #9CA3A0; margin-bottom: 2px; }
+.bubble { max-width: 78%; padding: 10px 14px; font-size: 14px; line-height: 1.4; }
+.bubble.mine { background: #2D6A4F; color: #fff; border-radius: 14px 14px 2px 14px; }
+.bubble.theirs { background: #FAF8F4; color: #1C1410; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 14px 14px 14px 2px; }
+.bubble .replyq { font-size: 12px; opacity: 0.8; border-left: 2px solid rgba(255,255,255,0.4); padding-left: 6px; margin-bottom: 4px; }
+.bubble a { color: #F4A723; }
+.bubble.theirs a { color: #2D6A4F; }
+.msg-actions { display: flex; gap: 4px; margin-top: 4px; align-items: center; flex-wrap: wrap; }
+.msg-actions button { background: none; border: none; cursor: pointer; font-size: 11px; color: #9CA3A0; padding: 2px 6px; }
+.typing-bar { padding: 4px 18px; font-size: 12px; color: #2D6A4F; font-style: italic; background: #FAF8F4; min-height: 18px; }
+.reply-bar { padding: 6px 18px; background: #EAF4EE; font-size: 12px; color: #2D6A4F; display: flex; justify-content: space-between; align-items: center; }
+.chat-form { padding: 12px 18px; background: #FAF8F4; border-top: 1px solid rgba(28,20,16,0.07); display: flex; gap: 10px; align-items: center; }
+.chat-form input[type=text] { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #fff; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 10px 14px; outline: none; }
+.btn-send { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 10px 18px; cursor: pointer; }
+.clip { cursor: pointer; font-size: 18px; opacity: 0.7; }
+@media (max-width: 768px) { .messages-layout { grid-template-columns: 1fr; } .messages-sidebar { max-height: 180px; overflow-y: auto; } }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:1200px">
+<div class="msg-wrap">
   <div id="msg"></div>
-  <div id="content"><p class="muted">Loading conversations...</p></div>
+  <div id="content"><p style="font-size:14px;color:#9CA3A0">Loading conversations...</p></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
 
@@ -41,22 +67,22 @@ if (s) {
 
     content.innerHTML = `
       <div class="messages-layout">
-        <div class="card" id="side">
+        <div class="messages-sidebar">
           <h3>Conversations</h3>
           ${conversations.length ? conversations.map(c => `
-            <button class="btn convbtn ${c.id === active ? 'on' : ''}" data-c="${esc(c.id)}" style="display:block;width:100%;text-align:left;margin-bottom:0.5rem">
-              <strong>#${esc(c.name)}</strong><br><span class="muted">${esc(c.teamName)}</span>
-            </button>`).join('') : '<p class="muted">No active conversations yet. Join a team or request a mentor to get started!</p>'}
+            <button class="conv-btn ${c.id === active ? 'on' : ''}" data-c="${esc(c.id)}">
+              <div class="cn">#${esc(c.name)}</div><div class="ct">${esc(c.teamName)}</div>
+            </button>`).join('') : '<div style="font-size:13px;color:#9CA3A0;text-align:center;padding:20px">No active conversations yet. Join a team or request a mentor to get started!</div>'}
         </div>
-        <div class="card">
-          <div class="row" style="justify-content:space-between"><h3>Realtime Chat</h3><input class="input" id="search" placeholder="Search messages..." style="max-width:180px"></div>
-          <div id="typing" class="muted"></div>
+        <div class="chat-box">
+          <div class="chat-top"><div class="t">Realtime Chat</div><input id="search" placeholder="Search messages..."></div>
           <div id="chatlog"></div>
-          <div id="replybar" style="display:none" class="alert ok"></div>
-          <form id="chatform" class="row">
-            <input class="input" type="file" id="chatfile" style="max-width:180px">
-            <input class="input" id="chatinput" placeholder="Type a message... (Enter to send)" style="flex:1">
-            <button class="btn btn-primary" type="submit">Send →</button>
+          <div class="typing-bar" id="typing"></div>
+          <div class="reply-bar" id="replybar" style="display:none"></div>
+          <form class="chat-form" id="chatform">
+            <label class="clip" title="Upload file">📎<input type="file" id="chatfile" style="display:none"></label>
+            <input type="text" id="chatinput" placeholder="Type a message... (Press Enter to send)">
+            <button class="btn-send" type="submit">Send →</button>
           </form>
         </div>
       </div>`;
@@ -68,29 +94,27 @@ if (s) {
       log.innerHTML = list.length ? list.map(m => {
         const mine = m.sender_id === currentUserId;
         const rx = (m.reactions || []).map(r => r.emoji).join(' ');
-        const atts = (m.attachments || []).map(a => `<div><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
-        return `<div class="bubble ${mine ? 'mine' : 'theirs'}">
-          <div class="muted" style="font-size:0.75rem">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
-          <div>${esc(m.content || '')}</div>${atts}${rx ? `<div>${esc(rx)}</div>` : ''}
-          <div class="row" style="gap:0.25rem;margin-top:0.25rem">
-            <button class="btn" data-reply="${esc(m.id)}" style="padding:0.1rem 0.5rem;font-size:0.75rem">Reply</button>
-            ${['👍', '❤️', '🎉'].map(e2 => `<button class="btn" data-react="${esc(m.id)}" data-emoji="${e2}" style="padding:0.1rem 0.4rem">${e2}</button>`).join('')}
-          </div></div>`;
-      }).join('') : '<p class="muted">No messages yet. Start the conversation!</p>';
+        const atts = (m.attachments || []).map(a => `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2)"><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
+        return `<div class="msg-col ${mine ? 'mine' : 'theirs'}">
+          <div class="msg-meta">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+          <div class="bubble ${mine ? 'mine' : 'theirs'}">${m.parent_id ? `<div class="replyq">Replying to thread</div>` : ''}<div>${esc(m.content || '')}</div>${atts}</div>
+          ${rx ? `<div style="font-size:13px">${esc(rx)}</div>` : ''}
+          <div class="msg-actions"><button data-reply="${esc(m.id)}">Reply</button>${['👍', '❤️', '🎉'].map(e2 => `<button data-react="${esc(m.id)}" data-emoji="${e2}">${e2}</button>`).join('')}</div></div>`;
+      }).join('') : '<p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">No messages yet. Start the conversation!</p>';
       log.scrollTop = log.scrollHeight;
       log.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
         replyTo = messages.find(x => x.id === b.dataset.reply) || null;
         const bar = document.getElementById('replybar');
-        if (replyTo) { bar.style.display = ''; bar.innerHTML = `Replying to <strong>${esc(replyTo.sender_name || '')}</strong> <a href="#" id="cancelreply">✕</a>`; document.getElementById('cancelreply').addEventListener('click', (e2) => { e2.preventDefault(); replyTo = null; bar.style.display = 'none'; }); }
+        if (replyTo) { bar.style.display = ''; bar.innerHTML = `<span>Replying to <strong>${esc(replyTo.sender_name || '')}</strong></span><button data-x style="background:none;border:none;cursor:pointer;font-weight:bold">✕</button>`; bar.querySelector('[data-x]').addEventListener('click', () => { replyTo = null; bar.style.display = 'none'; }); }
       }));
       log.querySelectorAll('[data-react]').forEach(b => b.addEventListener('click', async () => {
         try {
           const r = await api('/api/messages/react', { method: 'POST', body: { messageId: b.dataset.react, emoji: b.dataset.emoji } });
           messages = messages.map(m => {
             if (m.id !== b.dataset.react) return m;
-            const rx = m.reactions || [];
-            if (r.reacted) { if (!rx.some(x => x.emoji === b.dataset.emoji && x.user_id === currentUserId)) return { ...m, reactions: [...rx, { emoji: b.dataset.emoji, user_id: currentUserId }] }; return m; }
-            return { ...m, reactions: rx.filter(x => !(x.emoji === b.dataset.emoji && x.user_id === currentUserId)) };
+            const rx2 = m.reactions || [];
+            if (r.reacted) { if (!rx2.some(x => x.emoji === b.dataset.emoji && x.user_id === currentUserId)) return { ...m, reactions: [...rx2, { emoji: b.dataset.emoji, user_id: currentUserId }] }; return m; }
+            return { ...m, reactions: rx2.filter(x => !(x.emoji === b.dataset.emoji && x.user_id === currentUserId)) };
           });
           renderChat();
           rt?.send({ type: 'broadcast', event: 'reaction', payload: { messageId: b.dataset.react, emoji: b.dataset.emoji, user_id: currentUserId, reacted: r.reacted } });
@@ -101,10 +125,10 @@ if (s) {
 
     async function openConv(id) {
       active = id;
-      document.querySelectorAll('.convbtn').forEach(b => b.classList.toggle('on', b.dataset.c === id));
+      document.querySelectorAll('.conv-btn').forEach(b => b.classList.toggle('on', b.dataset.c === id));
       if (rt) { await supabase.removeChannel(rt); rt = null; }
       messages = [];
-      log.innerHTML = '<p class="muted">Loading chat history...</p>';
+      log.innerHTML = '<p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">Loading chat history...</p>';
       const { data } = await supabase.from('messages').select('*, sender:sender_id(name), message_reactions(*), message_attachments(*)').eq('conversation_id', id).order('created_at', { ascending: true });
       messages = (data || []).map(m => ({ ...m, sender_name: m.sender?.name || 'Unknown', reactions: m.message_reactions || [], attachments: m.message_attachments || [] }));
       renderChat();
@@ -134,7 +158,7 @@ if (s) {
       rt.subscribe();
     }
 
-    document.querySelectorAll('.convbtn').forEach(b => b.addEventListener('click', () => openConv(b.dataset.c)));
+    document.querySelectorAll('.conv-btn').forEach(b => b.addEventListener('click', () => openConv(b.dataset.c)));
     document.getElementById('chatinput').addEventListener('input', () => {
       rt?.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUserId, userName: me.profile?.name || 'User' } });
     });
@@ -170,7 +194,7 @@ if (s) {
     });
 
     if (active) openConv(active);
-    else log.innerHTML = '<p class="muted">Select a conversation from the sidebar to start chatting.</p>';
+    else log.innerHTML = '<p style="text-align:center;color:#9CA3A0">Select a conversation from the sidebar to start chatting.</p>';
   } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
 }
 </script>

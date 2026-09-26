@@ -5,17 +5,67 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Final upload | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+.fin-wrap { max-width: 860px; margin: 0 auto; padding: clamp(28px, 5vw, 44px) clamp(16px, 4vw, 24px); }
+.fin-head { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 18px; padding: 28px 30px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(28,20,16,0.03); }
+.fin-tags { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.fin-stage { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #FAF8F4; background: #2D6A4F; padding: 4px 10px; border-radius: 6px; }
+.fin-dom { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6A5F58; background: #F2EEE8; padding: 4px 10px; border-radius: 6px; }
+.fin-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(26px, 5vw, 36px); font-weight: 400; color: #1C1410; letter-spacing: -0.3px; line-height: 1.25; margin: 0 0 10px; }
+.fin-approved { background: #EAF4EE; border: 1.5px solid rgba(45,106,79,0.25); border-radius: 12px; padding: 14px 18px; margin-top: 8px; }
+.fin-approved .t { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: #2D6A4F; display: flex; align-items: center; gap: 8px; }
+.fin-approved .f { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #4A3F38; margin: 6px 0 0; }
+.fin-err { background: #FEF2F2; border: 1.5px solid #FCA5A5; border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #991B1B; }
+.fin-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 18px; padding: 24px clamp(18px, 3vw, 30px); margin-bottom: 24px; }
+.fin-card h2 { font-family: 'Instrument Serif', Georgia, serif; font-size: 22px; font-weight: 400; color: #1C1410; letter-spacing: -0.2px; margin: 0 0 6px; }
+.fin-card .desc { font-size: 13px; color: #6A5F58; margin: 0 0 18px; line-height: 1.6; }
+.fin-ety-label { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #1C1410; }
+.fin-types { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0 20px; }
+.fin-type { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #1C1410; background: #fff; border: 1.5px solid rgba(28,20,16,0.14); border-radius: 999px; padding: 8px 18px; cursor: pointer; text-transform: capitalize; }
+.fin-type.on { font-weight: 700; color: #FAF8F4; background: #2D6A4F; border-color: #2D6A4F; }
+.fin-linkgrid { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(200px, 1.4fr) auto; gap: 10px; align-items: end; margin-bottom: 12px; }
+.fin-linkgrid label { display: flex; flex-direction: column; gap: 5px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #4A3F38; }
+.fin-linkgrid input { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
+.btn-addlink { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #FAF8F4; background: #2D6A4F; border: none; border-radius: 8px; padding: 12px 18px; cursor: pointer; white-space: nowrap; }
+.btn-addlink:disabled { color: #9CA3A0; background: #EAE5DC; cursor: not-allowed; }
+.fin-file { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px dashed rgba(45,106,79,0.35); border-radius: 10px; padding: 13px 16px; outline: none; box-sizing: border-box; cursor: pointer; }
+.fin-file:disabled { color: #9CA3A0; background: #F3F0E8; border-color: rgba(28,20,16,0.15); cursor: not-allowed; }
+.fin-count { font-size: 12px; color: #6A5F58; margin-top: 8px; font-weight: 500; }
+.fin-items { display: grid; gap: 10px; margin-top: 16px; }
+.fin-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 16px; background: #FAF8F4; border-radius: 10px; border: 1px solid rgba(45,106,79,0.18); flex-wrap: wrap; }
+.fin-item .left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.fin-item .idx { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: #1C1410; white-space: nowrap; }
+.fin-item a { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #2D6A4F; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fin-item .kind { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #9CA3A0; }
+.fin-item .rm { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #DC2626; background: #fff; border: 1px solid rgba(220,38,38,0.2); border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+.fin-bar { position: sticky; bottom: clamp(10px, 2vw, 20px); background: #fff; border: 1.5px solid rgba(28,20,16,0.1); border-radius: 16px; padding: 14px clamp(14px, 3vw, 24px); box-shadow: 0 10px 30px rgba(28,20,16,0.08); z-index: 90; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; row-gap: 10px; }
+.fin-status { font-size: 13px; color: #6A5F58; }
+.fin-status.ok { color: #2D6A4F; font-weight: 600; }
+.fin-bar-btns { display: flex; gap: 10px; align-items: center; }
+.btn-back { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #4A3F38; text-decoration: none; border: 1px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 16px; }
+.btn-save { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 12px 22px; cursor: pointer; box-shadow: 0 2px 10px rgba(244,167,35,0.3); }
+.fin-foot { text-align: center; margin-top: 20px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; }
+.fin-modal-bg { position: fixed; inset: 0; z-index: 200; background: rgba(28,20,16,0.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.fin-modal { background: #fff; border-radius: 18px; width: 100%; max-width: 460px; padding: 28px 30px; box-shadow: 0 24px 64px rgba(28,20,16,0.3); border: 1.5px solid rgba(28,20,16,0.1); max-height: 90vh; overflow-y: auto; font-family: 'DM Sans', sans-serif; }
+.fin-modal h3 { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: #1C1410; margin: 0 0 6px; }
+.fin-modal .mp { font-size: 13.5px; color: #4A3F38; margin: 0 0 16px; line-height: 1.55; }
+.fin-row { display: flex; justify-content: space-between; align-items: center; background: #FAF8F4; border-radius: 8px; padding: 9px 14px; font-size: 13px; }
+.fin-row span:first-child { color: #6A5F58; }
+.fin-row span:last-child { color: #1C1410; font-weight: 600; }
+.fin-modal ul { margin: 0 0 16px; padding-left: 18px; font-size: 13px; color: #4A3F38; line-height: 1.7; max-height: 150px; overflow-y: auto; }
+@media (max-width: 640px) { .fin-linkgrid { grid-template-columns: 1fr; } }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:860px">
+<div class="fin-wrap">
   <div id="msg"></div>
-  <div id="content"><p class="muted">Loading final upload stage...</p></div>
+  <div id="content"><p style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#9CA3A0">Loading final upload stage...</p></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
 const problemId = location.pathname.split('/')[2];
@@ -33,82 +83,105 @@ try {
   const typeOptions = problem?.team_mode === 'team' ? ['team'] : problem?.team_mode === 'solo' ? ['individual'] : ['individual', 'team'];
 
   content.innerHTML = `
-    <div class="card">
-      <span class="badge">STAGE 2 · FINAL WORK</span> ${problem?.domain ? `<span class="badge gray">${esc(problem.domain)}</span>` : ''}
+    <div class="fin-head">
+      <div class="fin-tags"><span class="fin-stage">STAGE 2 · FINAL WORK</span>${problem?.domain ? `<span class="fin-dom">${esc(problem.domain)}</span>` : ''}</div>
       <h1>${esc(problem?.title || '')}</h1>
-      <div class="alert ok">Your solution was approved${submission.score != null ? ` · Score ${submission.score}/10` : ''}${submission.judge_feedback ? `<br>Judge feedback: ${esc(submission.judge_feedback)}` : ''}</div>
+      <div class="fin-approved"><div class="t"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Your solution was approved${submission.score != null ? ` · Score ${submission.score}/10` : ''}</span></div>${submission.judge_feedback ? `<p class="f">Judge feedback: ${esc(submission.judge_feedback)}</p>` : ''}</div>
     </div>
-    <div class="card">
+    <div id="errbox"></div>
+    <div class="fin-card">
       <h2>Upload what you have built</h2>
-      <p class="muted">Add up to ${MAX_ITEMS} items — research paper, APK/app build, live app link, GitHub repository, demo video, or any other file (max 25 MB each).</p>
-      <label>This entry is by</label>
-      <div class="row" id="types">${typeOptions.map(o => `<button class="btn" data-t="${o}">${o === 'team' ? '👥 Team' : '🙋 Individual'}</button>`).join('')}</div>
-      <div class="row" style="margin-top:0.75rem">
-        <input class="input" id="linklabel" maxlength="80" placeholder="Label: Research paper / GitHub / Live app…" style="flex:1">
-        <input class="input" id="linkurl" placeholder="https://…" style="flex:2">
-        <button class="btn btn-primary" id="addlink">+ Add link</button>
+      <p class="desc">Add up to ${MAX_ITEMS} items — research paper, APK/app build, live app link, GitHub repository, demo video, or any other file (max 25 MB each).</p>
+      <div class="fin-ety-label">This entry is by</div>
+      <div class="fin-types" id="types">${typeOptions.map(o => `<button class="fin-type ${o === participantType ? 'on' : ''}" data-t="${o}">${o === 'team' ? '👥 Team' : '🙋 Individual'}</button>`).join('')}</div>
+      <div class="fin-linkgrid">
+        <label>Label<input id="linklabel" maxlength="80" placeholder="Research paper / GitHub / Live app…"></label>
+        <label>URL<input id="linkurl" placeholder="https://…"></label>
+        <button class="btn-addlink" id="addlink">+ Add link</button>
       </div>
-      <input class="input" type="file" id="upfile" style="margin-top:0.75rem">
-      <div class="muted" id="count"></div>
-      <div id="list"></div>
+      <input class="fin-file" type="file" id="upfile">
+      <div class="fin-count" id="count"></div>
+      <div class="fin-items" id="list"></div>
     </div>
-    <div class="card row" style="position:sticky;bottom:12px">
-      <span class="muted" id="status"></span>
-      <a class="btn" href="/problems/${esc(problemId)}">Back to problem</a>
-      <button class="btn btn-primary" id="save">Submit final work</button>
-    </div>`;
+    <div class="fin-bar">
+      <div class="fin-status" id="status"></div>
+      <div class="fin-bar-btns"><a class="btn-back" href="/problems/${esc(problemId)}">Back to problem</a><button class="btn-save" id="save">Submit final work</button></div>
+    </div>
+    <p class="fin-foot">Builder: ${esc(profile?.name || '')}${profile?.dept ? ` (${esc(profile.dept)} · ${esc(profile.year || '')})` : ''} · Signed in as Student</p>
+    <div id="modal"></div>`;
 
-  const paintTypes = () => document.querySelectorAll('#types [data-t]').forEach(b => b.classList.toggle('btn-primary', b.dataset.t === participantType));
+  const paintTypes = () => document.querySelectorAll('#types [data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === participantType));
   document.querySelectorAll('#types [data-t]').forEach(b => b.addEventListener('click', () => { participantType = b.dataset.t; paintTypes(); }));
-  paintTypes();
 
   const render = () => {
     document.getElementById('count').textContent = `${deliverables.length} of ${MAX_ITEMS} items added · any file type, up to 25 MB`;
     document.getElementById('status').textContent = `${deliverables.length} item(s) ready.`;
     document.getElementById('list').innerHTML = deliverables.map((d, i) =>
-      `<div class="row"><span><strong>${i + 1}.</strong> <a href="${esc(d.url)}" target="_blank" rel="noreferrer">${esc(d.label)}</a> <span class="badge gray">${esc((d.kind || '').toUpperCase())}</span></span><button class="btn" data-i="${i}">Remove</button></div>`).join('');
+      `<div class="fin-item"><div class="left"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="idx">${i + 1}.</span><a href="${esc(d.url)}" target="_blank" rel="noreferrer">${esc(d.label)}</a><span class="kind">${esc((d.kind || '').toUpperCase())}</span></div><button class="rm" data-i="${i}">Remove</button></div>`).join('');
     document.querySelectorAll('#list [data-i]').forEach(b => b.addEventListener('click', () => { deliverables.splice(Number(b.dataset.i), 1); render(); }));
+    const add = document.getElementById('addlink');
+    const dis = deliverables.length >= MAX_ITEMS;
+    add.disabled = dis;
+    document.getElementById('upfile').disabled = dis;
   };
   render();
 
   document.getElementById('addlink').addEventListener('click', () => {
-    if (deliverables.length >= MAX_ITEMS) { msg.innerHTML = alertBox(`You can add up to ${MAX_ITEMS} deliverables.`); return; }
+    if (deliverables.length >= MAX_ITEMS) { document.getElementById('errbox').innerHTML = `<div class="fin-err">You can add up to ${MAX_ITEMS} deliverables.</div>`; return; }
     const label = document.getElementById('linklabel').value.trim();
     const url = document.getElementById('linkurl').value.trim();
-    if (!label || !url) { msg.innerHTML = alertBox('Enter a label and the link URL.'); return; }
-    if (!isUrl(url)) { msg.innerHTML = alertBox('Links must start with http:// or https://'); return; }
+    if (!label || !url) { document.getElementById('errbox').innerHTML = `<div class="fin-err">Enter a label and the link URL.</div>`; return; }
+    if (!isUrl(url)) { document.getElementById('errbox').innerHTML = `<div class="fin-err">Links must start with http:// or https://</div>`; return; }
     deliverables.push({ kind: 'link', label, url });
     document.getElementById('linklabel').value = ''; document.getElementById('linkurl').value = '';
-    msg.innerHTML = ''; render();
+    document.getElementById('errbox').innerHTML = ''; render();
   });
 
   document.getElementById('upfile').addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (deliverables.length >= MAX_ITEMS) { msg.innerHTML = alertBox(`You can add up to ${MAX_ITEMS} deliverables.`); e.target.value = ''; return; }
-    if (file.size > 25 * 1024 * 1024) { msg.innerHTML = alertBox('Files must be 25 MB or smaller.'); e.target.value = ''; return; }
+    if (deliverables.length >= MAX_ITEMS) { document.getElementById('errbox').innerHTML = `<div class="fin-err">You can add up to ${MAX_ITEMS} deliverables.</div>`; e.target.value = ''; return; }
+    if (file.size > 25 * 1024 * 1024) { document.getElementById('errbox').innerHTML = `<div class="fin-err">Files must be 25 MB or smaller.</div>`; e.target.value = ''; return; }
     try {
       const form = new FormData();
       form.append('problem_id', problemId);
       form.append('file', file);
       const data = await api('/api/submissions/deliverable-upload', { method: 'POST', form });
       if (data.url) deliverables.push({ kind: 'file', label: String(data.name || file.name), url: data.url, name: String(data.name || file.name) });
-      msg.innerHTML = ''; render();
-    } catch (err) { msg.innerHTML = alertBox(err.message); }
+      document.getElementById('errbox').innerHTML = ''; render();
+    } catch (err) { document.getElementById('errbox').innerHTML = `<div class="fin-err">${esc(err.message)}</div>`; }
     e.target.value = '';
   });
 
-  document.getElementById('save').addEventListener('click', async (e) => {
-    if (!confirm('Submit your final work? This replaces everything currently saved for this problem.')) return;
-    const btn = e.target;
-    btn.disabled = true; btn.textContent = 'Submitting...'; msg.innerHTML = '';
-    try {
-      const { error } = await sb().from('submissions').update({ final_deliverables: deliverables, participant_type: participantType }).eq('id', submission.id);
-      if (error) throw error;
-      msg.innerHTML = alertBox(`Final work submitted! ${deliverables.length} item(s) delivered as ${participantType}.`, true);
-      document.getElementById('status').textContent = '✓ Final work saved.';
-    } catch (err) { msg.innerHTML = alertBox(err.message); }
-    btn.disabled = false; btn.textContent = 'Submit final work';
+  document.getElementById('save').addEventListener('click', async () => {
+    const modal = document.getElementById('modal');
+    modal.innerHTML = `
+      <div class="fin-modal-bg" id="mback"><div class="fin-modal" role="dialog" aria-modal="true">
+        <h3>Submit your final work?</h3>
+        <p class="mp">This replaces everything currently saved for this problem. Admins will see it instantly in their panel.</p>
+        <div style="display:grid;gap:8px;margin-bottom:16px">
+          <div class="fin-row"><span>Entry type</span><span>${participantType === 'team' ? '👥 Team' : '🙋 Individual'}</span></div>
+          <div class="fin-row"><span>Items</span><span>${deliverables.length} of ${MAX_ITEMS}</span></div>
+          <div class="fin-row"><span>Links</span><span>${deliverables.filter(d => d.kind === 'link').length}</span></div>
+          <div class="fin-row"><span>Files</span><span>${deliverables.filter(d => d.kind === 'file').length}</span></div>
+        </div>
+        ${deliverables.length === 0 ? `<div class="fin-err">⚠️ You haven't added any items yet — you can still save an empty set.</div>` : `<ul>${deliverables.map((d, i) => `<li><strong>${i + 1}. ${esc(d.label)}</strong> <span style="color:#9CA3A0;font-family:'JetBrains Mono',monospace;font-size:10px">${esc((d.kind || '').toUpperCase())}</span></li>`).join('')}</ul>`}
+        <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn-back" id="mcancel">Cancel</button><button class="btn-save" id="mconfirm" style="background:#2D6A4F;color:#FAF8F4;font-size:14px">Submit ${deliverables.length} item(s) ✓</button></div>
+      </div></div>`;
+    document.getElementById('mcancel').addEventListener('click', () => modal.innerHTML = '');
+    document.getElementById('mback').addEventListener('click', (e2) => { if (e2.target.id === 'mback') modal.innerHTML = ''; });
+    document.getElementById('mconfirm').addEventListener('click', async (e2) => {
+      const btn = e2.target;
+      btn.disabled = true; btn.textContent = 'Submitting...';
+      try {
+        const { error } = await sb().from('submissions').update({ final_deliverables: deliverables, participant_type: participantType }).eq('id', submission.id);
+        if (error) throw error;
+        modal.innerHTML = `<div class="fin-modal-bg"><div class="fin-modal" role="dialog" aria-modal="true" style="text-align:center;max-width:400px"><div style="width:60px;height:60px;margin:0 auto 14px;background:#EAF4EE;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><h3>Final work submitted!</h3><p class="mp">${deliverables.length} item(s) delivered as a ${participantType === 'team' ? 'team' : 'individual'} entry. The admin panel now shows your uploads.</p><button class="btn-save" id="mdone" style="background:#2D6A4F;color:#FAF8F4">Done</button></div></div>`;
+        document.getElementById('mdone').addEventListener('click', () => modal.innerHTML = '');
+        document.getElementById('status').textContent = '✓ Final work saved.';
+        document.getElementById('status').classList.add('ok');
+      } catch (err) { document.getElementById('errbox').innerHTML = `<div class="fin-err">${esc(err.message)}</div>`; modal.innerHTML = ''; }
+    });
   });
 } catch (err) {
   if (err.message !== 'redirect') { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }

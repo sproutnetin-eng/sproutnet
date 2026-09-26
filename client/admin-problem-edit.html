@@ -6,72 +6,156 @@
 <title>Edit Problem — SproutNet Admin</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
-.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
-.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
-.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
-.admin-side .meta{font-size:.75rem;color:#64748b}
-@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+  .admin-theme { --bg-main: #F6F7F8; --bg-surface: #FFFFFF; --bg-card: #FFFFFF; --bg-hover: #F0F2F4; --border-primary: #E5E7EB; --border-secondary: #D1D5DB; --border-input: #D1D5DB; --text-primary: #000000; --text-secondary: #000000; --text-muted: #000000; --text-disabled: #000000; --accent-primary: #10A37F; --accent-hover: #1DBF93; --danger: #EF4444; --warning: #F59E0B; background: var(--bg-main); color: var(--text-primary); }
+  .admin-theme * { box-sizing: border-box; color: #000000 !important; }
+  .admin-theme ::placeholder { color: #000000 !important; opacity: 0.55; }
+  .admin-shell { min-height: 100vh; background: var(--bg-main); color: var(--text-primary); font-family: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; --admin-columns: 260px 1fr; --admin-aside-position: sticky; --admin-aside-height: 100vh; }
+  .admin-grid { display: grid; grid-template-columns: var(--admin-columns, 260px 1fr); min-height: 100vh; }
+  .admin-sidebar { border-right: 1px solid var(--border-primary); background: var(--bg-surface); padding: clamp(16px, 3vw, 22px) clamp(14px, 3vw, 18px); position: var(--admin-aside-position, sticky); top: 0; height: var(--admin-aside-height, 100vh); overflow-y: auto; }
+  .admin-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
+  .admin-brand .nm { font-family: Sora, sans-serif; font-weight: 900; font-size: 15px; line-height: 1.1; }
+  .admin-brand .sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 2px; }
+  .admin-access { padding: 12px; margin-bottom: 14px; }
+  .admin-access .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-bottom: 8px; }
+  .admin-access .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .admin-access .who { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-sidebar-link { text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-primary); }
+  .admin-sidebar-link--active { background: var(--bg-hover); border-color: var(--border-secondary); box-shadow: inset 3px 0 0 var(--accent-primary); }
+  .admin-links { display: grid; gap: 8px; }
+  .admin-links .t { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; }
+  .admin-links .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .admin-tools { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-primary); display: grid; gap: 6px; }
+  .admin-tools .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .admin-tools button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; background: transparent; border: 1px solid var(--border-primary); border-radius: 8px; padding: 8px 12px; cursor: pointer; text-align: left; }
+  .admin-tools button:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-tools .tmsg { font-size: 11px; font-family: 'JetBrains Mono', monospace; line-height: 1.4; }
+  .admin-back { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(148,163,184,0.12); }
+  .admin-back a { justify-content: center; }
+  .admin-btn { font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 800; border-radius: 12px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--border-secondary); background: var(--bg-surface); }
+  .admin-head { min-height: 64px; padding: 10px clamp(16px, 3vw, 26px); display: flex; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--border-primary); background: rgba(246,247,248,0.9); position: sticky; top: 0; z-index: 50; }
+  .admin-main { padding: clamp(20px, 3vw, 28px) clamp(16px, 3vw, 26px) 70px; }
+  .ae-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; flex-wrap: wrap; }
+  .ae-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .ae-title { font-family: Sora, sans-serif; font-size: clamp(20px, 4vw, 26px); font-weight: 950; letter-spacing: -0.5px; margin: 0 0 8px; }
+  .ae-sub { font-size: 14px; font-weight: 500; margin: 0; }
+  .ae-nav { display: flex; gap: 10px; align-items: center; }
+  .ae-nav a { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 900; text-decoration: none; border: 1px solid rgba(148,163,184,0.18); border-radius: 12px; padding: 9px 12px; background: rgba(148,163,184,0.08); }
+  .ae-box { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 18px; padding: 18px; }
+  .ae-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+  .ae-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ae-pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 999px; }
+  .ae-pill.st { background: rgba(16,163,127,0.12); border: 1px solid rgba(16,163,127,0.28); }
+  .ae-pill.id { background: rgba(148,163,184,0.08); border: 1px solid rgba(148,163,184,0.14); }
+  .ae-cancel { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 900; text-decoration: none; border: 1px solid rgba(148,163,184,0.18); border-radius: 12px; padding: 9px 12px; background: rgba(148,163,184,0.08); }
+  .ae-form { display: flex; flex-direction: column; gap: 18px; }
+  .ae-err { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; }
+  .ae-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; }
+  .ae-field { display: flex; flex-direction: column; gap: 6px; }
+  .ae-field > span { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 800; }
+  .ae-input { font-family: 'DM Sans', sans-serif; font-size: 14px; background: #1A1A1A; border: 1px solid var(--border-input); border-radius: 10px; padding: 11px 12px; outline: none; width: 100%; box-sizing: border-box; }
+  .ae-textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; background: #1A1A1A; border: 1px solid var(--border-input); border-radius: 10px; padding: 11px 12px; outline: none; width: 100%; box-sizing: border-box; resize: vertical; }
+  .ae-3col { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .ae-2col { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .ae-save-row { display: flex; justify-content: flex-end; }
+  .ae-save { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 10px; padding: 12px 18px; cursor: pointer; box-shadow: 0 2px 10px rgba(244,167,35,0.3); }
+  .ae-save:disabled { cursor: not-allowed; }
+  @media (max-width: 1024px) { .admin-shell { --admin-columns: 1fr; --admin-aside-position: static; --admin-aside-height: auto; } }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container" style="max-width:1200px">
-<div class="admin-layout">
-<aside class="admin-side card">
-  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
-  <a href="/admin/problems" class="on"><strong>Problems</strong> <span class="meta">moderation</span></a>
-  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
-  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
-  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
-  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
-  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
-</aside>
-<div>
-  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">PROBLEM · EDIT</div>
-  <h1>Edit problem</h1>
-  <div class="row"><a class="btn" href="/admin/problems">← Back</a><span id="pid" class="badge gray"></span><span id="pstatus" class="badge"></span></div>
-  <div id="msg"></div>
-  <form id="f" class="card" style="display:none">
-    <label>Problem title<input class="input" name="title" id="title" required></label>
-    <div class="row">
-      <div style="flex:1;min-width:200px"><label>Domain<select class="select" name="domain" id="domain"></select></label></div>
-      <div style="flex:1;min-width:200px"><label>Problem type<select class="select" name="problem_type" id="ptype">
-        <option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option>
-      </select></label></div>
-      <div style="flex:1;min-width:200px"><label>Participation mode<select class="select" name="team_mode" id="tmode">
-        <option value="solo">Individual only</option><option value="team">Team only</option><option value="both">Individual or Team</option>
-      </select></label></div>
+<div class="admin-theme admin-shell">
+<div class="admin-grid">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="/admin">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#10A37F"/><line x1="17" y1="27" x2="17" y2="15" stroke="#0D0D0D" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F59E0B"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(236,236,236,0.88)"/></svg>
+      <div><div class="nm">SproutNet</div><div class="sub">admin panel</div></div>
+    </a>
+    <div class="admin-card admin-access">
+      <div class="lbl">YOUR ACCESS</div>
+      <div class="row"><div class="who" id="access-name">…</div><span class="admin-pill admin-pill--accent" id="access-pill" style="font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:999px">ADMIN</span></div>
     </div>
-    <div id="reward-wrap" style="display:none"><label>Reward amount (INR)<input class="input" type="number" min="0" name="reward_amount" id="reward"></label></div>
-    <div class="row">
-      <div style="flex:1"><label>Submission deadline<input class="input" type="date" name="deadline" id="deadline" required></label></div>
-      <div style="flex:1"><label>Judging deadline<input class="input" type="date" name="judging_deadline" id="jdeadline" required></label></div>
+    <div class="admin-links">
+      <a class="admin-sidebar-link" href="/admin"><span class="t">Overview</span><span class="m">home</span></a>
+      <a class="admin-sidebar-link admin-sidebar-link--active" href="/admin/problems" aria-current="page"><span class="t">Problems</span><span class="m">moderation</span></a>
+      <a class="admin-sidebar-link" href="/admin/solutions"><span class="t">Solutions</span><span class="m">uploads</span></a>
+      <a class="admin-sidebar-link" href="/admin/judging"><span class="t">Judging</span><span class="m">queue</span></a>
+      <a class="admin-sidebar-link" href="/admin/analytics"><span class="t">Analytics</span><span class="m">metrics</span></a>
+      <a class="admin-sidebar-link" href="/leaderboard"><span class="t">Leaderboard</span><span class="m">scores</span></a>
     </div>
-    <label>Background &amp; context<textarea class="textarea" name="context" id="context" required></textarea></label>
-    <label>Problem statement<textarea class="textarea" name="problem_stmt" id="stmt" required></textarea></label>
-    <label>Scope<textarea class="textarea" name="scope" id="scope" required></textarea></label>
-    <label>Constraints<textarea class="textarea" name="constraints" id="constraints" required></textarea></label>
-    <label>Deliverables<textarea class="textarea" name="deliverables" id="deliverables" required></textarea></label>
-    <div class="row" style="justify-content:flex-end"><button class="btn btn-primary" id="save" type="submit">Save changes</button></div>
-  </form>
+    <div class="admin-tools">
+      <div class="lbl">LEADERBOARD TOOLS</div>
+      <button type="button" id="seed-btn">Seed Test Submissions</button>
+      <button type="button" id="recalc-btn">Recalculate Scores</button>
+      <div class="tmsg" id="tool-msg"></div>
+    </div>
+    <div class="admin-back"><a class="admin-sidebar-link" href="/dashboard">← Back to Dashboard</a></div>
+  </aside>
+  <div>
+    <header class="admin-head"><button type="button" class="admin-btn" id="signout">Sign out</button></header>
+    <main class="admin-main">
+      <div class="ae-top">
+        <div>
+          <div class="ae-eyebrow">PROBLEM · EDIT</div>
+          <h1 class="ae-title">Edit problem</h1>
+          <p class="ae-sub">Update the problem statement and deadlines.</p>
+        </div>
+        <div class="ae-nav"><a id="view-public" href="#">View public</a><a href="/admin/problems">← Back</a></div>
+      </div>
+      <div id="msg"></div>
+      <div class="ae-box">
+        <div class="ae-meta">
+          <div class="ae-pills"><span class="ae-pill st" id="pstatus">Status: …</span><span class="ae-pill id" id="pid">ID: …</span></div>
+          <a class="ae-cancel" href="/admin/problems">Cancel</a>
+        </div>
+        <form id="f" class="ae-form" style="display:none">
+          <div id="form-msg"></div>
+          <label class="ae-field"><span>Problem title</span><input class="ae-input" name="title" id="title" required></label>
+          <div class="ae-3col">
+            <label class="ae-field"><span>Domain</span><select class="ae-input" name="domain" id="domain" style="cursor:pointer"></select></label>
+            <label class="ae-field"><span>Problem type</span><select class="ae-input" name="problem_type" id="ptype" style="cursor:pointer">
+              <option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option>
+            </select></label>
+            <label class="ae-field"><span>Participation mode</span><select class="ae-input" name="team_mode" id="tmode" style="cursor:pointer">
+              <option value="solo">Individual only</option><option value="team">Team only</option><option value="both">Individual or Team</option>
+            </select></label>
+          </div>
+          <div id="reward-wrap" style="display:none"><label class="ae-field"><span>Reward amount (INR)</span><input class="ae-input" type="number" min="0" name="reward_amount" id="reward"></label></div>
+          <div class="ae-2col">
+            <label class="ae-field"><span>Submission deadline</span><input class="ae-input" type="date" name="deadline" id="deadline" required></label>
+            <label class="ae-field"><span>Judging deadline</span><input class="ae-input" type="date" name="judging_deadline" id="jdeadline" required></label>
+          </div>
+          <label class="ae-field"><span>Background &amp; context</span><textarea class="ae-textarea" name="context" id="context" required rows="4"></textarea></label>
+          <label class="ae-field"><span>Problem statement</span><textarea class="ae-textarea" name="problem_stmt" id="stmt" required rows="4"></textarea></label>
+          <label class="ae-field"><span>Scope</span><textarea class="ae-textarea" name="scope" id="scope" required rows="3"></textarea></label>
+          <label class="ae-field"><span>Constraints</span><textarea class="ae-textarea" name="constraints" id="constraints" required rows="3"></textarea></label>
+          <label class="ae-field"><span>Deliverables</span><textarea class="ae-textarea" name="deliverables" id="deliverables" required rows="3"></textarea></label>
+          <div class="ae-save-row"><button class="ae-save" id="save" type="submit">Save changes</button></div>
+        </form>
+      </div>
+    </main>
+  </div>
 </div>
 </div>
-</main>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+renderNav();
 const me = await requireRole('admin');
 const DOMAINS = ['AI & Data','Climate','Public Infrastructure','Healthcare','Agriculture','Education','Urban Mobility','Civic Technology'];
 const msg = document.getElementById('msg');
+const formMsg = document.getElementById('form-msg');
 const f = document.getElementById('f');
 const id = location.pathname.split('/')[3];
 if (me) {
+  document.getElementById('access-name').textContent = me.profile?.name || 'Admin';
+  document.getElementById('access-pill').textContent = me.profile?.is_master ? 'MASTER' : 'ADMIN';
   if (!id) location.href = '/admin/problems';
   else {
     try {
       const { problem: p } = await api(`/api/admin/problems/${id}`);
+      document.getElementById('view-public').href = `/problems/${id}`;
       document.getElementById('pid').textContent = 'ID: ' + id.slice(0, 8) + '…';
       document.getElementById('pstatus').textContent = 'Status: ' + p.status;
       document.getElementById('domain').innerHTML = DOMAINS.map(d => `<option ${d === p.domain ? 'selected' : ''}>${esc(d)}</option>`).join('');
@@ -93,6 +177,19 @@ if (me) {
       f.style.display = '';
     } catch (e) { msg.innerHTML = alertBox(e.message); }
   }
+  const tm = document.getElementById('tool-msg');
+  document.getElementById('seed-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
+  });
+  document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
+  });
 }
 f.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -112,15 +209,17 @@ f.addEventListener('submit', async (e) => {
       scope: String(fd.get('scope')).trim(), constraints: String(fd.get('constraints')).trim(),
       deliverables: String(fd.get('deliverables')).trim(), team_mode: fd.get('team_mode'),
     }});
-    msg.innerHTML = alertBox('Problem updated.', true);
+    formMsg.innerHTML = `<div class="ae-ok">Problem updated.</div>`;
     setTimeout(() => location.href = '/admin/problems', 800);
   } catch (err) {
     let m = err.message;
     if (m.includes('min_deadline')) m = 'Submission deadline is too soon. Please choose a later date.';
+    formMsg.innerHTML = `<div class="ae-err">${esc(m)}</div>`;
     msg.innerHTML = alertBox(m);
     btn.disabled = false; btn.textContent = 'Save changes';
   }
 });
+document.getElementById('signout').addEventListener('click', logout);
 </script>
 </body>
 </html>

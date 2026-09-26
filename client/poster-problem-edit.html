@@ -5,56 +5,107 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Edit Problem — SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .pe-wrap { max-width: 980px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); }
+  .pe-head { margin-bottom: 32px; }
+  .pe-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(28px, 6vw, 38px); font-weight: 400; color: #1C1410; letter-spacing: -0.5px; margin: 0 0 8px; }
+  .pe-head p { font-size: 16px; color: #4A3F38; font-weight: 300; margin: 0; }
+  .pe-form { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 14px; padding: clamp(22px, 3vw, 32px); display: grid; gap: 18px; }
+  .pe-err { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #DC2626; }
+  .pe-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #16A34A; }
+  .pe-field { display: flex; flex-direction: column; gap: 6px; }
+  .pe-field > span { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #1C1410; }
+  .pe-input { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
+  .pe-textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; resize: vertical; }
+  .pe-2col { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .pe-2col-sm { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .pe-hint { font-size: 12px; color: #6A5F58; }
+  .pe-thumb { border: 1.5px solid rgba(28,20,16,0.08); border-radius: 12px; overflow: hidden; background: #FAF8F4; }
+  .pe-thumb .prev { aspect-ratio: 16 / 9; background: #F3EEE7; }
+  .pe-thumb .prev img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pe-thumb .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; flex-wrap: wrap; }
+  .pe-thumb .bar span { font-size: 12px; color: #4A3F38; }
+  .pe-remove { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #1C1410; background: #fff; border: 1px solid rgba(28,20,16,0.12); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .pe-actions { display: flex; gap: 12px; justify-content: flex-end; flex-wrap: wrap; row-gap: 10px; }
+  .pe-cancel { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #4A3F38; text-decoration: none; padding: 12px 18px; border-radius: 8px; border: 1px solid rgba(28,20,16,0.12); }
+  .pe-submit { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 12px 22px; cursor: pointer; box-shadow: 0 2px 10px rgba(244,167,35,0.3); }
+  .pe-submit:disabled { cursor: not-allowed; }
+  .pe-popup { position: fixed; inset: 0; background: rgba(28,20,16,0.35); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .pe-popup .box { width: min(420px, 92vw); background: #fff; border-radius: 16px; padding: 28px 26px; border: 1.5px solid rgba(28,20,16,0.08); box-shadow: 0 20px 60px rgba(28,20,16,0.2); }
+  .pe-popup .mono { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .pe-popup .big { font-family: 'Instrument Serif', Georgia, serif; font-size: 26px; color: #1C1410; margin-bottom: 10px; }
+  .pe-popup p { font-size: 14px; color: #4A3F38; font-weight: 300; margin: 0 0 18px; }
+  .pe-popup button { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 10px 18px; cursor: pointer; box-shadow: 0 2px 10px rgba(244,167,35,0.3); }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container" style="max-width:820px">
-  <h1>Edit problem</h1>
-  <p class="muted">Update the problem details for students.</p>
+<main class="pe-wrap">
+  <div id="popup"></div>
+  <div class="pe-head">
+    <h1>Edit problem</h1>
+    <p>Update the problem details for students.</p>
+  </div>
   <div id="msg"></div>
-  <form id="f" class="card" style="display:none">
-    <label>Problem title<input class="input" name="title" required></label>
-    <label>Thumbnail image (optional)<input class="input" type="file" id="thumb" accept="image/jpeg,image/png,image/webp,image/gif"></label>
-    <div id="thumb-preview"></div>
-    <div class="row">
-      <div style="flex:1;min-width:200px"><label>Domain<select class="select" name="domain" id="domain"></select></label></div>
-      <div style="flex:1;min-width:200px"><label>Problem type<select class="select" name="problem_type" id="ptype">
+  <form id="f" class="pe-form" style="display:none">
+    <div id="form-msg"></div>
+    <label class="pe-field"><span>Problem title</span><input class="pe-input" name="title" required></label>
+    <label class="pe-field"><span>Thumbnail image (optional)</span>
+      <div style="display:grid;gap:12px">
+        <input class="pe-input" type="file" id="thumb" accept="image/jpeg,image/png,image/webp,image/gif">
+        <div class="pe-hint">Add or replace the image shown on the public problem preview card.</div>
+        <div id="thumb-preview"></div>
+      </div>
+    </label>
+    <div class="pe-2col">
+      <label class="pe-field"><span>Domain</span><select class="pe-input" name="domain" id="domain"></select></label>
+      <label class="pe-field"><span>Problem type</span><select class="pe-input" name="problem_type" id="ptype">
         <option value="public_impact">Public Impact</option><option value="industry_challenge">Industry Challenge</option>
-      </select></label></div>
+      </select></label>
     </div>
-    <div id="reward-wrap" style="display:none"><label>Reward amount (INR)<input class="input" type="number" min="0" name="reward_amount" id="reward"></label></div>
-    <div class="row">
-      <div style="flex:1"><label>Submission deadline<input class="input" type="date" name="deadline" id="deadline" required></label></div>
-      <div style="flex:1"><label>Judging deadline<input class="input" type="date" name="judging_deadline" id="jdeadline" required></label></div>
+    <div id="reward-wrap" style="display:none"><label class="pe-field"><span>Reward amount (INR)</span><input class="pe-input" type="number" min="0" name="reward_amount" id="reward"></label></div>
+    <div class="pe-2col-sm">
+      <label class="pe-field"><span>Submission deadline</span><input class="pe-input" type="date" name="deadline" id="deadline" required></label>
+      <label class="pe-field"><span>Judging deadline</span><input class="pe-input" type="date" name="judging_deadline" id="jdeadline" required></label>
     </div>
-    <label>Participation type<select class="select" name="team_mode" id="tmode">
-      <option value="solo">Individual Only</option><option value="team">Team Only</option><option value="both">Both Individual &amp; Team</option>
-    </select></label>
-    <div class="row" id="team-sizes">
-      <div style="flex:1"><label>Min team size<input class="input" type="number" min="1" name="min_team_size" id="minsize"></label></div>
-      <div style="flex:1"><label>Max team size<input class="input" type="number" min="1" name="max_team_size" id="maxsize"></label></div>
+    <div class="pe-2col">
+      <label class="pe-field"><span>Participation Type</span><select class="pe-input" name="team_mode" id="tmode">
+        <option value="solo">Individual Only</option><option value="team">Team Only</option><option value="both">Both Individual &amp; Team</option>
+      </select></label>
+      <div class="pe-2col-sm" id="team-sizes" style="display:none">
+        <label class="pe-field"><span>Min Team Size</span><input class="pe-input" type="number" min="1" name="min_team_size" id="minsize"></label>
+        <label class="pe-field"><span>Max Team Size</span><input class="pe-input" type="number" min="1" name="max_team_size" id="maxsize"></label>
+      </div>
     </div>
-    <label>Background &amp; context<textarea class="textarea" name="context" id="context" required></textarea></label>
-    <label>Problem statement<textarea class="textarea" name="problem_stmt" id="stmt" required></textarea></label>
-    <label>Scope<textarea class="textarea" name="scope" id="scope" required></textarea></label>
-    <label>Constraints<textarea class="textarea" name="constraints" id="constraints" required></textarea></label>
-    <label>Deliverables<textarea class="textarea" name="deliverables" id="deliverables" required></textarea></label>
-    <div class="row" style="justify-content:flex-end">
-      <a class="btn" href="/poster/problems">Cancel</a>
-      <button class="btn btn-primary" id="submit" type="submit">Save changes</button>
+    <label class="pe-field"><span>Background &amp; context</span><textarea class="pe-textarea" name="context" id="context" required rows="4"></textarea></label>
+    <label class="pe-field"><span>Problem statement</span><textarea class="pe-textarea" name="problem_stmt" id="stmt" required rows="4"></textarea></label>
+    <label class="pe-field"><span>Scope</span><textarea class="pe-textarea" name="scope" id="scope" required rows="3"></textarea></label>
+    <label class="pe-field"><span>Constraints</span><textarea class="pe-textarea" name="constraints" id="constraints" required rows="3"></textarea></label>
+    <label class="pe-field"><span>Deliverables</span><textarea class="pe-textarea" name="deliverables" id="deliverables" required rows="3"></textarea></label>
+    <div class="pe-actions">
+      <a class="pe-cancel" href="/poster/problems">Cancel</a>
+      <button class="pe-submit" id="submit" type="submit">Save changes</button>
     </div>
   </form>
 </main>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const me = await requireRole('poster', 'admin');
 const DOMAINS = ['AI & Data','Climate','Public Infrastructure','Healthcare','Agriculture','Education','Urban Mobility','Civic Technology'];
 const msg = document.getElementById('msg');
+const formMsg = document.getElementById('form-msg');
 const f = document.getElementById('f');
 const id = location.pathname.split('/')[3];
 let currentThumb = '', newFile = null;
+function showPopup() {
+  document.getElementById('popup').innerHTML = `<div class="pe-popup"><div class="box">
+    <div class="mono">// updated</div><div class="big">Problem updated.</div>
+    <p>Your changes are saved. Redirecting to your problems.</p>
+    <button type="button" id="popup-ok">Okay</button></div></div>`;
+  document.getElementById('popup-ok').addEventListener('click', () => { document.getElementById('popup').innerHTML = ''; });
+}
 if (me) {
   if (!id) location.href = '/poster/problems';
   else {
@@ -84,14 +135,14 @@ if (me) {
       sync();
       const showPrev = (src, name) => {
         document.getElementById('thumb-preview').innerHTML = src
-          ? `<div class="card"><img src="${esc(src)}" alt="thumbnail" style="max-width:100%;border-radius:8px"><div class="row" style="justify-content:space-between"><span class="muted">${esc(name)}</span><button type="button" class="btn" id="clear-thumb">Remove image</button></div></div>` : '';
+          ? `<div class="pe-thumb"><div class="prev"><img src="${esc(src)}" alt="Problem thumbnail preview"></div><div class="bar"><span>${esc(name)}</span><button type="button" class="pe-remove" id="clear-thumb">Remove image</button></div></div>` : '';
         document.getElementById('clear-thumb')?.addEventListener('click', () => { newFile = null; currentThumb = ''; document.getElementById('thumb').value = ''; showPrev('', ''); });
       };
       if (currentThumb) showPrev(currentThumb, 'Current thumbnail');
       document.getElementById('thumb').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) { msg.innerHTML = alertBox('Thumbnail must be 5 MB or smaller.'); e.target.value = ''; return; }
+        if (file.size > 5 * 1024 * 1024) { formMsg.innerHTML = `<div class="pe-err">Thumbnail must be 5 MB or smaller.</div>`; e.target.value = ''; return; }
         newFile = file;
         showPrev(URL.createObjectURL(file), file.name);
       });
@@ -127,11 +178,13 @@ f.addEventListener('submit', async (e) => {
       min_team_size: Number(fd.get('min_team_size')) || 1, max_team_size: Number(fd.get('max_team_size')) || 4,
     };
     const r = await api('/api/problems/update', { method: 'POST', body: payload });
-    msg.innerHTML = alertBox(r.warning ? r.warning : 'Problem updated. Redirecting…', true);
-    setTimeout(() => location.href = '/poster/problems', 900);
+    formMsg.innerHTML = `<div class="pe-ok">${esc(r.warning ? r.warning : 'Problem updated.')}</div>`;
+    showPopup();
+    setTimeout(() => location.href = '/poster/problems', 800);
   } catch (err) {
     let m = err.message;
     if (m.includes('min_deadline')) m = 'Submission deadline is too soon. Please choose a later date.';
+    formMsg.innerHTML = `<div class="pe-err">${esc(m)}</div>`;
     msg.innerHTML = alertBox(m);
     btn.disabled = false; btn.textContent = 'Save changes';
   }

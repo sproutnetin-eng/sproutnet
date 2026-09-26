@@ -6,27 +6,211 @@
 <title>Problem | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.tabs { display:flex; gap:.25rem; border-bottom:1px solid var(--line); margin-bottom:1rem; overflow-x:auto; }
-.tabs button { border:none; background:none; padding:.6rem 1rem; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; }
-.tabs button.on { border-bottom-color: var(--green); font-weight:700; }
-.reply { margin-left:1.5rem; border-left:2px solid var(--line); padding-left:1rem; }
-pre.wrap { white-space:pre-wrap; font-family:inherit; margin:0; }
+  .pd-page { min-height: 100vh; background: #FAF8F4; font-family: 'DM Sans', sans-serif; }
+  .pd-loading { min-height: 100vh; background: #FAF8F4; display: flex; align-items: center; justify-content: center; }
+  .pd-loading span { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #9CA3A0; }
+  .pd-notfound { min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; }
+  .pd-nf-ico { width: 48px; height: 48px; border-radius: 50%; background: #EAF4EE; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; }
+  .pd-nf-title { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 600; color: #1C1410; }
+  .pd-nf-link { color: #2D6A4F; font-size: 14px; margin-top: 12px; display: block; }
+  .pd-grid { max-width: 1100px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+  .pd-main { flex: 1 1 620px; min-width: 0; }
+  .pd-badges { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .bdg { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; }
+  .bdg-domain { color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.15); }
+  .bdg-pub { color: #4A3F38; background: rgba(28,20,16,0.05); border: 1px solid rgba(28,20,16,0.1); }
+  .bdg-ind { color: #1E40AF; background: rgba(30,64,175,0.08); border: 1px solid rgba(30,64,175,0.15); }
+  .bdg-open { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #22C55E; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); text-transform: uppercase; letter-spacing: 0.08em; gap: 5px; }
+  .bdg-open .dot { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; }
+  .bdg-team { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B5CF6; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); text-transform: uppercase; letter-spacing: 0.08em; gap: 5px; }
+  .pd-title { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(28px, 6vw, 38px); font-weight: 400; color: #1C1410; letter-spacing: -0.5px; line-height: 1.15; margin: 0 0 32px 0; }
+  .pd-thumb-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 16px; overflow: hidden; margin-bottom: 28px; }
+  .pd-thumb { aspect-ratio: 16 / 9; background: #F3EEE7; }
+  .pd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pd-tabs { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 1px solid rgba(28,20,16,0.08); overflow-x: auto; padding-bottom: 0; }
+  .pd-tabs button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #9CA3A0; background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; cursor: pointer; white-space: nowrap; margin-bottom: -1px; display: inline-flex; align-items: center; gap: 6px; }
+  .pd-tabs button.on { color: #1C1410; border-bottom-color: #2D6A4F; }
+  .pd-sec-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 12px; padding: 28px; margin-bottom: 28px; }
+  .pd-sec-kicker { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600; color: #2D6A4F; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .pd-sec-body { font-family: 'DM Sans', sans-serif; font-size: 15px; color: #1C1410; line-height: 1.75; font-weight: 300; white-space: pre-wrap; margin: 0; }
+  /* Discussion */
+  .disc { background: #FAF8F4; border: 1px solid rgba(28,20,16,0.08); border-radius: 20px; padding: 28px 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
+  .disc-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; border-bottom: 1px solid rgba(28,20,16,0.08); padding-bottom: 20px; }
+  .disc-head-l { display: flex; align-items: center; gap: 12px; }
+  .disc-ico { width: 38px; height: 38px; border-radius: 10px; background: #2D6A4F; display: flex; align-items: center; justify-content: center; color: #FAF8F4; flex-shrink: 0; }
+  .disc-title { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin: 0; letter-spacing: -0.3px; }
+  .disc-sub { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #6A5F58; margin-top: 2px; }
+  .disc-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .disc-search-wrap { position: relative; display: flex; align-items: center; }
+  .disc-search-wrap svg { position: absolute; left: 12px; pointer-events: none; }
+  .disc-search { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1C1410; background: #fff; border: 1px solid rgba(28,20,16,0.12); border-radius: 20px; padding: 7px 14px 7px 34px; outline: none; width: 160px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); box-sizing: border-box; }
+  .sortbar { display: flex; background: #EFECE6; border-radius: 20px; padding: 3px; }
+  .sortbtn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #7A6F68; background: transparent; border: none; border-radius: 16px; padding: 5px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .sortbtn.on { color: #1C1410; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .composer { background: #fff; border: 1.5px solid rgba(45,106,79,0.2); border-radius: 16px; padding: 20px 22px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(45,106,79,0.06); }
+  .composer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+  .composer-who { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #1C1410; }
+  .composer-who .who { color: #2D6A4F; }
+  .avatar-sm { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #2D6A4F 0%, #1B4332 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .toolbar { display: flex; align-items: center; gap: 4px; background: #FAF8F4; border-radius: 8px; padding: 3px; border: 1px solid rgba(28,20,16,0.06); }
+  .toolbtn { font-size: 12px; font-weight: 800; color: #4A3F38; background: transparent; border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer; }
+  .toolbtn.it { font-style: italic; font-weight: 700; }
+  .toolbtn.mono { font-family: monospace; font-weight: 400; }
+  .toolbtn.serif { font-family: serif; font-weight: 700; }
+  .composer-ta { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; line-height: 1.6; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.1); border-radius: 12px; padding: 12px 16px; resize: vertical; outline: none; box-sizing: border-box; }
+  .composer-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; flex-wrap: wrap; gap: 10px; }
+  .composer-hint { font-size: 12px; color: #7A6F68; display: flex; align-items: center; gap: 10px; }
+  .char-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; background: #FAF8F4; padding: 2px 8px; border-radius: 10px; }
+  .composer-actions { display: flex; align-items: center; gap: 8px; }
+  .clear-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #7A6F68; background: transparent; border: none; padding: 6px 12px; cursor: pointer; }
+  .publish-btn { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: #1C1410; background: #F4A723; border: none; border-radius: 10px; padding: 10px 22px; cursor: pointer; box-shadow: 0 4px 14px rgba(244,167,35,0.3); }
+  .publish-btn:disabled { background: #E2E8F0; box-shadow: none; cursor: not-allowed; }
+  .login-cta { text-align: center; padding: 24px 20px; background: linear-gradient(135deg, #FFFDF8 0%, #FAF8F4 100%); border: 1px solid rgba(28,20,16,0.08); border-radius: 16px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.02); }
+  .login-cta-title { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #1C1410; margin-bottom: 4px; }
+  .login-cta-sub { font-size: 13px; color: #7A6F68; margin-bottom: 16px; }
+  .login-cta-btn { display: inline-flex; align-items: center; gap: 6px; color: #1C1410; background: #F4A723; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; padding: 10px 24px; border-radius: 20px; text-decoration: none; box-shadow: 0 4px 14px rgba(244,167,35,0.3); }
+  .empty-disc { background: #fff; border: 1px solid rgba(28,20,16,0.06); border-radius: 16px; padding: 48px 24px; text-align: center; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.02); }
+  .empty-disc-ico { width: 54px; height: 54px; border-radius: 50%; background: linear-gradient(135deg, #EAF4EE 0%, #D4EADB 100%); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px auto; box-shadow: 0 4px 12px rgba(45,106,79,0.15); }
+  .empty-disc-title { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #1C1410; margin-bottom: 6px; }
+  .empty-disc-sub { font-size: 14px; color: #6A5F58; max-width: 360px; margin: 0 auto; line-height: 1.5; }
+  .cmt-wrap { position: relative; margin-bottom: 20px; }
+  .cmt-wrap.child { padding-left: 24px; margin-bottom: 12px; }
+  .thread-line { position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, rgba(45,106,79,0.3) 0%, rgba(28,20,16,0.06) 100%); border-radius: 1px; }
+  .cmt { border-radius: 14px; padding: 16px 20px; background: #fff; border: 1px solid rgba(28,20,16,0.08); box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+  .cmt.poster { background: linear-gradient(135deg, #FFFDF8 0%, #FFF9EC 100%); border: 1.5px solid rgba(244,167,35,0.4); box-shadow: 0 4px 16px rgba(244,167,35,0.08); }
+  .cmt-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cmt-who { display: flex; align-items: center; gap: 10px; }
+  .cmt-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; background: linear-gradient(135deg, #2D6A4F 0%, #1B4332 100%); box-shadow: 0 2px 8px rgba(45,106,79,0.2); flex-shrink: 0; }
+  .cmt-wrap.child .cmt-avatar { width: 32px; height: 32px; font-size: 12px; }
+  .cmt-avatar.op { background: linear-gradient(135deg, #F4A723 0%, #D88E0E 100%); color: #1C1410; box-shadow: 0 2px 8px rgba(244,167,35,0.3); }
+  .cmt-name { font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: #1C1410; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .cmt-op { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: #1C1410; background: #F4A723; padding: 2px 8px; border-radius: 12px; box-shadow: 0 1px 4px rgba(244,167,35,0.3); display: inline-flex; align-items: center; gap: 4px; }
+  .cmt-role { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; padding: 2px 8px; border-radius: 12px; text-transform: capitalize; }
+  .cmt-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; margin-top: 2px; }
+  .cmt-body { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; line-height: 1.65; margin: 8px 0 14px 0; font-weight: 400; overflow-wrap: break-word; }
+  .cmt-body strong { font-weight: 700; color: #1C1410; }
+  .cmt-body em { font-style: italic; color: #2D3748; }
+  .cmt-body code { font-family: 'JetBrains Mono', monospace; font-size: 0.88em; background: rgba(45,106,79,0.08); color: #2D6A4F; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(45,106,79,0.15); }
+  .cmt-body blockquote { border-left: 3px solid #2D6A4F; color: #4A3F38; font-style: italic; background: #EAF4EE; border-radius: 0 6px 6px 0; padding: 6px 12px; margin: 6px 0; }
+  .cmt-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .pill-up { display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: #4A3F38; background: #F5F2EC; border: 1px solid rgba(28,20,16,0.08); border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+  .pill-up.liked { color: #DC2626; background: #FEF2F2; border: 1px solid rgba(220,38,38,0.25); }
+  .pill-reply { display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.15); border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+  .pill-ghost { display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #2D6A4F; background: transparent; border: none; padding: 4px 8px; cursor: pointer; border-radius: 6px; }
+  .pill-share { display: inline-flex; align-items: center; gap: 5px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: #7A6F68; background: transparent; border: none; padding: 4px 8px; cursor: pointer; }
+  .pill-share.copied { color: #10B981; }
+  .reply-box { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(28,20,16,0.08); }
+  .reply-ta { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1C1410; background: #FAF8F4; border: 1.5px solid #2D6A4F; border-radius: 10px; padding: 10px 14px; resize: vertical; outline: none; box-sizing: border-box; }
+  .reply-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+  .reply-cancel { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: #7A6F68; background: #EFECE6; border: none; border-radius: 8px; padding: 6px 14px; cursor: pointer; }
+  .reply-send { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 6px 18px; cursor: pointer; box-shadow: 0 2px 6px rgba(244,167,35,0.2); }
+  .reply-send:disabled { cursor: not-allowed; opacity: 0.6; }
+  .child-list { margin-top: 8px; }
+  .child-list .cmt-wrap:last-child { margin-bottom: 0; }
+  .loadmore-wrap { text-align: center; margin: 24px 0 12px 0; }
+  .loadmore-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.2); border-radius: 20px; padding: 10px 24px; cursor: pointer; box-shadow: 0 2px 8px rgba(45,106,79,0.08); display: inline-flex; align-items: center; gap: 8px; }
+  .loadmore-hint { font-size: 11px; color: #9CA3A0; font-family: 'JetBrains Mono', monospace; margin-top: 6px; }
+  .no-match { padding: 36px; text-align: center; color: #7A6F68; font-size: 14px; }
+  /* Sidebar */
+  .pd-side { flex: 0 1 320px; width: 100%; }
+  .cta { background: #1C1410; border-radius: 14px; padding: 28px; margin-bottom: 20px; }
+  .cta-kicker { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(250,248,244,0.4); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .cta-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 22px; color: #FAF8F4; line-height: 1.2; margin: 0 0 20px 0; font-weight: 400; }
+  .cta-stack { display: grid; gap: 10px; }
+  .cta-btn { display: block; width: 100%; box-sizing: border-box; text-align: center; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 14px; text-decoration: none; cursor: pointer; }
+  .cta-btn:disabled { cursor: not-allowed; background: #F9C05A; }
+  .cta-btn-green { display: block; width: 100%; box-sizing: border-box; text-align: center; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #FAF8F4; background: #2D6A4F; border: none; border-radius: 8px; padding: 14px; text-decoration: none; cursor: pointer; }
+  .cta-ghost { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: rgba(250,248,244,0.7); background: transparent; border: 1px solid rgba(250,248,244,0.15); border-radius: 8px; padding: 10px; cursor: pointer; }
+  .cta-ghost-sm { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: rgba(250,248,244,0.8); background: transparent; border: 1px solid rgba(250,248,244,0.2); border-radius: 8px; padding: 10px; cursor: pointer; }
+  .cta-note { font-size: 12px; color: rgba(250,248,244,0.7); text-align: center; line-height: 1.6; font-family: 'DM Sans', sans-serif; }
+  .cta-note-dim { font-size: 12px; color: rgba(250,248,244,0.45); text-align: center; font-family: 'DM Sans', sans-serif; }
+  .cta-or { text-align: center; font-size: 11px; color: rgba(250,248,244,0.3); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 0; }
+  .cta-err { font-family: 'DM Sans', sans-serif; font-size: 11px; color: #F87171; text-align: center; }
+  .cta-err-big { margin-top: 10px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #F87171; text-align: center; }
+  .cta-ok { font-family: 'DM Sans', sans-serif; font-size: 11px; color: #6EE7B7; text-align: center; margin-top: 4px; }
+  .cta-done { text-align: center; font-size: 14px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.15); border-radius: 8px; padding: 14px; font-family: 'DM Sans', sans-serif; }
+  .banner { text-align: center; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; border-radius: 8px; padding: 12px; }
+  .banner-approved { color: #FAF8F4; background: #2D6A4F; }
+  .banner-pending { color: #B45309; background: rgba(244,167,35,0.12); border: 1px solid rgba(244,167,35,0.3); }
+  .banner-rejected { color: #991B1B; background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.25); }
+  a.banner-approved { display: block; width: 100%; box-sizing: border-box; font-size: 15px; padding: 14px; text-decoration: none; }
+  .team-member-note { text-align: center; font-size: 13px; color: rgba(250,248,244,0.7); font-family: 'DM Sans', sans-serif; }
+  .team-member-note strong { color: #F4A723; }
+  .team-form { display: grid; gap: 8px; margin-top: 4px; }
+  .team-input { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1C1410; background: #FAF8F4; border: 1.5px solid #2D6A4F; border-radius: 8px; padding: 10px 12px; outline: none; width: 100%; box-sizing: border-box; }
+  .team-input.upper { text-transform: uppercase; }
+  .team-row { display: flex; gap: 6px; }
+  .team-row .cta-btn { flex: 1; font-size: 13px; padding: 10px; }
+  .team-cancel { font-family: 'DM Sans', sans-serif; font-size: 13px; color: rgba(250,248,244,0.6); background: transparent; border: 1px solid rgba(250,248,244,0.15); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+  .invite-panel { display: grid; gap: 8px; margin-top: 4px; background: rgba(45,106,79,0.15); border-radius: 8px; padding: 14px; }
+  .invite-kicker { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #7FB89A; text-transform: uppercase; letter-spacing: 0.08em; }
+  .invite-code { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: #F4A723; letter-spacing: 0.12em; text-align: center; }
+  .invite-copy { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 6px; padding: 8px; cursor: pointer; }
+  .invite-go { text-align: center; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #7FB89A; text-decoration: none; }
+  .cancel-link { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: rgba(250,248,244,0.5); background: transparent; border: 1px solid rgba(250,248,244,0.12); border-radius: 8px; padding: 8px; cursor: pointer; }
+  .stats-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(28,20,16,0.06); }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #9CA3A0; }
+  .stat-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 500; color: #1C1410; }
+  .stat-val-soon { color: #DC2626; }
+  .stat-val-days { color: #F4A723; }
+  .ai-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+  .ai-kicker { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .ai-tiles { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .ai-tile { flex: 1; min-width: 100px; padding: 12px; border-radius: 10px; text-align: center; }
+  .ai-tile.diff-Beginner { background: #EAF4EE; }
+  .ai-tile.diff-Intermediate { background: #FFF8E7; }
+  .ai-tile.diff-Advanced { background: #FFF0F0; }
+  .ai-tile.diff-Expert { background: #F3E8FF; }
+  .ai-tile.neutral { background: #F5F2EC; }
+  .ai-tile-name { font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+  .ai-tile-name.diff-Beginner { color: #2D6A4F; }
+  .ai-tile-name.diff-Intermediate { color: #B8860B; }
+  .ai-tile-name.diff-Advanced { color: #C53030; }
+  .ai-tile-name.diff-Expert { color: #7C3AED; }
+  .ai-tile-name.neutral { color: #4A3F38; }
+  .ai-tile-val { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #4A3F38; }
+  .ai-weight { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-top: 1px solid rgba(28,20,16,0.06); font-family: 'DM Sans', sans-serif; font-size: 12px; color: #4A3F38; }
+  .ai-weight b { font-weight: 600; }
+  .ai-weight .mult { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #2D6A4F; }
+  .fw-card { background: #EAF4EE; border: 1px solid rgba(45,106,79,0.15); border-radius: 14px; padding: 20px; }
+  .fw-title { font-family: 'Sora', sans-serif; font-size: 12px; font-weight: 600; color: #2D6A4F; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .fw-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(45,106,79,0.08); }
+  .fw-row:last-child { border-bottom: none; }
+  .fw-num { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2D6A4F; opacity: 0.5; min-width: 16px; }
+  .fw-name { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #2D6A4F; }
+  .fab { position: fixed; bottom: 24px; right: 24px; z-index: 9999; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #1C1410; background: #F4A723; border: none; border-radius: 30px; padding: 12px 20px; box-shadow: 0 6px 24px rgba(244,167,35,0.45); cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  @media (max-width: 900px) {
+    .pd-side { flex: 1 1 100%; }
+  }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
 <div class="container">
   <div id="msg"></div>
-  <div id="content"><p class="muted">Loading…</p></div>
+  <div id="content"><div class="pd-page"><div class="pd-loading"><span>Loading...</span></div></div></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
-renderNav('problems');
+renderNav();
 const id = location.pathname.split('/')[2];
-const SECTIONS = [['context','Background & Context'],['problem_stmt','The Problem'],['scope','Scope'],['constraints','Constraints'],['deliverables','Deliverables']];
+const SECTIONS = [
+  ['context', 'Background & Context', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'],
+  ['problem_stmt', 'The Problem', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>'],
+  ['scope', 'Scope', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'],
+  ['constraints', 'Constraints', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'],
+  ['deliverables', 'Deliverables', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>'],
+];
+const FRAMEWORK = ['Problem Understanding','Root Cause Analysis','Proposed Solution','Feasibility Assessment','Expected Impact','Risks & Limitations','Implementation Plan'];
 let problem = null, comments = [], me = null, activeSection = 'context';
 let sortBy = 'newest', searchQuery = '', likeCounts = {}, liked = new Set();
+let enroll = { enrolled: false, hasSubmitted: false, completed: false, submissionStatus: null };
+let userTeam = null, showCreateTeam = false, showJoinTeam = false, createdInviteCode = '', teamMsg = '', teamErr = '';
+let composerDraft = '', replyingTo = null, replyDraft = '', copiedLinkId = null;
+let expanded = new Set(), visibleCount = 5, showFab = false, posting = false, postingReply = false;
 try { liked = new Set(JSON.parse(localStorage.getItem('sn_likes') || '[]')); } catch {}
 
 const msg = (h) => { document.getElementById('msg').innerHTML = h; };
@@ -35,12 +219,47 @@ const rel = (d) => { const s = Math.max(0, (Date.now() - new Date(d).getTime()) 
   if (s < 86400) return Math.floor(s/3600)+'h ago'; if (s < 604800) return Math.floor(s/86400)+'d ago';
   return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short' }); };
 
-function fmtBody(t) { return esc(t); }
+function domainIcon(domain) {
+  const p = (inner) => `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  switch (domain) {
+    case 'AI & Data': return p('<rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>');
+    case 'Climate': return p('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>');
+    case 'Healthcare': return p('<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>');
+    case 'Public Infrastructure':
+    case 'Urban Mobility': return p('<rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>');
+    case 'Agriculture': return p('<path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12A10 10 0 0 1 12 2z"/><path d="M12 6v12"/>');
+    case 'Education': return p('<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>');
+    default: return p('<circle cx="12" cy="12" r="10"/>');
+  }
+}
 
+function inlineFmt(raw) {
+  const e = esc(raw);
+  const parts = e.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
+  return parts.map((part) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) return `<strong>${part.slice(2, -2)}</strong>`;
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) return `<em>${part.slice(1, -1)}</em>`;
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 2) return `<code>${part.slice(1, -1)}</code>`;
+    return part;
+  }).join('');
+}
+function fmtBody(t) {
+  return esc(t || '').split('\n').map((line) => {
+    const raw = line.startsWith('&gt; ') ? line.slice(5) : (line.startsWith('> ') ? line.slice(2) : null);
+    if (raw !== null) return `<blockquote>${inlineFmt(raw)}</blockquote>`;
+    if (line.trim() === '') return '<br>';
+    return inlineFmt(line);
+  }).join('<br>');
+}
+
+function matchesQuery(c) {
+  if (!searchQuery.trim()) return true;
+  const ql = searchQuery.toLowerCase();
+  if ((c.body || '').toLowerCase().includes(ql) || (c.users?.name || '').toLowerCase().includes(ql)) return true;
+  return comments.filter((k) => k.parent_id === c.id).some(matchesQuery);
+}
 function sortedRoots() {
-  let roots = comments.filter(c => !c.parent_id);
-  if (searchQuery.trim()) { const ql = searchQuery.toLowerCase();
-    roots = roots.filter(c => c.body.toLowerCase().includes(ql) || (c.users?.name || '').toLowerCase().includes(ql)); }
+  let roots = comments.filter((c) => !c.parent_id && matchesQuery(c));
   roots = [...roots].sort((a, b) => sortBy === 'top'
     ? ((likeCounts[b.id] ?? 0) - (likeCounts[a.id] ?? 0))
     : sortBy === 'oldest' ? new Date(a.created_at) - new Date(b.created_at) : new Date(b.created_at) - new Date(a.created_at));
@@ -48,49 +267,122 @@ function sortedRoots() {
 }
 
 function commentCard(c, child = false) {
-  const isPoster = c.author_id === problem.poster_id;
+  const isPoster = problem && c.author_id === problem.poster_id;
+  const isLiked = liked.has(c.id);
   const likes = likeCounts[c.id] ?? 0;
-  const replies = comments.filter(r => r.parent_id === c.id);
-  return `<div class="${child ? 'reply' : ''}"><div class="card">
-    <div><b>${esc(c.users?.name || 'Community Contributor')}</b>
-    ${isPoster ? ' <span class="badge amber">OP / Poster</span>' : c.users?.role ? ` <span class="badge gray">${esc(c.users.role)}</span>` : ''}
-    <span class="muted"> · ${esc(rel(c.created_at))}</span></div>
-    <pre class="wrap">${fmtBody(c.body)}</pre>
-    <div class="row">
-      <button class="btn" data-like="${esc(c.id)}">${liked.has(c.id) ? '♥' : '♡'} ${likes}</button>
-      ${me ? `<button class="btn" data-reply="${esc(c.id)}">Reply</button>` : ''}
+  const replies = comments.filter((r) => r.parent_id === c.id);
+  const hasMatchChild = searchQuery.trim().length > 0 && replies.some(matchesQuery);
+  const open = expanded.has(c.id) || hasMatchChild;
+  const kids = open && replies.length
+    ? `<div class="child-list">${replies.map((r) => commentCard(r, true)).join('')}</div>` : '';
+  const replyBox = replyingTo === c.id ? `<div class="reply-box">
+      <textarea class="reply-ta" id="reply-ta" rows="2" placeholder="Replying to ${esc(c.users?.name || 'user')}...">${esc(replyDraft)}</textarea>
+      <div class="reply-foot">
+        <button type="button" class="reply-cancel" data-cancel-reply>Cancel</button>
+        <button type="button" class="reply-send" data-send-reply="${esc(c.id)}" ${postingReply || !replyDraft.trim() ? 'disabled' : ''}>${postingReply ? 'Posting...' : 'Post Reply'}</button>
+      </div>
+    </div>` : '';
+  return `<div class="cmt-wrap ${child ? 'child' : ''}">
+    ${child ? '<div class="thread-line"></div>' : ''}
+    <div class="cmt ${isPoster ? 'poster' : ''}">
+      <div class="cmt-top"><div class="cmt-who">
+        <div class="cmt-avatar ${isPoster ? 'op' : ''}">${esc((c.users?.name || '?').charAt(0).toUpperCase())}</div>
+        <div><div class="cmt-name">${esc(c.users?.name || 'Community Contributor')}
+          ${isPoster ? '<span class="cmt-op"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>OP / Problem Poster</span>' : (c.users?.role ? `<span class="cmt-role">${esc(c.users.role)}</span>` : '')}
+        </div><div class="cmt-time">${esc(rel(c.created_at))}</div></div>
+      </div></div>
+      <div class="cmt-body">${fmtBody(c.body)}</div>
+      <div class="cmt-actions">
+        <button type="button" class="pill-up ${isLiked ? 'liked' : ''}" data-like="${esc(c.id)}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="${isLiked ? '#DC2626' : 'none'}" stroke="${isLiked ? '#DC2626' : '#4A3F38'}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <span>${likes} ${likes === 1 ? 'upvote' : 'upvotes'}</span></button>
+        ${me ? `<button type="button" class="pill-reply" data-reply="${esc(c.id)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>Reply</button>` : ''}
+        ${replies.length ? `<button type="button" class="pill-ghost" data-toggle="${esc(c.id)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>${open ? 'Hide replies' : `${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`}</span></button>` : ''}
+        <button type="button" class="pill-share ${copiedLinkId === c.id ? 'copied' : ''}" data-share="${esc(c.id)}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>${copiedLinkId === c.id ? 'Link copied!' : 'Share'}</button>
+      </div>
+      ${replyBox}
     </div>
-    <div data-replybox="${esc(c.id)}"></div>
-    ${replies.map(r => commentCard(r, true)).join('')}
-  </div></div>`;
+    ${kids}
+  </div>`;
 }
 
 function renderDiscussion() {
+  const box = document.getElementById('discussion');
+  if (!box) return;
   const roots = sortedRoots();
-  document.getElementById('discussion').innerHTML = `
-    <div class="row">
-      <input class="input" id="d-search" placeholder="Search responses…" value="${esc(searchQuery)}" style="max-width:220px;">
-      <select class="select" id="d-sort" style="max-width:140px;">
-        ${['newest','top','oldest'].map(s => `<option ${sortBy===s?'selected':''}>${s}</option>`).join('')}
-      </select>
-      <span class="muted">${comments.length} contribution(s)</span>
+  const visible = roots.slice(0, visibleCount);
+  const sortBtn = (mode, label, icon) => `<button type="button" class="sortbtn ${sortBy === mode ? 'on' : ''}" data-sort="${mode}">${icon}${label}</button>`;
+  const icoTop = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>';
+  const icoNew = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  const icoOld = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>';
+  let listHtml;
+  if (!comments.length) {
+    listHtml = `<div class="empty-disc"><div class="empty-disc-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      <div class="empty-disc-title">Start the Conversation</div>
+      <div class="empty-disc-sub">No comments yet. Share your problem analysis, clarify requirements, or propose solutions!</div></div>`;
+  } else if (!roots.length) {
+    listHtml = `<div class="no-match">No responses matching &quot;<strong>${esc(searchQuery)}</strong>&quot;.</div>`;
+  } else {
+    listHtml = visible.map((c) => commentCard(c)).join('') + (roots.length > visibleCount ? `<div class="loadmore-wrap">
+      <button type="button" class="loadmore-btn" data-loadmore><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>Load More Discussions (${roots.length - visibleCount} remaining)</button>
+      <div class="loadmore-hint">Scroll down to automatically reveal more</div></div>` : '');
+  }
+  box.innerHTML = `
+    <div class="disc-head">
+      <div class="disc-head-l">
+        <div class="disc-ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div><h2 class="disc-title">Discussion Thread</h2>
+        <div class="disc-sub">${comments.length} contribution${comments.length === 1 ? '' : 's'} from community &amp; poster</div></div>
+      </div>
+      <div class="disc-tools">
+        <div class="disc-search-wrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9CA3A0" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="disc-search" id="d-search" type="text" placeholder="Search responses..." value="${esc(searchQuery)}">
+        </div>
+        <div class="sortbar">${sortBtn('newest', 'Latest', icoNew)}${sortBtn('top', 'Top', icoTop)}${sortBtn('oldest', 'Oldest', icoOld)}</div>
+      </div>
     </div>
-    ${me ? `<div class="card"><label>Discuss as ${esc(me.name)}</label>
-      <textarea class="textarea" id="d-body" placeholder="Share a response, ask a question… (Markdown supported)"></textarea>
-      <button class="btn btn-primary" id="d-post">Publish Response →</button></div>`
-      : `<div class="card"><a class="btn btn-primary" href="/login">Sign in to participate →</a></div>`}
-    <div id="d-list">${roots.length ? roots.map(c => commentCard(c)).join('') : '<p class="muted">No comments yet. Start the conversation!</p>'}</div>`;
-  document.getElementById('d-search').oninput = (e) => { searchQuery = e.target.value; renderDiscussion();
-    const s = document.getElementById('d-search'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); };
-  document.getElementById('d-sort').onchange = (e) => { sortBy = e.target.value; renderDiscussion(); };
-  document.getElementById('d-post')?.addEventListener('click', async () => {
-    const body = document.getElementById('d-body').value.trim();
-    if (!body) return;
-    try { const { comment } = await api('/api/discussion', { method:'POST', body:{ problem_id:id, body, parent_id:null } });
-      if (comment) { comments.push(comment); likeCounts[comment.id] = 0; } renderDiscussion();
-    } catch (e) { msg(alertBox(e.message)); }
-  });
-  document.querySelectorAll('[data-like]').forEach(b => b.addEventListener('click', async () => {
+    ${me ? `<div class="composer" id="discussion-composer">
+      <div class="composer-head">
+        <div class="composer-who"><div class="avatar-sm">${esc((me.name || '?').charAt(0).toUpperCase())}</div>
+          <div>Add to discussion as <span class="who">${esc(me.name)}</span></div></div>
+        <div class="toolbar">
+          <button type="button" class="toolbtn" data-md=" **bold** " title="Bold">B</button>
+          <button type="button" class="toolbtn it" data-md=" *italic* " title="Italic">I</button>
+          <button type="button" class="toolbtn mono" data-md=" \`code\` " title="Inline code">&lt;/&gt;</button>
+          <button type="button" class="toolbtn serif" data-md="\n> quote\n" title="Quote">&ldquo;&rdquo;</button>
+        </div>
+      </div>
+      <textarea class="composer-ta" id="d-body" rows="3" placeholder="Share a thoughtful response, ask a question, or clarify solution scope... (Ctrl + Enter to send)">${esc(composerDraft)}</textarea>
+      <div class="composer-foot">
+        <div class="composer-hint"><span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Markdown supported</span>
+          ${composerDraft.length ? `<span class="char-count">${composerDraft.length} chars</span>` : ''}</div>
+        <div class="composer-actions">
+          ${composerDraft.length ? '<button type="button" class="clear-btn" data-clear>Clear</button>' : ''}
+          <button type="button" class="publish-btn" id="d-post" ${posting || !composerDraft.trim() ? 'disabled' : ''}>${posting ? 'Posting...' : 'Publish Response →'}</button>
+        </div>
+      </div>
+    </div>` : `<div class="login-cta">
+      <div class="login-cta-title">Join the SproutNet Community</div>
+      <div class="login-cta-sub">Sign in to post replies, upvote helpful contributions, and connect with the problem author.</div>
+      <a class="login-cta-btn" href="/login">Sign in to Participate →</a>
+    </div>`}
+    <div id="d-list">${listHtml}</div>`;
+  const s = document.getElementById('d-search');
+  if (s) s.oninput = (e) => { searchQuery = e.target.value; renderDiscussion();
+    const s2 = document.getElementById('d-search'); s2.focus(); s2.setSelectionRange(s2.value.length, s2.value.length); };
+  box.querySelectorAll('[data-sort]').forEach((b) => b.addEventListener('click', () => { sortBy = b.dataset.sort; renderDiscussion(); }));
+  const ta = document.getElementById('d-body');
+  if (ta) {
+    ta.oninput = (e) => { composerDraft = e.target.value; renderDiscussion();
+      const t2 = document.getElementById('d-body'); t2.focus(); t2.setSelectionRange(t2.value.length, t2.value.length); };
+    ta.onkeydown = (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); postComment(); } };
+  }
+  box.querySelectorAll('[data-md]').forEach((b) => b.addEventListener('click', () => { composerDraft += b.dataset.md; renderDiscussion();
+    const t2 = document.getElementById('d-body'); if (t2) t2.focus(); }));
+  box.querySelector('[data-clear]')?.addEventListener('click', () => { composerDraft = ''; renderDiscussion(); });
+  document.getElementById('d-post')?.addEventListener('click', postComment);
+  box.querySelectorAll('[data-like]').forEach((b) => b.addEventListener('click', async () => {
     const cid = b.dataset.like;
     if (!me) { location.href = '/login'; return; }
     const on = liked.has(cid);
@@ -98,84 +390,223 @@ function renderDiscussion() {
     likeCounts[cid] = Math.max(0, (likeCounts[cid] ?? 0) + (on ? -1 : 1));
     try { localStorage.setItem('sn_likes', JSON.stringify([...liked])); } catch {}
     renderDiscussion();
-    try { const d = await api('/api/discussion/like', { method:'POST', body:{ commentId: cid } });
+    try { const d = await api('/api/discussion/like', { method: 'POST', body: { commentId: cid } });
       if (d.likes_count != null) { likeCounts[cid] = d.likes_count; renderDiscussion(); } } catch {}
   }));
-  document.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
+  box.querySelectorAll('[data-reply]').forEach((b) => b.addEventListener('click', () => {
     const pid = b.dataset.reply;
-    document.querySelector(`[data-replybox="${CSS.escape(pid)}"]`).innerHTML =
-      `<textarea class="textarea" id="rb-${esc(pid)}" placeholder="Write a reply…"></textarea>
-       <button class="btn btn-primary" id="rs-${esc(pid)}">Post reply</button>`;
-    document.getElementById('rs-' + pid).addEventListener('click', async () => {
-      const body = document.getElementById('rb-' + pid).value.trim();
-      if (!body) return;
-      try { const { comment } = await api('/api/discussion', { method:'POST', body:{ problem_id:id, body, parent_id:pid } });
-        if (comment) { comments.push(comment); likeCounts[comment.id] = 0; } renderDiscussion();
-      } catch (e) { msg(alertBox(e.message)); }
-    });
+    replyingTo = replyingTo === pid ? null : pid; replyDraft = ''; renderDiscussion();
+    const r = document.getElementById('reply-ta'); if (r) r.focus();
   }));
+  box.querySelector('[data-cancel-reply]')?.addEventListener('click', () => { replyingTo = null; replyDraft = ''; renderDiscussion(); });
+  const rta = document.getElementById('reply-ta');
+  if (rta) rta.oninput = (e) => { replyDraft = e.target.value;
+    const btn = box.querySelector('[data-send-reply]'); if (btn) btn.disabled = postingReply || !replyDraft.trim(); };
+  box.querySelector('[data-send-reply]')?.addEventListener('click', async (e) => {
+    const pid = e.currentTarget.dataset.sendReply;
+    if (!replyDraft.trim()) return;
+    postingReply = true; renderDiscussion();
+    try { const { comment } = await api('/api/discussion', { method: 'POST', body: { problem_id: id, body: replyDraft.trim(), parent_id: pid } });
+      if (comment) { comments.push(comment); likeCounts[comment.id] = 0; expanded.add(pid); }
+    } catch (err) { msg(alertBox(err.message)); }
+    replyDraft = ''; replyingTo = null; postingReply = false; renderDiscussion();
+  });
+  box.querySelectorAll('[data-toggle]').forEach((b) => b.addEventListener('click', () => {
+    const cid = b.dataset.toggle;
+    expanded.has(cid) ? expanded.delete(cid) : expanded.add(cid); renderDiscussion();
+  }));
+  box.querySelectorAll('[data-share]').forEach((b) => b.addEventListener('click', async () => {
+    const cid = b.dataset.share;
+    try { await navigator.clipboard.writeText(`${location.origin}${location.pathname}#comment-${cid}`);
+      copiedLinkId = cid; renderDiscussion(); setTimeout(() => { copiedLinkId = null; renderDiscussion(); }, 2000); } catch {}
+  }));
+  box.querySelector('[data-loadmore]')?.addEventListener('click', () => { visibleCount += 5; renderDiscussion(); });
+}
+
+async function postComment() {
+  if (!composerDraft.trim() || !me || posting) return;
+  posting = true; renderDiscussion();
+  try { const { comment } = await api('/api/discussion', { method: 'POST', body: { problem_id: id, body: composerDraft.trim(), parent_id: null } });
+    if (comment) { comments.push(comment); likeCounts[comment.id] = 0; }
+  } catch (err) { msg(alertBox(err.message)); }
+  composerDraft = ''; posting = false; renderDiscussion();
+}
+
+function ctaHtml() {
+  if (!me) return `<a class="cta-btn" href="/login">Sign in to Solve →</a>`;
+  if (me.role !== 'student') return `<div class="cta-stack">
+    <div class="cta-note">You&apos;re signed in as a ${esc(me.role)} account. Enroll is only available for student accounts.</div>
+    <a class="cta-btn" href="/login/student">Switch to Student Login →</a>
+    <div class="cta-note-dim">Student accounts can enroll and submit solutions.</div></div>`;
+  if (enroll.completed) return `<div class="cta-stack">
+    <div class="cta-done">Problem completed</div>
+    <div class="cta-note">You have already fully submitted this problem and can unlock a new enrollment slot.</div></div>`;
+  if (enroll.enrolled) {
+    return `<div class="cta-stack">
+      ${enroll.submissionStatus === 'approved' ? `<a class="cta-btn-green" href="/problems/${esc(id)}/final-upload">🎉 Approved! Upload Final Work (APK, papers…) →</a>` : ''}
+      ${enroll.submissionStatus === 'pending' ? '<div class="banner banner-pending">⏳ Submitted — waiting for admin review</div>' : ''}
+      ${enroll.submissionStatus === 'rejected' ? '<div class="banner banner-rejected">✗ Solution was not approved — improve it and resubmit</div>' : ''}
+      <a class="cta-btn" href="/problems/${esc(id)}/submit">${enroll.hasSubmitted ? 'Continue Solving →' : 'Start Solving →'}</a>
+      <button type="button" class="cancel-link" id="cancel-enroll">Cancel enrollment</button>
+      <div id="enroll-err"></div></div>`;
+  }
+  const teamMode = problem.team_mode;
+  const teamable = teamMode === 'team' || teamMode === 'both';
+  if (teamable && userTeam) {
+    return `<div class="cta-stack">
+      <div class="team-member-note">You are a member of <strong>${esc(userTeam.teams?.name || userTeam.team_name || 'your team')}</strong></div>
+      <a class="cta-btn" href="/teams/${esc(userTeam.team_id)}">Go to Workspace →</a>
+      ${teamMode === 'both' ? '<button type="button" class="cta-ghost-sm" id="enroll-solo">Or solve solo</button><div id="enroll-err"></div>' : ''}</div>`;
+  }
+  if (teamable) {
+    let inner = '';
+    if (teamMode === 'both') inner += `<button type="button" class="cta-btn" id="enroll-solo">Solve Solo →</button><div id="enroll-err"></div><div class="cta-or">or</div>`;
+    if (!showCreateTeam && !showJoinTeam) inner += `<div class="cta-stack">
+      <button type="button" class="cta-btn-green" id="show-create">Create a Team →</button>
+      <button type="button" class="cta-ghost" id="show-join">Join with Invite Code</button></div>`;
+    if (showCreateTeam && !createdInviteCode) inner += `<div class="team-form">
+      <input class="team-input" id="team-name" placeholder="Team name">
+      <div class="team-row"><button type="button" class="cta-btn" id="team-create">Create</button>
+      <button type="button" class="team-cancel" id="team-cancel-create">Cancel</button></div></div>`;
+    if (createdInviteCode) inner += `<div class="invite-panel">
+      <div class="invite-kicker">Invite Code</div>
+      <div class="invite-code">${esc(createdInviteCode)}</div>
+      <button type="button" class="invite-copy" id="copy-invite">Copy Invite Code</button>
+      <a class="invite-go" id="invite-go" href="/teams/${esc(userTeam?.team_id || '')}">Go to Workspace →</a></div>`;
+    if (showJoinTeam) inner += `<div class="team-form">
+      <input class="team-input upper" id="invite-code" placeholder="Enter invite code (e.g. SPROUT-XXXXXX)">
+      <div class="team-row"><button type="button" class="cta-btn" id="team-join">Join</button>
+      <button type="button" class="team-cancel" id="team-cancel-join">Cancel</button></div></div>`;
+    if (teamErr) inner += `<div class="cta-err">${esc(teamErr)}</div>`;
+    if (teamMsg && !createdInviteCode) inner += `<div class="cta-ok">${esc(teamMsg)}</div>`;
+    return `<div class="cta-stack">${inner}</div>`;
+  }
+  return `<div class="cta-stack"><button type="button" class="cta-btn" id="enroll-solo">Enroll to Solve →</button><div id="enroll-err"></div></div>`;
+}
+
+function renderActions() {
+  const el = document.getElementById('act');
+  if (!el) return;
+  el.innerHTML = ctaHtml();
+  document.getElementById('enroll-solo')?.addEventListener('click', async (e) => {
+    e.currentTarget.disabled = true; e.currentTarget.textContent = 'Enrolling...';
+    try { await api('/api/enrollments/create', { method: 'POST', body: { problem_id: id } });
+      location.href = `/problems/${id}/submit`;
+    } catch (err) { const ee = document.getElementById('enroll-err');
+      if (ee) ee.innerHTML = `<div class="cta-err-big">${esc(err.message)}</div>`; renderActions(); }
+  });
+  document.getElementById('cancel-enroll')?.addEventListener('click', async (e) => {
+    e.currentTarget.disabled = true;
+    try { await api('/api/enrollments/cancel', { method: 'POST', body: { problem_id: id } });
+      enroll = { enrolled: false, hasSubmitted: false, completed: false, submissionStatus: null }; renderActions();
+    } catch (err) { const ee = document.getElementById('enroll-err');
+      if (ee) ee.innerHTML = `<div class="cta-err-big">${esc(err.message)}</div>`; renderActions(); }
+  });
+  document.getElementById('show-create')?.addEventListener('click', () => { showCreateTeam = true; showJoinTeam = false; teamErr = ''; teamMsg = ''; renderActions(); });
+  document.getElementById('show-join')?.addEventListener('click', () => { showJoinTeam = true; showCreateTeam = false; teamErr = ''; teamMsg = ''; renderActions(); });
+  document.getElementById('team-cancel-create')?.addEventListener('click', () => { showCreateTeam = false; renderActions(); });
+  document.getElementById('team-cancel-join')?.addEventListener('click', () => { showJoinTeam = false; renderActions(); });
+  document.getElementById('team-create')?.addEventListener('click', async (e) => {
+    const name = document.getElementById('team-name').value.trim();
+    if (!name) return;
+    e.currentTarget.disabled = true; teamErr = ''; teamMsg = '';
+    try { const d = await api('/api/teams/create', { method: 'POST', body: { problemId: id, teamName: name } });
+      createdInviteCode = d.inviteCode; teamMsg = 'Team created! Share the invite code with your teammates.';
+      userTeam = { team_id: d.teamId, role: 'leader', teams: { id: d.teamId, name, invite_code: d.inviteCode } };
+    } catch (err) { teamErr = err.message; }
+    renderActions();
+  });
+  document.getElementById('team-join')?.addEventListener('click', async (e) => {
+    const code = document.getElementById('invite-code').value.trim();
+    if (!code) return;
+    e.currentTarget.disabled = true; teamErr = ''; teamMsg = '';
+    try { const d = await api('/api/teams/join', { method: 'POST', body: { inviteCode: code } });
+      teamMsg = 'Joined team successfully!';
+      userTeam = { team_id: d.teamId, role: 'member', teams: { id: d.teamId, name: d.teamName } };
+    } catch (err) { teamErr = err.message; }
+    renderActions();
+  });
+  document.getElementById('copy-invite')?.addEventListener('click', async (e) => {
+    try { await navigator.clipboard.writeText(createdInviteCode); e.currentTarget.textContent = 'Copied!'; setTimeout(renderActions, 2000); } catch {}
+  });
 }
 
 function render() {
+  const isIndustry = problem.problem_type === 'industry_challenge';
   const daysLeft = Math.ceil((new Date(problem.deadline).getTime() - Date.now()) / 86400000);
-  document.getElementById('content').innerHTML = `
-    <div><span class="badge">${esc(problem.domain)}</span>
-      <span class="badge gray">${esc(problem.problem_type === 'industry_challenge' ? '💼 Industry Challenge' : '🌍 Public Impact')}</span>
-      <span class="badge">${esc(problem.status)}</span></div>
-    <h1>${esc(problem.title)}</h1>
-    ${problem.thumbnail_url ? `<img src="${esc(problem.thumbnail_url)}" alt="" style="width:100%;border-radius:12px;">` : ''}
-    <p class="muted">⏳ ${isNaN(daysLeft) ? '—' : daysLeft + ' days left'} · 📝 ${esc(String(problem.submission_count ?? 0))} submissions${problem.reward_amount ? ` · ₹${esc(String(problem.reward_amount))}` : ''}</p>
-    <div class="card" id="act"><p class="muted">Loading actions…</p></div>
-    <div class="tabs">${SECTIONS.map(([k, l]) => `<button data-sec="${k}" class="${activeSection===k?'on':''}">${esc(l)}</button>`).join('')}</div>
-    <div class="card"><pre class="wrap">${esc(problem[activeSection] || '—')}</pre></div>
-    <div class="card"><h2>Discussion Thread</h2><div id="discussion"></div></div>`;
-  document.querySelectorAll('[data-sec]').forEach(b => b.addEventListener('click', () => { activeSection = b.dataset.sec; render(); renderDiscussion(); }));
+  const teamMode = problem.team_mode;
+  const judging = problem.judging_deadline ? new Date(problem.judging_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
+  const diff = problem.difficulty_label;
+  document.getElementById('content').innerHTML = `<div class="pd-page"><div class="pd-grid">
+    <div class="pd-main">
+      <div class="pd-badges">
+        <span class="bdg bdg-domain">${domainIcon(problem.domain)} ${esc(problem.domain || '')}</span>
+        <span class="bdg ${isIndustry ? 'bdg-ind' : 'bdg-pub'}">${isIndustry
+          ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Industry Challenge · ₹${esc((problem.reward_amount ?? 0).toLocaleString('en-IN'))}`
+          : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Public Impact`}</span>
+        <span class="bdg bdg-open"><span class="dot"></span>Open</span>
+        ${(teamMode === 'team' || teamMode === 'both') ? `<span class="bdg bdg-team"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${teamMode === 'team' ? 'Team' : 'Solo or Team'}</span>` : ''}
+      </div>
+      <h1 class="pd-title">${esc(problem.title)}</h1>
+      ${problem.thumbnail_url ? `<div class="pd-thumb-card"><div class="pd-thumb"><img src="${esc(problem.thumbnail_url)}" alt="${esc(problem.title)} thumbnail"></div></div>` : ''}
+      <div class="pd-tabs">${SECTIONS.map(([k, l, icon]) => `<button type="button" data-sec="${k}" class="${activeSection === k ? 'on' : ''}">${icon} ${esc(l)}</button>`).join('')}</div>
+      ${SECTIONS.filter(([k]) => activeSection === k).map(([k, l, icon]) => `<div class="pd-sec-card">
+        <div class="pd-sec-kicker">${icon} ${esc(l)}</div>
+        <p class="pd-sec-body">${esc(problem[k] || '—')}</p></div>`).join('')}
+      <div class="disc"><div id="discussion"></div></div>
+    </div>
+    <div class="pd-side">
+      <div class="cta">
+        <div class="cta-kicker">// ready to build?</div>
+        <div class="cta-title">${enroll.completed ? 'You finished this problem.' : (enroll.hasSubmitted ? 'You\u2019ve started this.' : 'Start solving this problem.')}</div>
+        <div id="act"></div>
+      </div>
+      <div class="stats-card">
+        <div class="stat-row"><span class="stat-label">Days Left</span><span class="stat-val ${isNaN(daysLeft) ? '' : (daysLeft <= 7 ? 'stat-val-soon' : 'stat-val-days')}">${isNaN(daysLeft) ? '—' : `${daysLeft}d`}</span></div>
+        <div class="stat-row"><span class="stat-label">Submissions</span><span class="stat-val">${esc(String(problem.submission_count ?? 0))}</span></div>
+        <div class="stat-row"><span class="stat-label">Judging by</span><span class="stat-val">${esc(judging)}</span></div>
+      </div>
+      ${diff ? `<div class="ai-card"><div class="ai-kicker">// ai evaluation</div>
+        <div class="ai-tiles">
+          <div class="ai-tile diff-${esc(diff)}"><div class="ai-tile-name diff-${esc(diff)}">${esc(diff)}</div>
+            <div class="ai-tile-val">${problem.difficulty_score != null ? `${Number(problem.difficulty_score).toFixed(1)} / 10` : '—'}</div></div>
+          <div class="ai-tile neutral"><div class="ai-tile-name neutral">Impact</div>
+            <div class="ai-tile-val">${problem.impact_score != null ? `${Number(problem.impact_score).toFixed(1)} / 10` : '—'}</div></div>
+          ${problem.estimated_hours ? `<div class="ai-tile neutral"><div class="ai-tile-name neutral">Effort</div><div class="ai-tile-val">~${esc(String(problem.estimated_hours))}h</div></div>` : ''}
+        </div>
+        ${problem.leaderboard_weight && problem.leaderboard_weight > 1 ? `<div class="ai-weight"><span><b>Leaderboard weight:</b></span><span class="mult">×${esc(String(problem.leaderboard_weight))}</span></div>` : ''}
+      </div>` : ''}
+      <div class="fw-card"><div class="fw-title">The Framework</div>
+        ${FRAMEWORK.map((f, i) => `<div class="fw-row"><span class="fw-num">${String(i + 1).padStart(2, '0')}</span><span class="fw-name">${esc(f)}</span></div>`).join('')}
+      </div>
+    </div>
+  </div>
+  ${showFab ? `<button type="button" class="fab" id="fab"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="7"/><line x1="10" y1="9" x2="14" y2="9"/></svg>Post Response</button>` : ''}
+  </div>`;
+  document.querySelectorAll('[data-sec]').forEach((b) => b.addEventListener('click', () => { activeSection = b.dataset.sec; render(); }));
+  document.getElementById('fab')?.addEventListener('click', () => {
+    const c = document.getElementById('discussion-composer');
+    if (c) { c.scrollIntoView({ behavior: 'smooth', block: 'center' }); const t = c.querySelector('textarea'); if (t) t.focus(); }
+    else location.hash = '#discussion';
+  });
   renderActions();
   renderDiscussion();
 }
 
-async function renderActions() {
-  const el = document.getElementById('act');
-  if (!me) { el.innerHTML = `<a class="btn btn-primary" href="/login/student">Log in to enroll →</a>`; return; }
-  if (me.role !== 'student') { el.innerHTML = `<p class="muted">Only students can enroll in problems.</p>`; return; }
-  let st = {};
-  try { st = await api('/api/enrollments/status', { method:'POST', body:{ problem_id:id } }); }
-  catch (e) { el.innerHTML = alertBox('Could not load enrollment status: ' + e.message); return; }
-  el.innerHTML = `
-    ${st.enrolled ? `<p><span class="badge">Enrolled ✓</span></p>` : ''}
-    ${st.submissionStatus ? `<p class="muted">Submission: ${esc(st.submissionStatus)}</p>` : ''}
-    <div class="row">
-      ${st.enrolled ? `<a class="btn btn-primary" href="/problems/${esc(id)}/submit">Go to Submit →</a>`
-        : `<button class="btn btn-primary" id="enroll">Enroll & Start Solving →</button>`}
-    </div>
-    <div id="enroll-err"></div>
-    ${(problem.team_mode === 'team' || problem.team_mode === 'both') ? `<hr><h3>Team up</h3>
-      <div class="row"><input class="input" id="team-name" placeholder="New team name" style="max-width:220px;">
-      <button class="btn" id="team-create">Create team</button></div>
-      <div class="row"><input class="input" id="invite-code" placeholder="Invite code" style="max-width:220px;">
-      <button class="btn" id="team-join">Join team</button></div>
-      <div id="team-msg"></div>` : ''}`;
-  document.getElementById('enroll')?.addEventListener('click', async (e) => {
-    e.target.disabled = true;
-    try { await api('/api/enrollments/create', { method:'POST', body:{ problem_id:id } });
-      location.href = `/problems/${id}/submit`;
-    } catch (err) { document.getElementById('enroll-err').innerHTML = alertBox(err.message); e.target.disabled = false; }
-  });
-  document.getElementById('team-create')?.addEventListener('click', async () => {
-    const teamName = document.getElementById('team-name').value.trim();
-    if (!teamName) return;
-    try { const d = await api('/api/teams/create', { method:'POST', body:{ problemId:id, teamName } });
-      document.getElementById('team-msg').innerHTML = alertBox(`Team created! Invite code: ${d.inviteCode}`, true);
-    } catch (err) { document.getElementById('team-msg').innerHTML = alertBox(err.message); }
-  });
-  document.getElementById('team-join')?.addEventListener('click', async () => {
-    const inviteCode = document.getElementById('invite-code').value.trim();
-    if (!inviteCode) return;
-    try { const d = await api('/api/teams/join', { method:'POST', body:{ inviteCode } });
-      document.getElementById('team-msg').innerHTML = alertBox(`Joined team ${d.teamName || ''}!`, true);
-    } catch (err) { document.getElementById('team-msg').innerHTML = alertBox(err.message); }
-  });
-}
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.offsetHeight;
+  if (window.innerHeight + window.scrollY >= total - 400) {
+    const roots = sortedRoots();
+    if (visibleCount < roots.length) { visibleCount += 5; renderDiscussion(); }
+  }
+  const c = document.getElementById('discussion-composer');
+  const show = c ? c.getBoundingClientRect().bottom < 80 : window.scrollY > 400;
+  if (show !== showFab) { showFab = show;
+    const old = document.getElementById('fab');
+    if (old) old.style.display = show ? '' : 'none';
+    else if (show && problem) render();
+  }
+}, { passive: true });
 
 try {
   const [{ problem: p }, disc] = await Promise.all([
@@ -184,16 +615,35 @@ try {
   ]);
   problem = p;
   comments = disc.comments || [];
-  comments.forEach(c => { likeCounts[c.id] = c.likes_count ?? 0; });
+  comments.forEach((c) => { likeCounts[c.id] = c.likes_count ?? 0; });
   document.title = `${problem.title} | SproutNet`;
   const { data: { session } } = await sb().auth.getSession();
   if (session) {
     try { const r = await api('/api/auth/profile'); me = r.profile ? { id: r.profile.id, name: r.profile.name, role: r.profile.role } : null; }
     catch { me = null; }
   }
+  if (me && me.role === 'student') {
+    try { const st = await api('/api/enrollments/status', { method: 'POST', body: { problem_id: id } });
+      enroll = { enrolled: !!st.enrolled, hasSubmitted: !!st.hasSubmitted, completed: !!st.completed, submissionStatus: st.submissionStatus ?? null };
+    } catch {}
+    if (problem.team_mode === 'team' || problem.team_mode === 'both') {
+      try {
+        const { myTeams } = await api('/api/student/teams');
+        for (const t of myTeams || []) {
+          try { const d = await api(`/api/student/teams/${encodeURIComponent(t.team_id)}`);
+            const pid = d.team?.problem_id || d.team?.problems?.id;
+            if (pid === id) { userTeam = { team_id: t.team_id, role: t.role, teams: { id: t.team_id, name: t.team_name } }; break; }
+          } catch {}
+        }
+      } catch {}
+    }
+  }
   render();
 } catch (e) {
-  document.getElementById('content').innerHTML = `<div class="card"><h2>Problem not found</h2><a href="/problems">← Back to problems</a></div>`;
+  document.getElementById('content').innerHTML = `<div class="pd-page"><div class="pd-notfound"><div>
+    <div class="pd-nf-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+    <div class="pd-nf-title">Problem not found</div>
+    <a class="pd-nf-link" href="/problems">← Back to problems</a></div></div></div>`;
   if (!/404|not found/i.test(e.message)) msg(alertBox(e.message));
 }
 </script>

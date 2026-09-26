@@ -5,22 +5,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Student Solutions — SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .ps-wrap { max-width: 1100px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); }
+  .ps-head { margin-bottom: 32px; }
+  .ps-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(28px, 6vw, 38px); font-weight: 400; color: #1C1410; letter-spacing: -0.5px; margin: 0 0 8px; }
+  .ps-head p { font-size: 15px; color: #4A3F38; font-weight: 300; margin: 0; }
+  .ps-filter { margin-bottom: 16px; max-width: 280px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
+  .ps-empty { text-align: center; padding: 80px 24px; background: #fff; border-radius: 12px; border: 1.5px solid rgba(28,20,16,0.07); }
+  .ps-empty .big { font-size: 40px; margin-bottom: 16px; }
+  .ps-empty .t { font-family: Sora, sans-serif; font-size: 18px; font-weight: 600; color: #1C1410; margin-bottom: 8px; }
+  .ps-empty .d { font-size: 14px; color: #9CA3A0; }
+  .ps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+  .ps-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 12px; padding: clamp(18px, 3vw, 22px); }
+  .ps-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; margin-bottom: 10px; }
+  .ps-title { font-family: Sora, sans-serif; font-size: 16px; font-weight: 600; color: #1C1410; margin-bottom: 6px; }
+  .ps-domain { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #4A3F38; margin-bottom: 12px; }
+  .ps-who { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .ps-avatar { width: 28px; height: 28px; border-radius: 50%; background: #2D6A4F; display: flex; align-items: center; justify-content: center; color: #fff; font-family: Sora, sans-serif; font-size: 11px; font-weight: 700; }
+  .ps-name { font-family: Sora, sans-serif; font-size: 13px; font-weight: 600; color: #1C1410; }
+  .ps-sub { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; }
+  .ps-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; background: #EAF4EE; padding: 4px 10px; border-radius: 999px; }
+  .ps-judge { margin-top: 12px; border-top: 1px solid rgba(28,20,16,0.06); padding-top: 12px; display: grid; gap: 10px; }
+  .ps-judge label { display: flex; flex-direction: column; gap: 6px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #1C1410; }
+  .ps-judge input, .ps-judge textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
+  .ps-judge textarea { resize: vertical; }
+  .ps-judge .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .ps-approve { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #fff; background: #2D6A4F; border: none; border-radius: 8px; padding: 9px 18px; cursor: pointer; }
+  .ps-reject { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #DC2626; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 9px 18px; cursor: pointer; }
+  .ps-approve:disabled, .ps-reject:disabled { cursor: not-allowed; opacity: 0.6; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container">
-  <h1>Student solutions</h1>
-  <p class="muted">Solutions submitted by students for your posted problems. Score 0–10, then approve or reject.</p>
-  <div id="msg"></div>
-  <div class="row" style="margin-bottom:1rem">
-    <select class="select" id="filter" style="max-width:280px"><option value="all">All problems</option></select>
+<main class="ps-wrap">
+  <div class="ps-head">
+    <h1>Student solutions</h1>
+    <p>Solutions submitted by students for your posted problems.</p>
   </div>
-  <div id="list"><p class="muted">Loading…</p></div>
+  <div id="msg"></div>
+  <select class="ps-filter" id="filter"><option value="all">All problems</option></select>
+  <div id="list"><p style="font-size:14px;color:#9CA3A0">Loading…</p></div>
 </main>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const me = await requireRole('poster', 'admin');
 const msg = document.getElementById('msg');
 const list = document.getElementById('list');
@@ -30,22 +59,20 @@ function render() {
   const pid = filter.value;
   const rows = pid === 'all' ? subs : subs.filter(s => s.problem_id === pid);
   if (!rows.length) {
-    list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">📝</div><strong>No submissions yet</strong><p class="muted">Once students submit solutions, they will appear here.</p></div>`;
+    list.innerHTML = `<div class="ps-empty"><div class="big">📝</div><div class="t">No submissions yet</div><div class="d">Once students submit solutions, they will appear here.</div></div>`;
     return;
   }
-  list.innerHTML = `<div class="grid">` + rows.map(s => `<div class="card" data-id="${esc(s.id)}">
-    <div class="muted" style="font-size:.8rem">${s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</div>
-    <strong>${esc(s.problems?.title || 'Problem')}</strong>
-    <div class="muted">${esc(s.problems?.domain || '—')}</div>
-    <div class="row" style="margin:.5rem 0"><strong>${esc(s.users?.name || 'Student')}</strong><span class="muted">${esc(s.users?.dept || '')} · ${esc(s.users?.year || '')}</span></div>
-    <span class="badge ${s.status === 'pending' ? 'amber' : ''}">Status: ${esc(s.status || 'pending')}</span>
-    ${s.score != null ? `<span class="badge gray">Score: ${esc(s.score)}</span>` : ''}
-    <div class="judge" style="margin-top:.75rem;display:${s.status === 'pending' ? '' : 'none'}">
-      <div class="row">
-        <label style="flex:1">Score (0–10)<input class="input" type="number" min="0" max="10" value="7" data-f="score"></label>
-      </div>
-      <label>Feedback (optional)<textarea class="textarea" data-f="feedback" rows="2" placeholder="Feedback for the student…"></textarea></label>
-      <div class="row"><button class="btn btn-primary" data-act="approve">✓ Approve</button><button class="btn btn-danger" data-act="reject">✕ Reject</button></div>
+  list.innerHTML = `<div class="ps-grid">` + rows.map(s => `<div class="ps-card" data-id="${esc(s.id)}">
+    <div class="ps-date">${s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</div>
+    <div class="ps-title">${esc(s.problems?.title || 'Problem')}</div>
+    <div class="ps-domain">${esc(s.problems?.domain || '—')}</div>
+    <div class="ps-who"><div class="ps-avatar">${esc((s.users?.name || '?')[0])}</div>
+      <div><div class="ps-name">${esc(s.users?.name || 'Student')}</div><div class="ps-sub">${esc(s.users?.dept || 'Department')} · ${esc(s.users?.year || 'Year')}</div></div></div>
+    <span class="ps-status">Status: ${esc(s.status || 'pending')}${s.score != null ? ` · ${esc(s.score)}` : ''}</span>
+    <div class="ps-judge" style="display:${s.status === 'pending' ? '' : 'none'}">
+      <label>Score (0–10)<input type="number" min="0" max="10" value="7" data-f="score"></label>
+      <label>Feedback (optional)<textarea data-f="feedback" rows="2" placeholder="Feedback for the student…"></textarea></label>
+      <div class="row"><button type="button" class="ps-approve" data-act="approve">✓ Approve</button><button type="button" class="ps-reject" data-act="reject">✕ Reject</button></div>
     </div>
   </div>`).join('') + `</div>`;
 }
@@ -61,7 +88,7 @@ filter.addEventListener('change', render);
 list.addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
-  const card = btn.closest('.card');
+  const card = btn.closest('.ps-card');
   const submission_id = card.dataset.id;
   const score = Number(card.querySelector('[data-f="score"]').value);
   const feedback = card.querySelector('[data-f="feedback"]').value || undefined;

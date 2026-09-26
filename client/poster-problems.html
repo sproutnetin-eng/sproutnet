@@ -5,21 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Problems — SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .pl-wrap { max-width: 1100px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); }
+  .pl-head { margin-bottom: 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .pl-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(28px, 6vw, 38px); font-weight: 400; color: #1C1410; letter-spacing: -0.5px; margin: 0 0 8px; }
+  .pl-head p { font-size: 15px; color: #4A3F38; font-weight: 300; margin: 0; }
+  .pl-post { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 10px 18px; border-radius: 8px; text-decoration: none; }
+  .pl-empty { text-align: center; padding: 80px 24px; background: #fff; border-radius: 12px; border: 1.5px solid rgba(28,20,16,0.07); }
+  .pl-empty .big { font-size: 40px; margin-bottom: 16px; }
+  .pl-empty .t { font-family: Sora, sans-serif; font-size: 18px; font-weight: 600; color: #1C1410; margin-bottom: 8px; }
+  .pl-empty .d { font-size: 14px; color: #9CA3A0; }
+  .pl-list { display: grid; gap: 14px; }
+  .pl-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.06); border-radius: 14px; padding: 18px 20px; box-shadow: 0 8px 30px rgba(28,20,16,0.06); display: flex; flex-direction: column; gap: 12px; }
+  .pl-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pl-pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 999px; }
+  .pl-pill.domain { color: #2D6A4F; background: #EAF4EE; }
+  .pl-pill.open { color: #15803d; background: rgba(21,128,61,0.12); text-transform: capitalize; }
+  .pl-pill.held { color: #92400e; background: rgba(146,64,14,0.12); text-transform: capitalize; }
+  .pl-title { font-family: Sora, sans-serif; font-size: 17px; font-weight: 650; color: #0f0a08; }
+  .pl-meta { font-size: 13px; color: #4A3F38; display: flex; gap: 10px; flex-wrap: wrap; }
+  .pl-foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; border-top: 1px solid rgba(28,20,16,0.06); padding-top: 12px; }
+  .pl-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #1C1410; text-decoration: none; border: 1px solid rgba(28,20,16,0.12); border-radius: 9px; padding: 7px 12px; background: rgba(28,20,16,0.02); cursor: pointer; }
+  .pl-btn.toggle { font-weight: 700; color: #0f0a08; box-shadow: 0 2px 10px rgba(28,20,16,0.08); }
+  .pl-btn.hold { background: #FCD34D; }
+  .pl-btn.publish { background: #BBF7D0; }
+  .pl-btn.del { font-weight: 700; color: #DC2626; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); box-shadow: 0 2px 10px rgba(220,38,38,0.12); }
+  .pl-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container">
-  <div class="row" style="justify-content:space-between">
-    <div><h1>My problems</h1><p class="muted">Edit, hold, or delete the problems you've posted.</p></div>
-    <a class="btn btn-primary" href="/poster/post-problem">+ Post a Problem</a>
+<main class="pl-wrap">
+  <div class="pl-head">
+    <div><h1>My problems</h1><p>Edit, hold, or delete the problems you&#8217;ve posted.</p></div>
+    <a class="pl-post" href="/poster/post-problem">+ Post a Problem</a>
   </div>
   <div id="msg"></div>
-  <div id="list"><p class="muted">Loading…</p></div>
+  <div id="list"><p style="font-size:14px;color:#9CA3A0">Loading…</p></div>
 </main>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const me = await requireRole('poster', 'admin');
 const list = document.getElementById('list');
 const msg = document.getElementById('msg');
@@ -27,31 +54,35 @@ async function load() {
   try {
     const { problems } = await api('/api/poster/problems');
     if (!problems.length) {
-      list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">🗂️</div><strong>No problems yet</strong><p class="muted">Post your first problem to see it here.</p></div>`;
+      list.innerHTML = `<div class="pl-empty"><div class="big">🗂️</div><div class="t">No problems yet</div><div class="d">Post your first problem to see it here.</div></div>`;
       return;
     }
-    list.innerHTML = problems.map(p => {
+    list.innerHTML = `<div class="pl-list">` + problems.map(p => {
       const open = p.status === 'open';
       const dl = p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-      return `<div class="card" data-id="${esc(p.id)}">
-        <span class="badge gray">${esc(p.domain)}</span>
-        <span class="badge ${open ? '' : 'amber'}">${esc(p.status)}</span>
-        <h3 style="margin:.5rem 0">${esc(p.title)}</h3>
-        <p class="muted">${esc(p.problem_type === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact')} · deadline ${esc(dl)} · ${p.submission_count ?? 0} submissions</p>
-        <div class="row" style="justify-content:flex-end">
-          <a class="btn" href="/poster/problems/${esc(p.id)}/enrollments">Enrolled</a>
-          <a class="btn" href="/poster/problems/${esc(p.id)}/edit">Edit</a>
-          <button class="btn" data-act="toggle">${open ? 'Hold' : 'Publish'}</button>
-          <button class="btn btn-danger" data-act="delete">Delete</button>
+      return `<div class="pl-card" data-id="${esc(p.id)}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="pl-pills">
+            <span class="pl-pill domain">${esc(p.domain)}</span>
+            <span class="pl-pill ${open ? 'open' : 'held'}">${esc(p.status)}</span>
+          </div>
+          <div class="pl-title">${esc(p.title)}</div>
+          <div class="pl-meta"><span>${esc(p.problem_type === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact')}</span><span>· deadline ${esc(dl)}</span></div>
+        </div>
+        <div class="pl-foot">
+          <a class="pl-btn" href="/poster/problems/${esc(p.id)}/enrollments">Enrolled</a>
+          <a class="pl-btn" href="/poster/problems/${esc(p.id)}/edit">Edit</a>
+          <button type="button" class="pl-btn toggle ${open ? 'hold' : 'publish'}" data-act="toggle">${open ? 'Hold' : 'Publish'}</button>
+          <button type="button" class="pl-btn del" data-act="delete">Delete</button>
         </div>
       </div>`;
-    }).join('');
+    }).join('') + `</div>`;
   } catch (e) { msg.innerHTML = alertBox(e.message); }
 }
 list.addEventListener('click', async (e) => {
   const btn = e.target.closest('button[data-act]');
   if (!btn) return;
-  const id = btn.closest('.card').dataset.id;
+  const id = btn.closest('.pl-card').dataset.id;
   const act = btn.dataset.act;
   if (act === 'delete' && !confirm('Delete this problem? This cannot be undone.')) return;
   btn.disabled = true;

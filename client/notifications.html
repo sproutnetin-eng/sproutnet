@@ -5,19 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Notifications | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+.notif-wrap { max-width: 720px; margin: 40px auto; padding: 0 20px; }
+.notif-wrap h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 36px; color: #1C1410; margin: 0 0 8px; }
+.notif-sub { font-size: 15px; color: #4A3F38; margin: 0 0 28px; }
+.notif-empty { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 36px; text-align: center; color: #9CA3A0; font-size: 14px; }
+.notif-list { display: flex; flex-direction: column; gap: 12px; }
+.notif-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 12px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.notif-ev { font-size: 11px; color: #2D6A4F; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 2px; }
+.notif-t { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #1C1410; }
+.notif-b { font-size: 13px; color: #4A3F38; margin-top: 4px; }
+.notif-time { font-size: 11px; color: #9CA3A0; margin-top: 6px; }
+.btn-view { font-size: 13px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 8px 14px; border-radius: 8px; text-decoration: none; white-space: nowrap; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:720px">
+<div class="notif-wrap">
   <div id="msg"></div>
   <h1>Notifications</h1>
-  <p class="muted">Stay updated on mentor acceptances, team requests, and workspace updates.</p>
-  <div id="content"><p class="muted">Loading...</p></div>
+  <p class="notif-sub">Stay updated on mentor acceptances, team requests, and workspace updates.</p>
+  <div id="content"><p style="font-size:14px;color:#9CA3A0">Loading...</p></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
 
@@ -25,17 +38,17 @@ const s = await requireAuth();
 if (s) {
   try {
     const { notifications } = await api('/api/student/notifications');
-    content.innerHTML = notifications.length ? notifications.map(n => `
-      <div class="card row" style="justify-content:space-between">
+    content.innerHTML = notifications.length ? `<div class="notif-list">` + notifications.map(n => `
+      <div class="notif-card">
         <div>
-          <div class="badge">${esc(n.event_type || '')}</div>
-          <h3 style="margin:0.25rem 0">${esc(n.title || '')}</h3>
-          <p class="muted">${esc(n.body || '')}</p>
-          <div class="muted" style="font-size:0.8rem">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
+          <div class="notif-ev">${esc(n.event_type || '')}</div>
+          <div class="notif-t">${esc(n.title || '')}</div>
+          <div class="notif-b">${esc(n.body || '')}</div>
+          <div class="notif-time">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
         </div>
-        ${n.link_url ? `<a class="btn btn-primary" href="${esc(n.link_url)}">View →</a>` : ''}
-      </div>`).join('')
-      : '<div class="card" style="text-align:center;color:var(--muted)">You have no notifications yet.</div>';
+        ${n.link_url ? `<a class="btn-view" href="${esc(n.link_url)}">View →</a>` : ''}
+      </div>`).join('') + `</div>`
+      : '<div class="notif-empty">You have no notifications yet.</div>';
   } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }
 }
 </script>

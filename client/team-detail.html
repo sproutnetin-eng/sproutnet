@@ -6,24 +6,91 @@
 <title>Team workspace | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.team-layout { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; }
-@media (max-width: 768px) { .team-layout { grid-template-columns: 1fr; } }
-#chatlog { display: flex; flex-direction: column; gap: 0.6rem; max-height: 420px; overflow-y: auto; }
-.bubble { max-width: 78%; padding: 0.5rem 0.8rem; border-radius: 12px; border: 1px solid var(--line); font-size: 0.92rem; }
-.bubble.mine { align-self: flex-end; background: #2D6A4F; color: #fff; border: none; }
-.bubble.theirs { align-self: flex-start; background: #fff; }
+.ws-wrap { max-width: 1200px; margin: 32px auto; padding: 0 20px; }
+.ws-head { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 16px; padding: 28px; margin-bottom: 28px; }
+.ws-head-top { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
+.ws-dom { font-size: 12px; color: #2D6A4F; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.ws-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 34px; color: #1C1410; margin: 4px 0 8px; }
+.ws-prob { font-size: 15px; color: #4A3F38; margin: 0; }
+.ws-invite { background: #FAF8F4; border: 1px solid rgba(28,20,16,0.12); border-radius: 12px; padding: 14px 18px; text-align: right; }
+.ws-invite .l { font-size: 11px; color: #9CA3A0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+.ws-invite .c { display: flex; align-items: center; gap: 8px; }
+.ws-invite code { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 700; color: #2D6A4F; }
+.btn-copy { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.team-layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; }
+.team-chat { min-height: 400px; }
+@media (max-width: 768px) { .team-layout { grid-template-columns: 1fr; } .team-chat { min-height: 300px; } }
+.ws-col { display: flex; flex-direction: column; gap: 24px; }
+.ws-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 20px; }
+.ws-card h3 { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #1C1410; margin: 0; }
+.ws-card h3.sm { font-size: 15px; }
+.ws-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.member-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #FAF8F4; border-radius: 8px; margin-bottom: 10px; }
+.member-row .n { font-size: 14px; font-weight: 600; color: #1C1410; }
+.member-row .e { font-size: 12px; color: #9CA3A0; }
+.role-pill { font-size: 10px; font-family: 'JetBrains Mono', monospace; padding: 3px 8px; border-radius: 999px; background: rgba(28,20,16,0.08); color: #1C1410; font-weight: 600; }
+.role-pill.leader { background: #F4A723; }
+.btn-req { font-size: 12px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; }
+.mentor-box { padding: 10px; background: #FAF8F4; border-radius: 8px; border: 1px solid rgba(45,106,79,0.15); margin-bottom: 10px; }
+.mentor-box .n { font-size: 14px; font-weight: 600; color: #2D6A4F; }
+.mentor-box .e { font-size: 12px; color: #4A3F38; margin-top: 2px; }
+.ws-muted { font-size: 13px; color: #9CA3A0; text-align: center; padding: 12px; }
+.act-row { font-size: 12px; color: #4A3F38; border-bottom: 1px dashed rgba(28,20,16,0.08); padding-bottom: 6px; margin-bottom: 10px; }
+.act-row .t { font-size: 10px; color: #9CA3A0; margin-top: 2px; }
+.ws-card input.in, .ws-card select.in, .ws-card textarea.in { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 9px 12px; outline: none; width: 100%; box-sizing: border-box; }
+.ws-mini-row { display: flex; gap: 8px; margin-top: 10px; }
+.ws-mini-row .in { flex: 1; }
+.btn-mini { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 9px 14px; cursor: pointer; white-space: nowrap; }
+.btn-ghost { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.btn-danger-sm { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #DC2626; background: #fff; border: 1px solid rgba(220,38,38,0.25); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+.ws-sec-label { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #1C1410; margin: 14px 0 6px; }
+/* Realtime chat — mirrors realtime-chat.tsx */
+.chat-box { display: flex; flex-direction: column; height: 100%; min-height: 480px; background: #fff; border-radius: 14px; border: 1.5px solid rgba(28,20,16,0.08); overflow: hidden; }
+.chat-top { padding: 12px 18px; background: #FAF8F4; border-bottom: 1px solid rgba(28,20,16,0.07); display: flex; justify-content: space-between; align-items: center; }
+.chat-top .t { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #1C1410; }
+.chat-top input { font-family: 'DM Sans', sans-serif; font-size: 13px; background: #fff; border: 1px solid rgba(28,20,16,0.12); border-radius: 6px; padding: 5px 10px; width: 180px; }
+#chatlog { flex: 1; padding: 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; max-height: 520px; }
+.msg-col { display: flex; flex-direction: column; }
+.msg-col.mine { align-items: flex-end; }
+.msg-col.theirs { align-items: flex-start; }
+.msg-meta { font-size: 11px; color: #9CA3A0; margin-bottom: 2px; }
+.bubble { max-width: 78%; padding: 10px 14px; font-size: 14px; line-height: 1.4; }
+.bubble.mine { background: #2D6A4F; color: #fff; border-radius: 14px 14px 2px 14px; }
+.bubble.theirs { background: #FAF8F4; color: #1C1410; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 14px 14px 14px 2px; }
+.bubble .replyq { font-size: 12px; opacity: 0.8; border-left: 2px solid rgba(255,255,255,0.4); padding-left: 6px; margin-bottom: 4px; }
+.bubble a { color: #F4A723; }
+.bubble.theirs a { color: #2D6A4F; }
+.msg-actions { display: flex; gap: 4px; margin-top: 4px; align-items: center; flex-wrap: wrap; }
+.msg-actions button { background: none; border: none; cursor: pointer; font-size: 11px; color: #9CA3A0; padding: 2px 6px; }
+.typing-bar { padding: 4px 18px; font-size: 12px; color: #2D6A4F; font-style: italic; background: #FAF8F4; min-height: 18px; }
+.reply-bar { padding: 6px 18px; background: #EAF4EE; font-size: 12px; color: #2D6A4F; display: flex; justify-content: space-between; align-items: center; }
+.chat-form { padding: 12px 18px; background: #FAF8F4; border-top: 1px solid rgba(28,20,16,0.07); display: flex; gap: 10px; align-items: center; }
+.chat-form input[type=text] { flex: 1; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #fff; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 10px 14px; outline: none; }
+.btn-send { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 10px 18px; cursor: pointer; }
+.clip { cursor: pointer; font-size: 18px; opacity: 0.7; }
+/* Mentor modal */
+.modal-bg { position: fixed; inset: 0; background: rgba(28,20,16,0.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal-card { width: min(480px, 92vw); background: #fff; border-radius: 16px; padding: 28px; border: 1.5px solid rgba(28,20,16,0.08); }
+.modal-card h2 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #1C1410; margin: 0 0 8px; }
+.modal-card .d { font-size: 14px; color: #4A3F38; margin-bottom: 20px; }
+.modal-card form { display: flex; flex-direction: column; gap: 16px; }
+.modal-card label { font-size: 13px; font-weight: 500; color: #1C1410; display: flex; flex-direction: column; gap: 6px; }
+.modal-card select, .modal-card textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; }
+.modal-foot { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+.btn-cancel-m { padding: 9px 16px; background: #fff; border: 1px solid rgba(28,20,16,0.12); border-radius: 8px; cursor: pointer; }
+.btn-send-m { padding: 9px 18px; background: #F4A723; border: none; border-radius: 8px; font-weight: 600; color: #1C1410; cursor: pointer; }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:1200px">
+<div class="ws-wrap">
   <div id="msg"></div>
-  <div id="content"><p class="muted">Loading workspace...</p></div>
+  <div id="content"><p style="font-size:14px;color:#9CA3A0">Loading workspace...</p></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
 const teamId = location.pathname.split('/')[2];
@@ -36,7 +103,6 @@ if (s) {
     const ws = d.workspace;
     const wsId = ws?.id || null;
 
-    // ---- Workspace sub-resources (Express APIs) ----
     let channels = [], milestones = [], files = [], announcements = [], activity = d.activityLogs || [], members = [];
     async function loadWs() {
       if (!wsId) return;
@@ -56,106 +122,105 @@ if (s) {
       } catch { /* keep defaults */ }
     }
     await loadWs();
+    const memberList = members.length ? members : (d.members || []);
 
     content.innerHTML = `
-      <div class="card">
-        <div class="row" style="justify-content:space-between">
+      <div class="ws-head">
+        <div class="ws-head-top">
           <div>
-            <div class="muted">${esc(team.problems?.domain || '')} · Problem Challenge</div>
-            <h1 style="margin:0.25rem 0">${esc(team.name)}</h1>
-            <p>Problem: <strong>${esc(team.problems?.title || '')}</strong></p>
+            <div class="ws-dom">${esc(team.problems?.domain || '')} · Problem Challenge</div>
+            <h1>${esc(team.name)}</h1>
+            <p class="ws-prob">Problem: <strong>${esc(team.problems?.title || '')}</strong></p>
           </div>
-          <div class="card" style="margin:0;text-align:right">
-            <div class="muted">Team Invite Code</div>
-            <div class="row"><code>${esc(team.invite_code || '')}</code><button class="btn" id="copy">Copy</button></div>
+          <div class="ws-invite">
+            <div class="l">Team Invite Code</div>
+            <div class="c"><code>${esc(team.invite_code || '')}</code><button class="btn-copy" id="copy">Copy</button></div>
           </div>
         </div>
       </div>
       <div class="team-layout">
-        <div>
-          <div class="card">
-            <h3>Members (${(members.length || d.members.length)}/${team.problems?.max_team_size || 4})</h3>
-            <div id="memberlist">${(members.length ? members : d.members).map(m => `
-              <div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding:0.4rem 0">
-                <span><strong>${esc(m.users?.name || m.name || '')}</strong><br><span class="muted">${esc(m.users?.email || m.email || '')}</span></span>
-                <span class="badge ${m.role === 'leader' ? '' : 'gray'}">${esc(m.role || '')}</span>
-              </div>`).join('')}</div>
+        <div class="ws-col">
+          <div class="ws-card">
+            <div class="ws-card-head"><h3>Members (${memberList.length}/${team.problems?.max_team_size || 4})</h3></div>
+            ${memberList.map(m => `
+              <div class="member-row"><div><div class="n">${esc(m.users?.name || m.name || '')}</div><div class="e">${esc(m.users?.email || m.email || '')}</div></div>
+              <span class="role-pill ${m.role === 'leader' ? 'leader' : ''}">${esc(m.role || '')}</span></div>`).join('')}
             ${(isLeader || isAdmin) && wsId ? `
-              <h4>Invite by email</h4>
-              <div class="row"><input class="input" id="invemail" placeholder="teammate@jyothyit.ac.in" style="flex:1"><button class="btn" id="invitebtn">Invite</button></div>
-              <h4>Transfer leadership</h4>
-              <div class="row"><select class="select" id="newleader" style="flex:1">${(d.members || []).filter(m => m.user_id !== currentUserId).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn" id="transferbtn">Transfer</button></div>
-              <h4>Remove member</h4>
-              <div class="row"><select class="select" id="rmmember" style="flex:1">${(d.members || []).filter(m => m.user_id !== currentUserId).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn btn-danger" id="rmbtn">Remove</button></div>` : ''}
-            ${wsId ? `<button class="btn btn-danger" id="leavebtn" style="margin-top:0.75rem">Leave workspace</button>` : ''}
+              <div class="ws-sec-label">Invite by email</div>
+              <div class="ws-mini-row"><input class="in" id="invemail" placeholder="teammate@jyothyit.ac.in"><button class="btn-ghost" id="invitebtn">Invite</button></div>
+              <div class="ws-sec-label">Transfer leadership</div>
+              <div class="ws-mini-row"><select class="in" id="newleader">${(d.members || []).filter(m => m.user_id !== currentUserId).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn-ghost" id="transferbtn">Transfer</button></div>
+              <div class="ws-sec-label">Remove member</div>
+              <div class="ws-mini-row"><select class="in" id="rmmember">${(d.members || []).filter(m => m.user_id !== currentUserId).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn-danger-sm" id="rmbtn">Remove</button></div>` : ''}
+            ${wsId ? `<div class="ws-mini-row"><button class="btn-danger-sm" id="leavebtn">Leave workspace</button></div>` : ''}
           </div>
-          <div class="card">
-            <div class="row" style="justify-content:space-between"><h3>Assigned Mentors</h3>${(isLeader || isAdmin) ? '<button class="btn" id="mentorbtn">+ Request Mentor</button>' : ''}</div>
-            <div id="mentors">${(d.assignedMentors || []).length ? d.assignedMentors.map(a => `<div>🛡️ <strong>${esc(a.users?.name || '')}</strong><br><span class="muted">${esc(a.users?.email || '')}</span></div>`).join('') : '<p class="muted">No mentor assigned yet.</p>'}</div>
+          <div class="ws-card">
+            <div class="ws-card-head"><h3>Assigned Mentors</h3>${(isLeader || isAdmin) ? '<button class="btn-req" id="mentorbtn">+ Request Mentor</button>' : ''}</div>
+            ${(d.assignedMentors || []).length ? d.assignedMentors.map(a => `<div class="mentor-box"><div class="n">🛡️ ${esc(a.users?.name || '')}</div><div class="e">${esc(a.users?.email || '')}</div></div>`).join('') : '<div class="ws-muted">No mentor assigned yet.</div>'}
             <div id="mentorform" style="display:none">
-              <label>Mentor<select class="select" id="mentorid"><option value="">-- Choose a mentor --</option>${(d.availableMentors || []).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')} (${esc((m.skills || []).join(', ') || 'General Expert')})</option>`).join('')}</select></label>
-              <label>Message<textarea class="textarea" id="mentorreqmsg" placeholder="Introduce your team..."></textarea></label>
-              <button class="btn btn-primary" id="mentorsend">Send Request →</button>
+              <label class="ws-sec-label">Mentor</label>
+              <select class="in" id="mentorid"><option value="">-- Choose a mentor --</option>${(d.availableMentors || []).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')} (${esc((m.skills || []).join(', ') || 'General Expert')})</option>`).join('')}</select>
+              <label class="ws-sec-label">Message</label>
+              <textarea class="in" id="mentorreqmsg" rows="3" placeholder="Introduce your team and explain what guidance you need..."></textarea>
+              <div class="ws-mini-row"><button class="btn-mini" id="mentorsend">Send Request →</button></div>
             </div>
-            ${isAdmin && wsId && d.availableMentors ? `<label style="margin-top:0.5rem">Assign mentor directly<div class="row"><select class="select" id="directmentor" style="flex:1">${(d.availableMentors || []).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn" id="directmentorbtn">Assign</button></div></label>` : ''}
+            ${isAdmin && wsId && d.availableMentors ? `<div class="ws-sec-label">Assign mentor directly</div><div class="ws-mini-row"><select class="in" id="directmentor">${(d.availableMentors || []).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')}</option>`).join('')}</select><button class="btn-ghost" id="directmentorbtn">Assign</button></div>` : ''}
           </div>
           ${wsId ? `
-          <div class="card">
-            <h3>Channels</h3>
-            <div id="channels">${channels.map(c => `<div>#${esc(c.name)}</div>`).join('') || '<p class="muted">No channels yet.</p>'}</div>
-            ${(isLeader || isAdmin) ? `<div class="row"><input class="input" id="chname" placeholder="new-channel" style="flex:1"><button class="btn" id="chbtn">Create</button></div>` : ''}
+          <div class="ws-card"><div class="ws-card-head"><h3 class="sm">Channels</h3></div>
+            <div>${channels.map(c => `<div style="font-size:13px;color:#4A3F38;padding:4px 0">#${esc(c.name)}</div>`).join('') || '<div class="ws-muted">No channels yet.</div>'}</div>
+            ${(isLeader || isAdmin) ? `<div class="ws-mini-row"><input class="in" id="chname" placeholder="new-channel"><button class="btn-ghost" id="chbtn">Create</button></div>` : ''}
           </div>
-          <div class="card">
-            <h3>Milestones</h3>
-            <div id="milestones">${milestones.map(m => `<div class="row" style="justify-content:space-between"><span><strong>${esc(m.title)}</strong> <span class="badge ${m.status === 'completed' ? '' : 'gray'}">${esc(m.status || 'open')}</span></span><span>${(isLeader || isAdmin) ? `<button class="btn" data-ms="${esc(m.id)}" data-st="${m.status === 'completed' ? 'open' : 'completed'}">${m.status === 'completed' ? 'Reopen' : 'Complete'}</button>` : ''}</span></div>`).join('') || '<p class="muted">No milestones yet.</p>'}</div>
-            ${(isLeader || isAdmin) ? `<div class="row"><input class="input" id="mstitle" placeholder="Milestone title" style="flex:1"><button class="btn" id="msbtn">Add</button></div>` : ''}
+          <div class="ws-card"><div class="ws-card-head"><h3 class="sm">Milestones</h3></div>
+            <div>${milestones.map(m => `<div class="member-row"><span style="font-size:13px"><strong>${esc(m.title)}</strong> · ${esc(m.status || 'open')}</span>${(isLeader || isAdmin) ? `<button class="btn-ghost" data-ms="${esc(m.id)}" data-st="${m.status === 'completed' ? 'open' : 'completed'}">${m.status === 'completed' ? 'Reopen' : 'Complete'}</button>` : ''}</div>`).join('') || '<div class="ws-muted">No milestones yet.</div>'}</div>
+            ${(isLeader || isAdmin) ? `<div class="ws-mini-row"><input class="in" id="mstitle" placeholder="Milestone title"><button class="btn-ghost" id="msbtn">Add</button></div>` : ''}
           </div>
-          <div class="card">
-            <h3>Files</h3>
-            <div id="files">${files.map(f => `<div><a href="${esc(f.file_url || f.url || '#')}" target="_blank" rel="noreferrer">${esc(f.file_name || f.name || 'file')}</a></div>`).join('') || '<p class="muted">No files yet.</p>'}</div>
-            <input class="input" type="file" id="wsfile">
+          <div class="ws-card"><div class="ws-card-head"><h3 class="sm">Files</h3></div>
+            <div>${files.map(f => `<div style="font-size:13px;padding:4px 0"><a style="color:#2D6A4F;font-weight:600;text-decoration:none" href="${esc(f.file_url || f.url || '#')}" target="_blank" rel="noreferrer">📎 ${esc(f.file_name || f.name || 'file')}</a></div>`).join('') || '<div class="ws-muted">No files yet.</div>'}</div>
+            <input class="in" type="file" id="wsfile" style="margin-top:10px">
           </div>
-          <div class="card">
-            <h3>Announcements</h3>
-            <div id="anns">${announcements.map(a => `<div><strong>${esc(a.title)}</strong><p>${esc(a.content)}</p>${(isLeader || isAdmin) ? `<button class="btn btn-danger" data-ann="${esc(a.id)}">Delete</button>` : ''}</div>`).join('') || '<p class="muted">No announcements.</p>'}</div>
-            ${(isLeader || isAdmin) ? `<label>Title<input class="input" id="anntitle"></label><label>Content<textarea class="textarea" id="annbody"></textarea></label><button class="btn" id="annbtn">Post announcement</button>` : ''}
-          </div>` : '<div class="card"><p class="muted">Workspace is being set up — chat and workspace tools will appear shortly.</p></div>'}
-          <div class="card">
-            <h3>Workspace Activity</h3>
-            <div>${activity.map(l => `<div class="muted">${esc(l.description || '')} · ${l.created_at ? new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>`).join('') || '<p class="muted">No recent activity.</p>'}</div>
+          <div class="ws-card"><div class="ws-card-head"><h3 class="sm">Announcements</h3></div>
+            <div>${announcements.map(a => `<div style="margin-bottom:10px"><div style="font-size:13px;font-weight:700">${esc(a.title)}</div><div style="font-size:13px;color:#4A3F38">${esc(a.content)}</div>${(isLeader || isAdmin) ? `<button class="btn-danger-sm" data-ann="${esc(a.id)}" style="margin-top:6px">Delete</button>` : ''}</div>`).join('') || '<div class="ws-muted">No announcements.</div>'}</div>
+            ${(isLeader || isAdmin) ? `<label class="ws-sec-label">Title</label><input class="in" id="anntitle"><label class="ws-sec-label">Content</label><textarea class="in" id="annbody"></textarea><div class="ws-mini-row"><button class="btn-ghost" id="annbtn">Post announcement</button></div>` : ''}
+          </div>` : '<div class="ws-card"><div class="ws-muted">Workspace is being set up — chat and workspace tools will appear shortly.</div></div>'}
+          <div class="ws-card">
+            <div class="ws-card-head"><h3 class="sm">Workspace Activity</h3></div>
+            ${activity.length ? activity.map(l => `<div class="act-row"><div>${esc(l.description || '')}</div><div class="t">${l.created_at ? new Date(l.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div></div>`).join('') : '<div class="ws-muted" style="font-size:12px">No recent activity.</div>'}
           </div>
         </div>
-        <div class="card">
-          <div class="row" style="justify-content:space-between"><h3>Realtime Chat</h3><input class="input" id="search" placeholder="Search messages..." style="max-width:180px"></div>
-          <div id="typing" class="muted"></div>
-          <div id="chatlog"><p class="muted">Loading chat history...</p></div>
-          <div id="replybar" style="display:none" class="alert ok"></div>
-          <form id="chatform" class="row">
-            <input class="input" type="file" id="chatfile" style="max-width:180px">
-            <input class="input" id="chatinput" placeholder="Type a message... (Enter to send)" style="flex:1">
-            <button class="btn btn-primary" type="submit">Send →</button>
-          </form>
+        <div class="team-chat">
+          <div class="chat-box">
+            <div class="chat-top"><div class="t">Realtime Chat</div><input id="search" placeholder="Search messages..."></div>
+            <div id="chatlog"><p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">Loading chat history...</p></div>
+            <div class="typing-bar" id="typing"></div>
+            <div class="reply-bar" id="replybar" style="display:none"></div>
+            <form class="chat-form" id="chatform">
+              <label class="clip" title="Upload file">📎<input type="file" id="chatfile" style="display:none"></label>
+              <input type="text" id="chatinput" placeholder="Type a message... (Press Enter to send)">
+              <button class="btn-send" type="submit">Send →</button>
+            </form>
+          </div>
         </div>
-      </div>`;
+      </div>
+      <div id="modal"></div>`;
 
     document.getElementById('copy')?.addEventListener('click', (e) => { navigator.clipboard.writeText(team.invite_code || ''); e.target.textContent = 'Copied! ✓'; setTimeout(() => e.target.textContent = 'Copy', 2000); });
-
-    // ---- Mentor request (POST /api/teams/request-mentor) ----
     document.getElementById('mentorbtn')?.addEventListener('click', () => {
       const f = document.getElementById('mentorform'); f.style.display = f.style.display === 'none' ? '' : 'none';
     });
     document.getElementById('mentorsend')?.addEventListener('click', async (e) => {
-      const btn = e.target; const mentorId = document.getElementById('mentorid').value;
+      const btn = e.target;
+      const mentorId = document.getElementById('mentorid').value;
       if (!mentorId) return;
       btn.disabled = true; btn.textContent = 'Sending...';
       try {
         await api('/api/teams/request-mentor', { method: 'POST', body: { teamId: team.id, mentorId, message: document.getElementById('mentorreqmsg').value } });
         msg.innerHTML = alertBox('Mentorship request sent successfully!', true);
+        document.getElementById('modal').innerHTML = '';
       } catch (err) { msg.innerHTML = alertBox(err.message); }
       btn.disabled = false; btn.textContent = 'Send Request →';
     });
 
-    // ---- Workspace admin actions ----
     const refresh = () => location.reload();
     if (wsId) {
       document.getElementById('directmentorbtn')?.addEventListener('click', async () => {
@@ -224,7 +289,7 @@ if (s) {
       });
     }
 
-    // ---- Realtime chat via sb() (mirrors realtime-chat.tsx) ----
+    // ---- Realtime chat (mirrors realtime-chat.tsx) ----
     const channelId = d.channelId;
     const log = document.getElementById('chatlog');
     let messages = [];
@@ -237,31 +302,28 @@ if (s) {
       log.innerHTML = list.length ? list.map(m => {
         const mine = m.sender_id === currentUserId;
         const rx = (m.reactions || []).map(r => r.emoji).join(' ');
-        const atts = (m.attachments || []).map(a => `<div><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
-        return `<div class="bubble ${mine ? 'mine' : 'theirs'}">
-          <div class="muted" style="font-size:0.75rem">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
-          <div>${esc(m.content || '')}</div>${atts}
-          ${rx ? `<div>${esc(rx)}</div>` : ''}
-          <div class="row" style="gap:0.25rem;margin-top:0.25rem">
-            <button class="btn" data-reply="${esc(m.id)}" style="padding:0.1rem 0.5rem;font-size:0.75rem">Reply</button>
-            ${['👍', '❤️', '🎉'].map(e2 => `<button class="btn" data-react="${esc(m.id)}" data-emoji="${e2}" style="padding:0.1rem 0.4rem">${e2}</button>`).join('')}
-          </div>
+        const atts = (m.attachments || []).map(a => `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2)"><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
+        return `<div class="msg-col ${mine ? 'mine' : 'theirs'}">
+          <div class="msg-meta">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
+          <div class="bubble ${mine ? 'mine' : 'theirs'}">${m.parent_id ? `<div class="replyq">Replying to thread</div>` : ''}<div>${esc(m.content || '')}</div>${atts}</div>
+          ${rx ? `<div style="font-size:13px">${esc(rx)}</div>` : ''}
+          <div class="msg-actions"><button data-reply="${esc(m.id)}">Reply</button>${['👍', '❤️', '🎉'].map(e2 => `<button data-react="${esc(m.id)}" data-emoji="${e2}">${e2}</button>`).join('')}</div>
         </div>`;
-      }).join('') : '<p class="muted">No messages yet. Start the conversation!</p>';
+      }).join('') : '<p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">No messages yet. Start the conversation!</p>';
       log.scrollTop = log.scrollHeight;
       log.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
         replyTo = messages.find(x => x.id === b.dataset.reply) || null;
         const bar = document.getElementById('replybar');
-        if (replyTo) { bar.style.display = ''; bar.innerHTML = `Replying to <strong>${esc(replyTo.sender_name || '')}</strong>: "${esc((replyTo.content || '').slice(0, 40))}..." <a href="#" id="cancelreply">✕</a>`; document.getElementById('cancelreply').addEventListener('click', (e2) => { e2.preventDefault(); replyTo = null; bar.style.display = 'none'; }); }
+        if (replyTo) { bar.style.display = ''; bar.innerHTML = `<span>Replying to <strong>${esc(replyTo.sender_name || '')}</strong>: &ldquo;${esc((replyTo.content || '').slice(0, 40))}...&rdquo;</span><button data-x style="background:none;border:none;cursor:pointer;font-weight:bold">✕</button>`; bar.querySelector('[data-x]').addEventListener('click', () => { replyTo = null; bar.style.display = 'none'; }); }
       }));
       log.querySelectorAll('[data-react]').forEach(b => b.addEventListener('click', async () => {
         try {
           const r = await api('/api/messages/react', { method: 'POST', body: { messageId: b.dataset.react, emoji: b.dataset.emoji } });
           messages = messages.map(m => {
             if (m.id !== b.dataset.react) return m;
-            const rx = m.reactions || [];
-            if (r.reacted) { if (!rx.some(x => x.emoji === b.dataset.emoji && x.user_id === currentUserId)) return { ...m, reactions: [...rx, { emoji: b.dataset.emoji, user_id: currentUserId }] }; return m; }
-            return { ...m, reactions: rx.filter(x => !(x.emoji === b.dataset.emoji && x.user_id === currentUserId)) };
+            const rx2 = m.reactions || [];
+            if (r.reacted) { if (!rx2.some(x => x.emoji === b.dataset.emoji && x.user_id === currentUserId)) return { ...m, reactions: [...rx2, { emoji: b.dataset.emoji, user_id: currentUserId }] }; return m; }
+            return { ...m, reactions: rx2.filter(x => !(x.emoji === b.dataset.emoji && x.user_id === currentUserId)) };
           });
           renderChat();
           rt.send({ type: 'broadcast', event: 'reaction', payload: { messageId: b.dataset.react, emoji: b.dataset.emoji, user_id: currentUserId, reacted: r.reacted } });
@@ -300,11 +362,12 @@ if (s) {
         });
       rt.subscribe();
     } else {
-      log.innerHTML = '<p class="muted">Initializing workspace communication channel...</p>';
+      log.innerHTML = '<p style="text-align:center;color:#9CA3A0;padding:40px">Initializing workspace communication channel...</p>';
     }
 
-    document.getElementById('chatinput').addEventListener('input', (e) => {
-      if (rt) rt.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUserId, userName: me.profile?.name || 'User' } });
+    const meProf = await api('/api/auth/profile').catch(() => ({ profile: null }));
+    document.getElementById('chatinput').addEventListener('input', () => {
+      if (rt) rt.send({ type: 'broadcast', event: 'typing', payload: { userId: currentUserId, userName: meProf.profile?.name || 'User' } });
     });
     document.getElementById('chatfile').addEventListener('change', async (e) => {
       const file = e.target.files?.[0];

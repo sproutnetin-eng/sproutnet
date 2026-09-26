@@ -6,57 +6,144 @@
 <title>Analytics — SproutNet Admin</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
-.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
-.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
-.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
-.admin-side .meta{font-size:.75rem;color:#64748b}
-@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
+  .admin-theme { --bg-main: #F6F7F8; --bg-surface: #FFFFFF; --bg-card: #FFFFFF; --bg-hover: #F0F2F4; --border-primary: #E5E7EB; --border-secondary: #D1D5DB; --border-input: #D1D5DB; --text-primary: #000000; --text-secondary: #000000; --text-muted: #000000; --text-disabled: #000000; --accent-primary: #10A37F; --accent-hover: #1DBF93; --danger: #EF4444; --warning: #F59E0B; background: var(--bg-main); color: var(--text-primary); }
+  .admin-theme * { box-sizing: border-box; color: #000000 !important; }
+  .admin-theme ::placeholder { color: #000000 !important; opacity: 0.55; }
+  .admin-shell { min-height: 100vh; background: var(--bg-main); color: var(--text-primary); font-family: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; --admin-columns: 260px 1fr; --admin-aside-position: sticky; --admin-aside-height: 100vh; }
+  .admin-grid { display: grid; grid-template-columns: var(--admin-columns, 260px 1fr); min-height: 100vh; }
+  .admin-sidebar { border-right: 1px solid var(--border-primary); background: var(--bg-surface); padding: clamp(16px, 3vw, 22px) clamp(14px, 3vw, 18px); position: var(--admin-aside-position, sticky); top: 0; height: var(--admin-aside-height, 100vh); overflow-y: auto; }
+  .admin-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
+  .admin-brand .nm { font-family: Sora, sans-serif; font-weight: 900; font-size: 15px; line-height: 1.1; }
+  .admin-brand .sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 2px; }
+  .admin-access { padding: 12px; margin-bottom: 14px; }
+  .admin-access .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-bottom: 8px; }
+  .admin-access .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .admin-access .who { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-surface { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-sidebar-link { text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-primary); }
+  .admin-sidebar-link--active { background: var(--bg-hover); border-color: var(--border-secondary); box-shadow: inset 3px 0 0 var(--accent-primary); }
+  .admin-links { display: grid; gap: 8px; }
+  .admin-links .t { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; }
+  .admin-links .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .admin-tools { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-primary); display: grid; gap: 6px; }
+  .admin-tools .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .admin-tools button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; background: transparent; border: 1px solid var(--border-primary); border-radius: 8px; padding: 8px 12px; cursor: pointer; text-align: left; }
+  .admin-tools button:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-tools .tmsg { font-size: 11px; font-family: 'JetBrains Mono', monospace; line-height: 1.4; }
+  .admin-back { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(148,163,184,0.12); }
+  .admin-back a { justify-content: center; }
+  .admin-pill { font-family: "JetBrains Mono", monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-secondary); background: var(--bg-hover); }
+  .admin-pill--accent { border-color: rgba(16,163,127,0.35); background: rgba(16,163,127,0.12); }
+  .admin-btn { font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 800; border-radius: 12px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--border-secondary); background: var(--bg-surface); }
+  .admin-head { min-height: 64px; padding: 10px clamp(16px, 3vw, 26px); display: flex; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--border-primary); background: rgba(246,247,248,0.9); position: sticky; top: 0; z-index: 50; }
+  .admin-main { padding: clamp(20px, 3vw, 28px) clamp(16px, 3vw, 26px) 70px; }
+  .an-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .an-title { font-family: Sora, sans-serif; font-size: clamp(22px, 4.5vw, 28px); font-weight: 950; letter-spacing: -0.6px; margin: 0 0 8px; }
+  .an-sub { font-size: 14px; font-weight: 500; margin: 0 0 16px; }
+  .an-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 18px; }
+  .an-grid.tight { margin-bottom: 28px; }
+  .an-stat { background: var(--bg-surface); border: 1px solid var(--border-primary); border-radius: 16px; padding: 16px; }
+  .an-stat .n { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .an-stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
+  .admin-table { overflow: hidden; overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-primary); background: var(--bg-surface); }
+  .an-thead { padding: 14px 18px; border-bottom: 1px solid var(--border-primary); background: var(--bg-hover); }
+  .an-thead .t { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .an-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; }
+  .an-row + .an-row { border-top: 1px solid var(--border-primary); }
+  .an-row .d { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 900; }
+  .an-row .c { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .an-none { padding: 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; }
+  @media (max-width: 1024px) { .admin-shell { --admin-columns: 1fr; --admin-aside-position: static; --admin-aside-height: auto; } }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container" style="max-width:1200px">
-<div class="admin-layout">
-<aside class="admin-side card">
-  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
-  <a href="/admin/problems"><strong>Problems</strong> <span class="meta">moderation</span></a>
-  <a href="/admin/solutions"><strong>Solutions</strong> <span class="meta">uploads</span></a>
-  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
-  <a href="/admin/analytics" class="on"><strong>Analytics</strong> <span class="meta">metrics</span></a>
-  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
-  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
-</aside>
-<div>
-  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">ANALYTICS · METRICS</div>
-  <h1>Analytics</h1>
-  <p class="muted">Quick platform stats. (Counts are pulled live.)</p>
-  <div id="msg"></div>
-  <div class="grid" id="stats"><p class="muted">Loading…</p></div>
-  <div class="card"><strong>Open problems by domain</strong><div id="domains"></div></div>
+<div class="admin-theme admin-shell">
+<div class="admin-grid">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="/admin">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#10A37F"/><line x1="17" y1="27" x2="17" y2="15" stroke="#0D0D0D" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F59E0B"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(236,236,236,0.88)"/></svg>
+      <div><div class="nm">SproutNet</div><div class="sub">admin panel</div></div>
+    </a>
+    <div class="admin-card admin-access">
+      <div class="lbl">YOUR ACCESS</div>
+      <div class="row"><div class="who" id="access-name">…</div><span class="admin-pill admin-pill--accent" id="access-pill">ADMIN</span></div>
+    </div>
+    <div class="admin-links">
+      <a class="admin-sidebar-link" href="/admin"><span class="t">Overview</span><span class="m">home</span></a>
+      <a class="admin-sidebar-link" href="/admin/problems"><span class="t">Problems</span><span class="m">moderation</span></a>
+      <a class="admin-sidebar-link" href="/admin/solutions"><span class="t">Solutions</span><span class="m">uploads</span></a>
+      <a class="admin-sidebar-link" href="/admin/judging"><span class="t">Judging</span><span class="m">queue</span></a>
+      <a class="admin-sidebar-link admin-sidebar-link--active" href="/admin/analytics" aria-current="page"><span class="t">Analytics</span><span class="m">metrics</span></a>
+      <a class="admin-sidebar-link" href="/leaderboard"><span class="t">Leaderboard</span><span class="m">scores</span></a>
+    </div>
+    <div class="admin-tools">
+      <div class="lbl">LEADERBOARD TOOLS</div>
+      <button type="button" id="seed-btn">Seed Test Submissions</button>
+      <button type="button" id="recalc-btn">Recalculate Scores</button>
+      <div class="tmsg" id="tool-msg"></div>
+    </div>
+    <div class="admin-back"><a class="admin-sidebar-link" href="/dashboard">← Back to Dashboard</a></div>
+  </aside>
+  <div>
+    <header class="admin-head"><button type="button" class="admin-btn" id="signout">Sign out</button></header>
+    <main class="admin-main">
+      <div style="margin-bottom:16px">
+        <div class="an-eyebrow">ANALYTICS · METRICS</div>
+        <h1 class="an-title">Analytics</h1>
+        <p class="an-sub">Quick platform stats. (Counts are pulled live from Supabase.)</p>
+      </div>
+      <div id="msg"></div>
+      <div class="an-grid" id="stats1"><p style="font-size:13px">Loading…</p></div>
+      <div class="an-grid" id="stats2"></div>
+      <div class="an-grid tight" id="stats3"></div>
+      <div class="admin-table">
+        <div class="an-thead"><div class="t">Open problems by domain</div></div>
+        <div id="domains"></div>
+      </div>
+    </main>
+  </div>
 </div>
 </div>
-</main>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+renderNav();
 const me = await requireRole('admin');
 if (me) {
+  document.getElementById('access-name').textContent = me.profile?.name || 'Admin';
+  document.getElementById('access-pill').textContent = me.profile?.is_master ? 'MASTER' : 'ADMIN';
   try {
     const a = await api('/api/admin/analytics');
-    const card = (l, v) => `<div class="card"><h2>${esc(v)}</h2><div class="muted">${esc(l)}</div></div>`;
-    document.getElementById('stats').innerHTML =
-      card('Problems', a.totalProblems) + card('Open', a.openProblems) + card('Pending', a.pendingProblems) +
-      card('Users', a.totalUsers) + card('Students', a.students) + card('Posters', a.posters) +
-      card('Admins', a.admins) + card('Enrollments', a.totalEnrollments) + card('Submissions', a.totalSubmissions) +
+    const card = (l, v) => `<div class="an-stat"><div class="n">${esc(v)}</div><div class="l">${esc(l)}</div></div>`;
+    document.getElementById('stats1').innerHTML =
+      card('Problems', a.totalProblems) + card('Open', a.openProblems) + card('Pending', a.pendingProblems) + card('Users', a.totalUsers);
+    document.getElementById('stats2').innerHTML =
+      card('Students', a.students) + card('Posters', a.posters) + card('Admins', a.admins) + card('Enrollments', a.totalEnrollments);
+    document.getElementById('stats3').innerHTML =
+      card('Submissions', a.totalSubmissions) +
       card('Avg enrollments/problem', a.totalProblems ? (a.totalEnrollments / a.totalProblems).toFixed(1) : '—') +
       card('Avg submissions/problem', a.totalProblems ? (a.totalSubmissions / a.totalProblems).toFixed(1) : '—');
     document.getElementById('domains').innerHTML = a.domains.length
-      ? `<table class="table"><tbody>${a.domains.map(d => `<tr><td><strong>${esc(d.domain)}</strong></td><td>${d.count}</td></tr>`).join('')}</tbody></table>`
-      : `<p class="muted">No open problems.</p>`;
+      ? a.domains.map(d => `<div class="an-row"><div class="d">${esc(d.domain)}</div><div class="c">${d.count}</div></div>`).join('')
+      : `<div class="an-none">No open problems.</div>`;
   } catch (e) { document.getElementById('msg').innerHTML = alertBox(e.message); }
+  const tm = document.getElementById('tool-msg');
+  document.getElementById('seed-btn').addEventListener('click', async (e) => {
+    e.target.disabled = true; e.target.textContent = 'Seeding...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    e.target.disabled = false; e.target.textContent = 'Seed Test Submissions';
+  });
+  document.getElementById('recalc-btn').addEventListener('click', async (e) => {
+    e.target.disabled = true; e.target.textContent = 'Recalculating...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    e.target.disabled = false; e.target.textContent = 'Recalculate Scores';
+  });
 }
+document.getElementById('signout').addEventListener('click', logout);
 </script>
 </body>
 </html>

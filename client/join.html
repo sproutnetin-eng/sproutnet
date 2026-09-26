@@ -5,84 +5,153 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Join | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .auth-wrap { min-height: 100vh; background: #FAF8F4; display: flex; align-items: center; justify-content: center; padding: 48px 16px; box-sizing: border-box; }
+  .auth-inner { width: 100%; max-width: 440px; }
+  .auth-head { text-align: center; margin-bottom: 32px; }
+  .auth-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 24px; }
+  .auth-logo span { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: #1C1410; }
+  .auth-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 32px; font-weight: 400; color: #1C1410; letter-spacing: -0.5px; display: block; margin: 0; }
+  .auth-head p { font-family: 'DM Sans', sans-serif; font-size: 15px; color: #4A3F38; margin-top: 8px; margin-bottom: 0; font-weight: 300; }
+  .role-pick { display: flex; flex-direction: column; gap: 12px; }
+  .role-btn { background: #fff; border: 1.5px solid rgba(28,20,16,0.1); border-radius: 12px; padding: 24px; cursor: pointer; text-align: left; box-shadow: 0 2px 8px rgba(28,20,16,0.06); transition: all 0.2s; font-family: 'DM Sans', sans-serif; width: 100%; }
+  .role-btn[data-role="student"]:hover { border-color: #2D6A4F; transform: translateY(-2px); }
+  .role-btn[data-role="mentor"]:hover { border-color: #8B5CF6; transform: translateY(-2px); }
+  .role-btn[data-role="poster"]:hover { border-color: #F4A723; transform: translateY(-2px); }
+  .role-btn .emoji { font-size: 28px; margin-bottom: 10px; }
+  .role-btn .t { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 600; color: #1C1410; margin-bottom: 6px; }
+  .role-btn .d { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #4A3F38; font-weight: 300; }
+  .role-btn .pill { margin-top: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 999px; display: inline-block; }
+  .pill-student { color: #2D6A4F; background: #EAF4EE; }
+  .pill-mentor { color: #8B5CF6; background: rgba(139,92,246,0.08); }
+  .pill-poster { color: #1E40AF; background: rgba(30,64,175,0.08); }
+  .auth-alt { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #9CA3A0; text-align: center; margin-top: 8px; margin-bottom: 0; }
+  .auth-alt a { color: #2D6A4F; font-weight: 600; text-decoration: none; }
+  .auth-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 36px 40px; box-shadow: 0 4px 24px rgba(28,20,16,0.07); }
+  .back-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #9CA3A0; background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 20px; display: flex; align-items: center; gap: 4px; }
+  .form-title { margin-bottom: 24px; }
+  .form-title .emoji { font-size: 22px; margin-bottom: 6px; }
+  .form-title .t { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 600; color: #1C1410; }
+  .auth-form { display: flex; flex-direction: column; gap: 16px; }
+  .auth-err { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #DC2626; }
+  .fld { display: flex; flex-direction: column; gap: 6px; }
+  .fld label { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #1C1410; }
+  .fld input, .fld select, .fld textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
+  .fld select { cursor: pointer; }
+  .fld textarea { resize: vertical; min-height: 70px; }
+  .fld input:focus, .fld select:focus, .fld textarea:focus { border-color: #2D6A4F; }
+  .auth-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 13px; cursor: pointer; margin-top: 4px; box-shadow: 0 2px 10px rgba(244,167,35,0.3); width: 100%; }
+  .auth-btn:disabled { background: #F9C05A; cursor: not-allowed; }
+  .fine { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; text-align: center; margin: 0; }
+  .fine a { color: #2D6A4F; font-weight: 600; text-decoration: none; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:480px">
-  <div class="card" style="text-align:center">
-    <h1>Join SproutNet.</h1>
-    <p class="muted">Who are you joining as?</p>
-  </div>
-  <div class="card" id="rolepick">
-    <div class="row" style="justify-content:center">
-      <button class="btn" data-role="student">🎓 I'm a Student</button>
-      <button class="btn" data-role="mentor">🧭 I want to Mentor</button>
-      <button class="btn" data-role="poster">🏢 I have a Problem to Post</button>
+<div class="auth-wrap">
+  <div class="auth-inner">
+    <div class="auth-head">
+      <a class="auth-logo" href="/">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+          <rect width="34" height="34" rx="8" fill="#2D6A4F"/>
+          <line x1="17" y1="27" x2="17" y2="15" stroke="#FAF8F4" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F4A723"/>
+          <path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(250,248,244,0.88)"/>
+        </svg>
+        <span>SproutNet</span>
+      </a>
+      <h1>Join SproutNet.</h1>
+      <p>Who are you joining as?</p>
     </div>
-    <p class="muted" style="text-align:center">Student Phase 1: @jyothyit.ac.in only</p>
-    <p class="muted" style="text-align:center">Already have an account? <a href="/login">Sign in</a></p>
-  </div>
-  <div class="card" id="formcard" style="display:none">
-    <div id="msg"></div>
-    <button class="btn" id="back" type="button">← Back</button>
-    <h2 id="ftitle" style="margin-top:0.5rem"></h2>
-    <form id="f">
-      <label>Full name<input class="input" id="name" required placeholder="Arjun Verma"></label>
-      <label id="emaillabel">Email address<input class="input" type="email" id="email" required></label>
-      <label>Password (min 8 chars)<input class="input" type="password" id="password" required minlength="8"></label>
-      <div id="studentfields" style="display:none">
-        <label>Department<select class="select" id="dept">
-          <option value="">Select department</option>
-          <option>Computer Science</option><option>Information Science</option><option>AIML</option>
-          <option>Electronics &amp; Communication</option><option>Electrical Engineering</option>
-          <option>Mechanical Engineering</option><option>Civil Engineering</option>
-          <option>Biotechnology</option><option>MBA</option><option>MCA</option><option>Other</option>
-        </select></label>
-        <label>Year<select class="select" id="year">
-          <option value="">Select year</option>
-          <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
-          <option>PG 1st Year</option><option>PG 2nd Year</option>
-        </select></label>
+    <div class="role-pick" id="rolepick">
+      <button class="role-btn" data-role="student" type="button">
+        <div class="emoji">🎓</div>
+        <div class="t">I&#39;m a Student</div>
+        <div class="d">Browse real problems, build structured solutions, earn your Builder Score.</div>
+        <div><span class="pill pill-student">@jyothyit.ac.in only · Phase 1</span></div>
+      </button>
+      <button class="role-btn" data-role="mentor" type="button">
+        <div class="emoji">🧭</div>
+        <div class="t">I want to Mentor</div>
+        <div class="d">Guide student teams, share your expertise, and shape the next generation of builders.</div>
+        <div><span class="pill pill-mentor">Industry Experts · Alumni · Faculty</span></div>
+      </button>
+      <button class="role-btn" data-role="poster" type="button">
+        <div class="emoji">🏢</div>
+        <div class="t">I have a Problem to Post</div>
+        <div class="d">Post real challenges. Get structured solutions from India&#39;s sharpest students.</div>
+        <div><span class="pill pill-poster">NGOs · Companies · Individuals</span></div>
+      </button>
+      <p class="auth-alt">Already have an account? <a href="/login">Sign in</a></p>
+    </div>
+    <div class="auth-card" id="formcard" style="display:none">
+      <button class="back-btn" id="back" type="button">← Back</button>
+      <div class="form-title">
+        <div class="emoji" id="femoji">🎓</div>
+        <div class="t" id="ftitle"></div>
       </div>
-      <div id="posterfields" style="display:none">
-        <label>City<input class="input" id="city" placeholder="Bangalore"></label>
-        <label>Organisation type<select class="select" id="orgtype">
-          <option value="">Select type</option>
-          <option>Startup</option><option>NGO / Non-profit</option><option>Company</option>
-          <option>Government Body</option><option>Research Institution</option><option>Individual</option><option>Other</option>
-        </select></label>
-      </div>
-      <div id="mentorfields" style="display:none">
-        <label>Bio<textarea class="textarea" id="bio" placeholder="Tell students about your expertise..."></textarea></label>
-        <label>Skills (comma-separated)<input class="input" id="skills" placeholder="Web Development, System Design, AI/ML"></label>
-        <label>Technologies (comma-separated)<input class="input" id="techs" placeholder="React, Python, PostgreSQL, AWS"></label>
-        <label>Years of experience<input class="input" type="number" id="exp" min="0" max="50" placeholder="5"></label>
-        <label>LinkedIn URL (optional)<input class="input" type="url" id="linkedin" placeholder="https://linkedin.com/in/yourprofile"></label>
-        <label>GitHub URL (optional)<input class="input" type="url" id="github" placeholder="https://github.com/yourhandle"></label>
-      </div>
-      <button class="btn btn-primary" style="width:100%" type="submit" id="btn">Create account →</button>
-    </form>
+      <div id="msg"></div>
+      <form class="auth-form" id="f" style="margin-top:16px">
+        <div class="fld"><label for="name">Full name</label><input id="name" required placeholder="Arjun Verma"></div>
+        <div class="fld"><label for="email" id="emaillabel">Email address</label><input type="email" id="email" required></div>
+        <div class="fld"><label for="password">Password</label><input type="password" id="password" required minlength="8" placeholder="Min 8 characters"></div>
+        <div id="studentfields" style="display:none;flex-direction:column;gap:16px">
+          <div class="fld"><label for="dept">Department</label><select id="dept">
+            <option value="">Select department</option>
+            <option>Computer Science</option><option>Information Science</option><option>AIML</option>
+            <option>Electronics &amp; Communication</option><option>Electrical Engineering</option>
+            <option>Mechanical Engineering</option><option>Civil Engineering</option>
+            <option>Biotechnology</option><option>MBA</option><option>MCA</option><option>Other</option>
+          </select></div>
+          <div class="fld"><label for="year">Year</label><select id="year">
+            <option value="">Select year</option>
+            <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+            <option>PG 1st Year</option><option>PG 2nd Year</option>
+          </select></div>
+        </div>
+        <div id="posterfields" style="display:none;flex-direction:column;gap:16px">
+          <div class="fld"><label for="city">City</label><input id="city" placeholder="Bangalore"></div>
+          <div class="fld"><label for="orgtype">Organisation type</label><select id="orgtype">
+            <option value="">Select type</option>
+            <option>Startup</option><option>NGO / Non-profit</option><option>Company</option>
+            <option>Government Body</option><option>Research Institution</option><option>Individual</option><option>Other</option>
+          </select></div>
+        </div>
+        <div id="mentorfields" style="display:none;flex-direction:column;gap:16px">
+          <div class="fld"><label for="bio">Bio</label><textarea id="bio" rows="3" placeholder="Tell students about your expertise and what you can help with..."></textarea></div>
+          <div class="fld"><label for="skills">Skills (comma-separated)</label><input id="skills" placeholder="Web Development, System Design, AI/ML"></div>
+          <div class="fld"><label for="techs">Technologies (comma-separated)</label><input id="techs" placeholder="React, Python, PostgreSQL, AWS"></div>
+          <div class="fld"><label for="exp">Years of experience</label><input type="number" id="exp" min="0" max="50" placeholder="5"></div>
+          <div class="fld"><label for="linkedin">LinkedIn URL (optional)</label><input type="url" id="linkedin" placeholder="https://linkedin.com/in/yourprofile"></div>
+          <div class="fld"><label for="github">GitHub URL (optional)</label><input type="url" id="github" placeholder="https://github.com/yourhandle"></div>
+        </div>
+        <button class="auth-btn" type="submit" id="btn">Create account →</button>
+        <p class="fine">Already have an account? <a href="/login">Sign in</a></p>
+      </form>
+    </div>
   </div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, renderNav, alertBox } from '/assets/app.js';
-renderNav('login');
+renderNav();
 const qs = new URLSearchParams(location.search);
 let role = qs.get('role') === 'poster' ? 'poster' : qs.get('role') === 'mentor' ? 'mentor' : qs.get('role') === 'student' ? 'student' : null;
 const rolepick = document.getElementById('rolepick');
 const formcard = document.getElementById('formcard');
 const msg = document.getElementById('msg');
+const EMOJI = { student: '🎓', mentor: '🧭', poster: '🏢' };
 
 function showForm(r) {
   role = r;
   rolepick.style.display = 'none';
   formcard.style.display = '';
   document.getElementById('ftitle').textContent = r === 'student' ? 'Create Student Account' : r === 'mentor' ? 'Create Mentor Account' : 'Create Poster Account';
-  document.getElementById('studentfields').style.display = r === 'student' ? '' : 'none';
-  document.getElementById('posterfields').style.display = r === 'poster' ? '' : 'none';
-  document.getElementById('mentorfields').style.display = r === 'mentor' ? '' : 'none';
-  document.getElementById('emaillabel').firstChild.textContent = r === 'student' ? 'College email (@jyothyit.ac.in)' : 'Email address';
+  document.getElementById('femoji').textContent = EMOJI[r] || '🎓';
+  document.getElementById('studentfields').style.display = r === 'student' ? 'flex' : 'none';
+  document.getElementById('posterfields').style.display = r === 'poster' ? 'flex' : 'none';
+  document.getElementById('mentorfields').style.display = r === 'mentor' ? 'flex' : 'none';
+  document.getElementById('emaillabel').textContent = r === 'student' ? 'College email (@jyothyit.ac.in)' : 'Email address';
   document.getElementById('email').placeholder = r === 'student' ? 'you@jyothyit.ac.in' : 'you@company.com';
   document.getElementById('dept').required = r === 'student';
   document.getElementById('year').required = r === 'student';
@@ -90,7 +159,7 @@ function showForm(r) {
   document.getElementById('orgtype').required = r === 'poster';
 }
 document.querySelectorAll('#rolepick [data-role]').forEach(b => b.addEventListener('click', () => showForm(b.dataset.role)));
-document.getElementById('back').addEventListener('click', () => { role = null; formcard.style.display = 'none'; rolepick.style.display = ''; history.replaceState(null, '', '/join'); });
+document.getElementById('back').addEventListener('click', () => { role = null; formcard.style.display = 'none'; rolepick.style.display = ''; history.replaceState(null, '', '/join'); msg.innerHTML = ''; });
 if (role) showForm(role);
 
 document.getElementById('f').addEventListener('submit', async (e) => {
@@ -129,7 +198,7 @@ document.getElementById('f').addEventListener('submit', async (e) => {
       } else { location.href = '/dashboard'; }
       return;
     }
-  } catch (err) { msg.innerHTML = alertBox(err.message); }
+  } catch (err) { msg.innerHTML = `<div class="auth-err">${err.message}</div>`; }
   btn.disabled = false; btn.textContent = 'Create account →';
 });
 </script>

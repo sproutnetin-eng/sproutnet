@@ -6,33 +6,104 @@
 <title>Profile | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.p-row { display:flex; gap:1rem; align-items:flex-start; flex-wrap:wrap; }
-.p-col { display:flex; flex-direction:column; gap:1rem; flex:1; min-width:0; }
-.p-narrow { flex:0 0 260px; }
-.avatar-lg { width:96px; height:96px; border-radius:50%; object-fit:cover; }
-.avatar-fb { width:96px; height:96px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2rem; font-weight:700; color:#fff; }
-.bar { height:6px; border-radius:3px; background:var(--line); overflow:hidden; }
-.bar > div { height:100%; background:var(--green); }
-@media (max-width:800px){ .p-narrow { flex:none; width:100%; } }
+  body { background: #FAF8F4; }
+  .p-page { min-height: 100vh; background: #FAF8F4; font-family: 'DM Sans', sans-serif; display: flex; flex-direction: column; }
+  .p-main { flex: 1; }
+  .p-row { display: flex; gap: 24px; align-items: flex-start; max-width: 1200px; margin: 0 auto; padding: clamp(24px, 5vw, 44px) clamp(20px, 5vw, 40px) clamp(60px, 8vw, 100px); }
+  .p-col { display: flex; flex-direction: column; gap: 18px; flex: 1; min-width: 0; }
+  .p-col-narrow { flex: 0 0 260px; }
+  @media (max-width: 800px) {
+    .p-row { flex-direction: column; }
+    .p-col-narrow { flex: none; width: 100%; }
+  }
+  .p-card { background: #fff; border-radius: 14px; border: 1.5px solid rgba(28,20,16,0.06); padding: 20px; }
+  .p-identity { background: #fff; border-radius: 14px; border: 1.5px solid rgba(28,20,16,0.06); padding: 28px 20px; text-align: center; }
+  .p-avatar-wrap { position: relative; display: inline-block; margin-bottom: 12px; }
+  .p-avatar-img { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
+  .p-avatar-fb { width: 96px; height: 96px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 700; color: #fff; margin: 0 auto; }
+  .p-avatar-edit { position: absolute; bottom: 0; right: -4px; width: 32px; height: 32px; border-radius: 50%; border: 2.5px solid #fff; background: #F4A723; color: #1C1410; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .p-avatar-edit:disabled { cursor: not-allowed; }
+  .p-name { font-size: 18px; font-weight: 600; color: #1C1410; margin: 0; }
+  .p-meta { margin-top: 6px; display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+  .p-role { font-size: 11px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; padding: 3px 10px; border-radius: 999px; text-transform: capitalize; }
+  .p-dept { font-size: 13px; color: #6B5E52; }
+  .p-edit-btn { margin-top: 12px; padding: 8px 18px; border-radius: 8px; border: 1.5px solid rgba(28,20,16,0.1); background: #fff; font-size: 13px; font-weight: 600; color: #4A3F38; cursor: pointer; width: 100%; font-family: 'DM Sans', sans-serif; }
+  .p-stats { background: #fff; border-radius: 14px; border: 1.5px solid rgba(28,20,16,0.06); padding: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .p-stat { text-align: center; }
+  .p-stat-v { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; line-height: 1.2; }
+  .p-stat-l { font-size: 10px; color: #9CA3A0; margin-top: 2px; }
+  .p-sec-label { font-size: 11px; font-weight: 600; color: #9CA3A0; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .p-rank-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .p-rank-num { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600; color: #F4A723; }
+  .p-neighbors { display: flex; gap: 6px; flex-wrap: wrap; }
+  .p-neighbor { display: flex; align-items: center; gap: 8px; text-decoration: none; padding: 6px 12px; border-radius: 8px; font-size: 13px; }
+  .p-neighbor .rk { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; }
+  .p-neighbor .sc { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; }
+  .p-full { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: #2D6A4F; font-weight: 600; text-decoration: none; }
+  .p-bio { font-size: 14px; color: #4A3F38; line-height: 1.7; margin: 0; }
+  .p-split { background: #fff; border-radius: 14px; border: 1.5px solid rgba(28,20,16,0.06); padding: 20px; display: flex; gap: 24px; flex-wrap: wrap; }
+  .p-social-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .p-social-row a { font-size: 13px; color: #4A3F38; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+  .p-social-row a span.ic { font-size: 15px; }
+  .p-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .p-badge { font-size: 11px; font-weight: 600; color: #2D6A4F; background: #DCFCE7; padding: 4px 10px; border-radius: 999px; }
+  .p-act-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
+  .p-act-title { font-size: 14px; font-weight: 500; color: #1C1410; }
+  .p-act-date { font-size: 12px; color: #9CA3A0; margin-top: 2px; }
+  .p-score { font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; }
+  .p-pending { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9CA3A0; }
+  .p-enroll { display: flex; flex-direction: column; gap: 12px; }
+  .p-enroll-top { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .p-enroll-name { font-size: 14px; font-weight: 500; color: #1C1410; }
+  .p-enroll-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B5E52; }
+  .p-bar { height: 6px; border-radius: 3px; background: #F2EEE8; overflow: hidden; }
+  .p-bar > div { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  /* Edit modal (from edit-profile.tsx) */
+  .p-overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; background: rgba(28,20,16,0.4); padding: 16px; box-sizing: border-box; }
+  .p-modal { background: #fff; border-radius: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,0.2); }
+  .p-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px 0; }
+  .p-modal-head h2 { font-size: 18px; font-weight: 600; color: #1C1410; margin: 0; }
+  .p-modal-x { background: none; border: none; font-size: 20px; cursor: pointer; color: #9CA3A0; padding: 4px 8px; border-radius: 6px; }
+  .p-modal-body { padding: 16px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+  .p-modal-body label { font-size: 11px; font-weight: 600; color: #6B5E52; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 4px; font-family: 'DM Sans', sans-serif; }
+  .p-modal-body input, .p-modal-body textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1.5px solid rgba(28,20,16,0.1); font-size: 14px; color: #1C1410; font-family: 'DM Sans', sans-serif; }
+  .p-modal-body textarea { resize: none; }
+  .p-slug-row { display: flex; align-items: center; gap: 8px; }
+  .p-slug-row .prefix { font-size: 13px; color: #9CA3A0; font-family: 'JetBrains Mono', monospace; }
+  .p-slug-row input { flex: 1; }
+  .p-modal-err { font-size: 13px; color: #DC2626; padding: 8px 12px; background: #FEF2F2; border-radius: 8px; }
+  .p-modal-btns { display: flex; gap: 10px; margin-top: 4px; }
+  .p-btn-cancel { flex: 1; padding: 11px 0; border-radius: 10px; border: 1.5px solid rgba(28,20,16,0.1); background: #fff; color: #4A3F38; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .p-btn-save { flex: 1; padding: 11px 0; border-radius: 10px; border: none; background: #1C1410; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .p-btn-save:disabled { background: #D4D0C8; cursor: not-allowed; }
+  .p-err { font-size: 13px; color: #DC2626; padding: 8px 12px; background: #FEF2F2; border-radius: 8px; margin-bottom: 12px; }
+  .p-loading { color: #4A3F38; padding: 24px 0; text-align: center; }
+  .p-notfound { background: #fff; border-radius: 14px; border: 1.5px solid rgba(28,20,16,0.06); padding: 40px 24px; text-align: center; max-width: 520px; margin: 40px auto; }
+  .p-notfound h2 { color: #1C1410; margin: 0 0 12px; }
+  .p-notfound a { color: #2D6A4F; font-weight: 600; text-decoration: none; }
 </style>
 </head>
 <body>
+<div class="p-page">
 <div id="sn-nav"></div>
-<div class="container">
-  <div id="msg"></div>
-  <div id="content"><p class="muted">Loading…</p></div>
+<div class="p-main">
+  <div id="msg" style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,40px)"></div>
+  <div id="content"><p class="p-loading">Loading…</p></div>
   <div id="modal"></div>
+</div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
-renderNav('');
+renderNav();
 const slug = decodeURIComponent(location.pathname.split('/')[2] || '');
 const COLORS = ['#2D6A4F','#1E40AF','#9C6344','#6B4C2A','#3D8A65','#4A3F38','#7C3AED','#BE123C'];
 const color = (n) => COLORS[(n || '?').charCodeAt(0) % COLORS.length];
 const initials = (n) => (n || 'SN').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 const msg = (h) => { document.getElementById('msg').innerHTML = h; };
 let data = null;
+
+function scoreColor(s) { return s >= 7 ? '#2D6A4F' : s >= 4 ? '#F4A723' : '#DC2626'; }
 
 function render() {
   const { profile, isOwnProfile, neighbors, myRank, submissions, enrollments } = data;
@@ -41,49 +112,93 @@ function render() {
   if (profile.milestones_done >= 5) badges.push('Deep Thinker');
   if (profile.avg_score >= 8) badges.push('Expert Solver');
   if (profile.attempted >= 3) badges.push('Multi-Problem');
-  const socials = [['github', profile.github, 'GitHub'], ['linkedin', profile.linkedin, 'LinkedIn'], ['twitter', profile.twitter, 'Twitter']].filter(([, u]) => u);
+  const socials = [];
+  if (profile.github) socials.push({ label: 'GitHub', url: profile.github, icon: '⌨' });
+  if (profile.linkedin) socials.push({ label: 'LinkedIn', url: profile.linkedin, icon: '🔗' });
+  if (profile.twitter) socials.push({ label: 'Twitter', url: profile.twitter, icon: '𝕏' });
+  const stats = [
+    { label: 'Builder Score', value: profile.builder_score ?? 0, color: '#F4A723' },
+    { label: 'Attempted', value: profile.attempted ?? 0, color: '#2D6A4F' },
+    { label: 'Avg Score', value: profile.avg_score != null ? Number(profile.avg_score).toFixed(1) : '—', color: '#1C1410' },
+    { label: 'Milestones', value: profile.milestones_done ?? 0, color: '#2D6A4F' },
+  ];
+
   document.getElementById('content').innerHTML = `<div class="p-row">
-    <div class="p-col p-narrow">
-      <div class="card" style="text-align:center;">
-        ${profile.avatar_url ? `<img class="avatar-lg" src="${esc(profile.avatar_url)}" alt="${esc(profile.name)}">`
-          : `<div class="avatar-fb" style="background:${color(profile.name)};margin:0 auto;">${esc(initials(profile.name))}</div>`}
-        <h2 style="margin:.5rem 0 0;">${esc(profile.name)}</h2>
-        <div><span class="badge">${esc(profile.role)}</span>
-          <span class="muted">${esc([profile.dept, profile.year].filter(Boolean).join(' · '))}</span></div>
-        ${isOwnProfile ? `<p><label class="btn">Change avatar<input type="file" id="avatar" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label></p>
-          <button class="btn" id="edit" style="width:100%;">Edit Profile</button><div id="av-msg"></div>` : ''}
+    <div class="p-col p-col-narrow">
+      <div class="p-identity">
+        <div class="p-avatar-wrap">
+          ${profile.avatar_url ? `<img class="p-avatar-img" src="${esc(profile.avatar_url)}" alt="${esc(profile.name)}">`
+            : `<div class="p-avatar-fb" style="background:${color(profile.name)};">${esc(initials(profile.name))}</div>`}
+          ${isOwnProfile ? `<input type="file" id="avatar" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
+            <button class="p-avatar-edit" id="avatar-btn" title="Change avatar">✎</button>` : ''}
+        </div>
+        <h1 class="p-name">${esc(profile.name)}</h1>
+        <div class="p-meta">
+          <span class="p-role">${esc(profile.role)}</span>
+          <span class="p-dept">${esc([profile.dept, profile.year].filter(Boolean).join(' · '))}</span>
+        </div>
+        ${isOwnProfile ? `<button class="p-edit-btn" id="edit">Edit Profile</button><div id="av-msg" style="margin-top:8px"></div>` : ''}
       </div>
-      <div class="card"><table class="table"><tbody>
-        <tr><td>Builder Score</td><td><b>${esc(String(profile.builder_score ?? 0))}</b></td></tr>
-        <tr><td>Attempted</td><td><b>${esc(String(profile.attempted ?? 0))}</b></td></tr>
-        <tr><td>Avg Score</td><td><b>${profile.avg_score != null ? esc(Number(profile.avg_score).toFixed(1)) : '—'}</b></td></tr>
-        <tr><td>Milestones</td><td><b>${esc(String(profile.milestones_done ?? 0))}</b></td></tr>
-      </tbody></table></div>
+      <div class="p-stats">
+        ${stats.map(s => `<div class="p-stat"><div class="p-stat-v" style="color:${s.color}">${esc(String(s.value))}</div><div class="p-stat-l">${esc(s.label)}</div></div>`).join('')}
+      </div>
     </div>
     <div class="p-col">
-      ${myRank ? `<div class="card"><div class="row"><b>Leaderboard Rank</b><b>#${esc(String(myRank))}</b></div>
-        <div class="row">${neighbors.map(n => `<a class="btn" href="/profile/${esc(n.profile_slug)}">#${esc(String(n.rank))} ${esc(n.profile_slug === profile.profile_slug ? 'You' : n.name)} (${esc(String(n.builder_score))})</a>`).join('')}</div>
-        <p><a href="/leaderboard">Full Leaderboard →</a></p></div>` : ''}
-      ${profile.bio ? `<div class="card"><b>About</b><p>${esc(profile.bio)}</p></div>` : ''}
-      ${(socials.length || badges.length) ? `<div class="card"><div class="row">
-        ${socials.map(([, u, l]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a>`).join('')}
-        ${badges.map(b => `<span class="badge">${esc(b)}</span>`).join('')}</div></div>` : ''}
-      <div class="card"><b>Recent Activity</b>
-        ${submissions.length ? `<table class="table"><tbody>${submissions.map(s => `<tr><td>${esc(s.problem_title || 'Submission')}<br><span class="muted">${esc(new Date(s.created_at).toLocaleDateString('en-IN'))}</span></td>
-          <td>${s.score != null ? `<b>${esc(String(s.score))}/10</b>` : '<span class="muted">Pending</span>'}</td></tr>`).join('')}</tbody></table>`
-        : '<p class="muted">No judged submissions yet.</p>'}</div>
-      ${enrollments.length ? `<div class="card"><b>In Progress</b>${enrollments.map(e => {
-        const pct = Math.min(100, Math.round((e.milestone / e.total_milestones) * 100));
-        return `<p>${esc(e.problem_title || 'Problem')} — ${pct}%</p><div class="bar"><div style="width:${pct}%;"></div></div>`; }).join('')}</div>` : ''}
+      ${myRank ? `<div class="p-card">
+        <div class="p-rank-row">
+          <div class="p-sec-label" style="margin:0">Leaderboard Rank</div>
+          <span class="p-rank-num">#${esc(String(myRank))}</span>
+        </div>
+        <div class="p-neighbors">
+          ${neighbors.map(n => `<a class="p-neighbor" href="/profile/${esc(n.profile_slug)}" style="background:${n.profile_slug === profile.profile_slug ? '#FEF3C7' : '#F6F2EB'}">
+            <span class="rk">#${esc(String(n.rank))}</span>
+            <span style="color:${n.profile_slug === profile.profile_slug ? '#1C1410' : '#4A3F38'};font-weight:${n.profile_slug === profile.profile_slug ? 600 : 400}">${esc(n.profile_slug === profile.profile_slug ? 'You' : n.name)}</span>
+            <span class="sc">${esc(String(n.builder_score))}</span>
+          </a>`).join('')}
+        </div>
+        <a class="p-full" href="/leaderboard">Full Leaderboard →</a>
+      </div>` : ''}
+      ${profile.bio ? `<div class="p-card"><div class="p-sec-label">About</div><p class="p-bio">${esc(profile.bio)}</p></div>` : ''}
+      ${(socials.length || badges.length) ? `<div class="p-split">
+        ${socials.length ? `<div><div class="p-sec-label">Connect</div><div class="p-social-row">${socials.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"><span class="ic">${esc(s.icon)}</span> ${esc(s.label)}</a>`).join('')}</div></div>` : ''}
+        ${badges.length ? `<div><div class="p-sec-label">Badges</div><div class="p-badges">${badges.map(b => `<span class="p-badge">${esc(b)}</span>`).join('')}</div></div>` : ''}
+      </div>` : ''}
+      <div class="p-card">
+        <div class="p-sec-label">Recent Activity</div>
+        ${submissions.length ? `<div>${submissions.map((s, i) => `
+          <div class="p-act-row" style="border-bottom:${i < submissions.length - 1 ? '1px solid rgba(28,20,16,0.04)' : 'none'}">
+            <div>
+              <div class="p-act-title">${esc(s.problem_title || 'Submission')}</div>
+              <div class="p-act-date">${esc(new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }))}</div>
+            </div>
+            <div>${s.score != null ? `<span class="p-score" style="color:${scoreColor(s.score)}">${esc(String(s.score))}/10</span>` : '<span class="p-pending">Pending</span>'}</div>
+          </div>`).join('')}</div>`
+        : '<p class="p-bio" style="color:#9CA3A0">No judged submissions yet.</p>'}
+      </div>
+      ${enrollments.length ? `<div class="p-card"><div class="p-sec-label">In Progress</div>
+        <div class="p-enroll">${enrollments.map(e => {
+          const pct = Math.min(100, Math.round((e.milestone / e.total_milestones) * 100));
+          return `<div>
+            <div class="p-enroll-top"><span class="p-enroll-name">${esc(e.problem_title || 'Problem')}</span><span class="p-enroll-pct">${pct}%</span></div>
+            <div class="p-bar"><div style="width:${pct}%;background:${pct === 100 ? '#2D6A4F' : '#F4A723'}"></div></div>
+          </div>`; }).join('')}</div>
+      </div>` : ''}
     </div>
   </div>`;
 
   if (isOwnProfile) {
-    document.getElementById('avatar').addEventListener('change', async (e) => {
+    const fileInput = document.getElementById('avatar');
+    document.getElementById('avatar-btn').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0]; if (!file) return;
+      const btn = document.getElementById('avatar-btn');
+      btn.disabled = true; btn.textContent = '…';
       const form = new FormData(); form.append('avatar', file);
-      try { await api('/api/profile/avatar', { method:'POST', form }); location.reload(); }
-      catch (err) { document.getElementById('av-msg').innerHTML = alertBox(err.message); }
+      try { await api('/api/profile/avatar', { method: 'POST', form }); location.reload(); }
+      catch (err) {
+        document.getElementById('av-msg').innerHTML = `<div class="p-err">${esc(err.message)}</div>`;
+        btn.disabled = false; btn.textContent = '✎';
+      }
     });
     document.getElementById('edit').addEventListener('click', openEdit);
   }
@@ -91,21 +206,43 @@ function render() {
 
 function openEdit() {
   const p = data.profile;
-  const fields = [['name','Full Name'],['dept','Department'],['year','Year'],['profile_slug','Profile URL (/profile/…)'],['bio','Bio'],['github','GitHub'],['linkedin','LinkedIn'],['twitter','Twitter']];
-  document.getElementById('modal').innerHTML = `<div class="card"><h2>Edit Profile</h2><div id="e-err"></div>
-    ${fields.map(([k, l]) => k === 'bio'
-      ? `<label>${esc(l)}</label><textarea class="textarea" id="f-${k}">${esc(p[k] || '')}</textarea>`
-      : `<label>${esc(l)}</label><input class="input" id="f-${k}" value="${esc(p[k] || '')}">`).join('')}
-    <div class="row"><button class="btn" id="e-cancel">Cancel</button>
-    <button class="btn btn-primary" id="e-save">Save Changes</button></div></div>`;
-  document.getElementById('e-cancel').addEventListener('click', () => { document.getElementById('modal').innerHTML = ''; });
+  const fields = [
+    { k: 'name', label: 'Full Name', ph: 'Your name' },
+    { k: 'dept', label: 'Department', ph: 'Computer Science' },
+    { k: 'year', label: 'Year', ph: '3rd Year' },
+    { k: 'profile_slug', label: 'Profile URL', ph: 'your-slug', type: 'slug' },
+    { k: 'bio', label: 'Bio', ph: 'Tell us about yourself…', type: 'textarea' },
+    { k: 'github', label: 'GitHub', ph: 'https://github.com/username' },
+    { k: 'linkedin', label: 'LinkedIn', ph: 'https://linkedin.com/in/username' },
+    { k: 'twitter', label: 'Twitter', ph: 'https://twitter.com/username' },
+  ];
+  document.getElementById('modal').innerHTML = `<div class="p-overlay" id="p-overlay">
+    <div class="p-modal">
+      <div class="p-modal-head"><h2>Edit Profile</h2><button class="p-modal-x" id="e-cancel-x">✕</button></div>
+      <div class="p-modal-body">
+        ${fields.map(f => `<div><label>${esc(f.label)}</label>${f.type === 'textarea'
+          ? `<textarea id="f-${f.k}" rows="3" placeholder="${esc(f.ph)}">${esc(p[f.k] || '')}</textarea>`
+          : f.type === 'slug'
+          ? `<div class="p-slug-row"><span class="prefix">/profile/</span><input id="f-${f.k}" value="${esc(p[f.k] || '')}" placeholder="${esc(f.ph)}"></div>`
+          : `<input id="f-${f.k}" value="${esc(p[f.k] || '')}" placeholder="${esc(f.ph)}">`}</div>`).join('')}
+        <div id="e-err"></div>
+        <div class="p-modal-btns"><button class="p-btn-cancel" id="e-cancel">Cancel</button>
+        <button class="p-btn-save" id="e-save">Save Changes</button></div>
+      </div>
+    </div>
+  </div>`;
+  const close = () => { document.getElementById('modal').innerHTML = ''; };
+  document.getElementById('e-cancel').addEventListener('click', close);
+  document.getElementById('e-cancel-x').addEventListener('click', close);
+  document.getElementById('p-overlay').addEventListener('click', (e) => { if (e.target.id === 'p-overlay') close(); });
   document.getElementById('e-save').addEventListener('click', async (e) => {
-    e.target.disabled = true;
-    const body = {}; fields.forEach(([k]) => { body[k] = document.getElementById('f-' + k).value; });
-    try { const d = await api('/api/profile/update', { method:'PUT', body });
-      if (d.profile_slug || body.profile_slug) { const ns = body.profile_slug?.trim(); if (ns && ns !== slug) { location.href = `/profile/${encodeURIComponent(ns)}`; return; } }
-      document.getElementById('modal').innerHTML = ''; location.reload();
-    } catch (err) { document.getElementById('e-err').innerHTML = alertBox(err.message); e.target.disabled = false; }
+    e.target.disabled = true; e.target.textContent = 'Saving…';
+    const body = {}; fields.forEach(({ k }) => { body[k] = document.getElementById('f-' + k).value; });
+    try {
+      const d = await api('/api/profile/update', { method: 'PUT', body });
+      if (d.profile_slug || body.profile_slug) { const ns = (body.profile_slug || '').trim(); if (ns && ns !== slug) { location.href = `/profile/${encodeURIComponent(ns)}`; return; } }
+      close(); location.reload();
+    } catch (err) { document.getElementById('e-err').innerHTML = `<div class="p-modal-err">${esc(err.message)}</div>`; e.target.disabled = false; e.target.textContent = 'Save Changes'; }
   });
 }
 
@@ -113,7 +250,7 @@ try {
   data = await api(`/api/public/profile/${encodeURIComponent(slug)}`);
   render();
 } catch (e) {
-  document.getElementById('content').innerHTML = `<div class="card"><h2>Profile not found</h2><a href="/">← Home</a></div>`;
+  document.getElementById('content').innerHTML = `<div class="p-notfound"><h2>Profile not found</h2><a href="/">← Home</a></div>`;
   if (!/404|not found/i.test(e.message)) msg(alertBox(e.message));
 }
 </script>

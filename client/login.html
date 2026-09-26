@@ -5,25 +5,77 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Login | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .auth-wrap {
+    min-height: 100vh;
+    background: #FAF8F4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    box-sizing: border-box;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+  .auth-inner { width: 100%; max-width: 440px; }
+  .auth-head { text-align: center; margin-bottom: 40px; }
+  .auth-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 24px; }
+  .auth-logo span { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: #1C1410; }
+  .auth-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 32px; font-weight: 400; color: #1C1410; letter-spacing: -0.5px; line-height: 1.1; display: block; margin: 0; }
+  .auth-head p { font-family: 'DM Sans', sans-serif; font-size: 15px; color: #4A3F38; margin-top: 8px; margin-bottom: 0; font-weight: 300; }
+  .auth-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 36px 40px; box-shadow: 0 4px 24px rgba(28,20,16,0.07); }
+  .role-grid { display: grid; gap: 16px; }
+  .role-link { display: block; text-decoration: none; border: 1.5px solid rgba(28,20,16,0.1); border-radius: 12px; padding: 18px 20px; background: #FAF8F4; }
+  .role-link:hover { border-color: #2D6A4F; }
+  .role-link .t { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; }
+  .role-link .d { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #4A3F38; margin-top: 6px; font-weight: 300; }
+  .auth-div { border-top: 1px solid rgba(28,20,16,0.07); margin: 24px 0; }
+  .auth-alt { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #9CA3A0; text-align: center; margin: 0; }
+  .auth-alt a { color: #2D6A4F; font-weight: 600; text-decoration: none; }
+  .auth-foot { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; text-align: center; margin-top: 20px; margin-bottom: 0; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:440px">
-  <div class="card" style="text-align:center">
-    <h1>Choose your sign in</h1>
-    <p class="muted">Separate access for students and problem posters.</p>
+<div class="auth-wrap">
+  <div class="auth-inner">
+    <div class="auth-head">
+      <a class="auth-logo" href="/">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+          <rect width="34" height="34" rx="8" fill="#2D6A4F"/>
+          <line x1="17" y1="27" x2="17" y2="15" stroke="#FAF8F4" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F4A723"/>
+          <path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(250,248,244,0.88)"/>
+        </svg>
+        <span>SproutNet</span>
+      </a>
+      <h1>Choose your sign in</h1>
+      <p>Separate access for students and problem posters.</p>
+    </div>
+    <div class="auth-card">
+      <div class="role-grid">
+        <a class="role-link" href="/login/student">
+          <div class="t">I&#39;m a Student</div>
+          <div class="d">Sign in to browse problems and submit solutions.</div>
+        </a>
+        <a class="role-link" href="/login/poster">
+          <div class="t">I&#39;m a Problem Poster</div>
+          <div class="d">Sign in to post a problem and review submissions.</div>
+        </a>
+        <a class="role-link" href="/login/mentor">
+          <div class="t">I&#39;m a Mentor</div>
+          <div class="d">Sign in to guide student teams and review requests.</div>
+        </a>
+      </div>
+      <div class="auth-div"></div>
+      <p class="auth-alt">Don&#39;t have an account? <a href="/join">Join SproutNet</a></p>
+    </div>
+    <p class="auth-foot">Verified student &amp; poster accounts only · Season 1 open</p>
   </div>
-  <div class="card">
-    <a class="btn" style="display:block;margin-bottom:0.75rem" href="/login/student"><strong>I'm a Student</strong><br><span class="muted">Sign in to browse problems and submit solutions.</span></a>
-    <a class="btn" style="display:block;margin-bottom:0.75rem" href="/login/poster"><strong>I'm a Problem Poster</strong><br><span class="muted">Sign in to post a problem and review submissions.</span></a>
-    <a class="btn" style="display:block" href="/login/mentor"><strong>I'm a Mentor</strong><br><span class="muted">Sign in to guide student teams and review requests.</span></a>
-  </div>
-  <p class="muted" style="text-align:center">Don't have an account? <a href="/join">Join SproutNet</a></p>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { renderNav } from '/assets/app.js';
-renderNav('login');
+renderNav();
 </script>
 </body>
 </html>

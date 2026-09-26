@@ -5,61 +5,150 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Blogs | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .blogs-page { min-height: 100vh; background: #FAF8F4; font-family: 'DM Sans', sans-serif; }
+  .blogs-wrap { max-width: 1180px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); }
+  .blogs-hero { background: linear-gradient(135deg, #1C1410 0%, #2B211B 52%, #2D6A4F 100%); border-radius: 24px; padding: clamp(24px, 5vw, 40px); margin-bottom: 28px; color: #FAF8F4; position: relative; overflow: hidden; }
+  .blogs-hero-glow { position: absolute; inset: auto -40px -50px auto; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, rgba(244,167,35,0.24) 0%, rgba(244,167,35,0) 70%); }
+  .blogs-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(250,248,244,0.48); margin-bottom: 16px; }
+  .blogs-hero-inner { max-width: 760px; position: relative; }
+  .blogs-hero h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(34px, 7vw, 58px); font-weight: 400; line-height: 1.02; letter-spacing: -0.7px; margin: 0 0 16px; }
+  .blogs-hero p { font-size: 16px; line-height: 1.75; color: rgba(250,248,244,0.78); max-width: 620px; margin: 0; }
+  .blogs-hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+  .blogs-btn-solid { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: #1C1410; background: #F4A723; padding: 10px 18px; border-radius: 10px; text-decoration: none; }
+  .blogs-btn-ghost { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #FAF8F4; background: rgba(250,248,244,0.18); border: 1px solid rgba(250,248,244,0.35); padding: 10px 18px; border-radius: 10px; text-decoration: none; }
+  .blogs-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.8fr); gap: 24px; align-items: start; }
+  @media (max-width: 980px) { .blogs-layout { grid-template-columns: 1fr; } }
+  .blogs-feed { display: grid; gap: 18px; }
+  .blogs-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 20px; padding: 22px; box-shadow: 0 12px 30px rgba(28,20,16,0.04); }
+  a.blogs-card-link { text-decoration: none; display: block; color: inherit; }
+  a.blogs-card-link .blogs-card { cursor: pointer; }
+  .blogs-cover { width: 100%; height: 200px; border-radius: 12px; overflow: hidden; margin-bottom: 16px; background: #F6F2EB; }
+  .blogs-cover img { width: 100%; height: 100%; object-fit: cover; }
+  .blogs-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+  .blogs-author { display: flex; gap: 14px; min-width: 0; }
+  .blogs-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; flex-shrink: 0; }
+  .blogs-avatar.knowledge { background: #EAF4EE; color: #2D6A4F; }
+  .blogs-avatar.question { background: rgba(30,64,175,0.08); color: #1E40AF; }
+  .blogs-author-name { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #1C1410; }
+  .blogs-type-pill { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 4px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .blogs-type-pill.knowledge { color: #2D6A4F; background: #EAF4EE; }
+  .blogs-type-pill.question { color: #1E40AF; background: rgba(30,64,175,0.08); }
+  .blogs-author-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .blogs-date { font-size: 12px; color: #7A7068; }
+  .blogs-counts { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6A5F58; background: #F6F2EB; padding: 6px 10px; border-radius: 999px; white-space: nowrap; }
+  .blogs-card h2 { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: #1C1410; line-height: 1.2; margin: 0 0 12px; }
+  .blogs-excerpt { font-size: 15px; color: #3F352E; line-height: 1.8; white-space: pre-wrap; margin: 0; }
+  .blogs-side { display: grid; gap: 18px; }
+  .blogs-side-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 18px; padding: 22px; }
+  .blogs-side-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .blogs-snap-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(28,20,16,0.06); }
+  .blogs-snap-row:last-child { border-bottom: none; }
+  .blogs-snap-label { font-size: 13px; color: #7A7068; }
+  .blogs-snap-val { font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; }
+  .blogs-tips { background: linear-gradient(135deg, #1C1410 0%, #2D6A4F 100%); border-radius: 18px; padding: 22px; color: #FAF8F4; }
+  .blogs-tips-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(250,248,244,0.42); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+  .blogs-tips h3 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; margin: 0 0 14px; }
+  .blogs-tips p { font-size: 13px; line-height: 1.7; color: rgba(250,248,244,0.78); margin: 0 0 12px; }
+  .blogs-tips p:last-child { margin-bottom: 0; }
+  .blogs-cta-card { background: #F6F2EB; border-radius: 18px; padding: 22px; border: 1px solid rgba(28,20,16,0.06); }
+  .blogs-cta-card h3 { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: #1C1410; margin: 0 0 10px; }
+  .blogs-cta-card p { font-size: 13px; color: #5C524A; line-height: 1.7; margin: 0 0 16px; }
+  .blogs-err-card { background: #fff; border: 1.5px solid rgba(220,38,38,0.12); border-radius: 18px; padding: 24px; }
+  .blogs-err-title { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin-bottom: 8px; }
+  .blogs-err-body { font-size: 14px; color: #6A5F58; line-height: 1.7; }
+  .blogs-err-detail { font-size: 12px; color: #B91C1C; margin-top: 10px; }
+  .blogs-empty { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 18px; padding: 42px 28px; text-align: center; }
+  .blogs-empty h2 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #1C1410; margin: 0 0 8px; }
+  .blogs-empty p { font-size: 14px; color: #6A5F58; line-height: 1.7; margin: 0; }
+</style>
 </head>
 <body>
+<div class="blogs-page">
 <div id="sn-nav"></div>
-<div class="container">
+<div class="blogs-wrap">
   <div id="msg"></div>
-  <div class="card" style="background:#1C1410;color:#FAF8F4;">
-    <p class="muted">// community blog feed</p>
-    <h1>Share what you know. Ask what you don't.</h1>
-    <p>Read the full feed and comments without logging in. To publish, like, or comment, sign in.</p>
-    <div class="row" id="blog-cta"></div>
+  <section class="blogs-hero">
+    <div class="blogs-hero-glow"></div>
+    <div class="blogs-eyebrow">// community blog feed</div>
+    <div class="blogs-hero-inner">
+      <h1>Share what you know.<br>Ask what you don&rsquo;t.</h1>
+      <p>Blogs is the open feed for builder notes, lessons learned, sharp questions, and community help. Read the full feed and comments without logging in. To publish, like, or comment, sign in.</p>
+      <div class="blogs-hero-cta" id="blog-cta"></div>
+    </div>
+  </section>
+  <div class="blogs-layout">
+    <div class="blogs-feed" id="feed"><p class="blogs-date">Loading…</p></div>
+    <aside class="blogs-side">
+      <section class="blogs-side-card">
+        <div class="blogs-side-eyebrow">// feed snapshot</div>
+        <div id="snapshot"><p class="blogs-date">Loading…</p></div>
+      </section>
+      <section class="blogs-tips">
+        <div class="blogs-tips-eyebrow">// how to post well</div>
+        <h3>Strong posts help faster</h3>
+        <p>Name the exact problem, insight, or confusion in the title.</p>
+        <p>Add enough context that someone outside your project can still help.</p>
+        <p>Use comments to refine the thread instead of rewriting the whole post.</p>
+      </section>
+      <section class="blogs-cta-card" id="blogs-side-cta">
+        <h3>Need your own feed presence?</h3>
+        <p>Sign in to publish a post, react to ideas, and answer questions from other builders.</p>
+      </section>
+    </aside>
   </div>
-  <div class="grid" style="grid-template-columns: 2fr 1fr;">
-    <div id="feed"><p class="muted">Loading…</p></div>
-    <aside><div class="card"><h3>// feed snapshot</h3><div id="snapshot"><p class="muted">Loading…</p></div></div>
-    <div class="card"><h3>Strong posts help faster</h3><ul class="muted">
-      <li>Name the exact problem, insight, or confusion in the title.</li>
-      <li>Add enough context that someone outside your project can still help.</li>
-      <li>Use comments to refine the thread.</li></ul></div></aside>
-  </div>
+</div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
-renderNav('blogs');
+renderNav();
 const { data: { session } } = await sb().auth.getSession();
 document.getElementById('blog-cta').innerHTML = session
-  ? `<a class="btn btn-primary" href="/blogs/new">Write and manage posts</a>`
-  : `<a class="btn btn-primary" href="/login">Log in to post</a><a class="btn" href="/join">Create account</a>`;
+  ? `<a class="blogs-btn-solid" href="/blogs/manage">Write and manage posts</a>`
+  : `<a class="blogs-btn-solid" href="/login">Log in to post</a><a class="blogs-btn-ghost" href="/join">Create account</a>`;
+document.getElementById('blogs-side-cta').innerHTML = session
+  ? `<h3>Posting as a builder</h3><p>Your posts and comments publish under your SproutNet account and become visible to everyone on this page.</p><a class="blogs-btn-solid" href="/dashboard">Go to dashboard -&gt;</a>`
+  : `<h3>Need your own feed presence?</h3><p>Sign in to publish a post, react to ideas, and answer questions from other builders.</p><a class="blogs-btn-solid" href="/login">Log in -&gt;</a>`;
 const plain = (body) => { try { const t = body.trim();
     if (t.startsWith('{')) { const j = JSON.parse(t);
       const walk = (n) => n.text ? n.text : (n.content || []).map(walk).join(' ');
       return walk(j); } } catch {} return body; };
+const fmtRole = (r) => r ? r.charAt(0).toUpperCase() + r.slice(1) : 'Member';
 try {
   const { posts, error } = await api('/api/blogs/posts');
   if (error) throw new Error(error);
   const list = posts || [];
   document.getElementById('feed').innerHTML = list.length ? list.map(p => {
-    const meta = p.postType === 'question' ? 'Question / Doubt' : 'Knowledge Share';
+    const isQ = p.postType === 'question';
+    const meta = isQ ? 'Question / Doubt' : 'Knowledge Share';
+    const cls = isQ ? 'question' : 'knowledge';
     const txt = plain(p.body || '');
-    const ex = p.excerpt || (txt.slice(0, 250) + (txt.length > 250 ? '…' : ''));
-    return `<a href="/blogs/${esc(p.id)}" style="text-decoration:none;color:inherit;"><div class="card">
-      ${p.cover_image ? `<img src="${esc(p.cover_image)}" alt="" style="width:100%;height:200px;object-fit:cover;border-radius:8px;">` : ''}
-      <div><b>${esc(p.author?.name || 'SproutNet member')}</b> <span class="badge">${esc(meta)}</span></div>
-      <div class="muted">${esc(p.author?.role || 'Member')} · ${esc(new Date(p.createdAt).toLocaleString('en-IN'))}</div>
-      <h2>${esc(p.title)}</h2><p>${esc(ex)}</p>
-      <span class="badge gray">${esc(String(p.commentsCount ?? 0))} comments · ${esc(String(p.likesCount ?? 0))} likes</span>
-    </div></a>`; }).join('')
-    : '<div class="card"><h2>No blog posts yet</h2><p class="muted">The first knowledge share or question posted here will start the community.</p></div>';
+    const ex = p.excerpt || (txt.slice(0, 250) + (txt.length > 250 ? '...' : ''));
+    const aname = p.author?.name || 'SN';
+    const aini = aname.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    return `<a class="blogs-card-link" href="/blogs/${esc(p.id)}"><article class="blogs-card">
+      ${p.cover_image ? `<div class="blogs-cover"><img src="${esc(p.cover_image)}" alt=""></div>` : ''}
+      <div class="blogs-card-top">
+        <div class="blogs-author">
+          <div class="blogs-avatar ${cls}">${esc(aini)}</div>
+          <div><div class="blogs-author-row"><span class="blogs-author-name">${esc(p.author?.name || 'SproutNet member')}</span><span class="blogs-type-pill ${cls}">${esc(meta)}</span></div>
+          <div class="blogs-date">${esc(fmtRole(p.author?.role))} - ${esc(new Date(p.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }))}</div></div>
+        </div>
+        <div class="blogs-counts">${esc(String(p.commentsCount ?? 0))} comment${(p.commentsCount ?? 0) === 1 ? '' : 's'} · ${esc(String(p.likesCount ?? 0))} like${(p.likesCount ?? 0) === 1 ? '' : 's'}</div>
+      </div>
+      <h2>${esc(p.title)}</h2><p class="blogs-excerpt">${esc(ex)}</p>
+    </article></a>`; }).join('')
+    : '<section class="blogs-empty"><h2>No blog posts yet</h2><p>The feed is empty for now. The first knowledge share or question posted here will become the starting point for the whole community.</p></section>';
+  const q = list.filter(p => p.postType === 'question').length;
+  const k = list.filter(p => p.postType === 'knowledge').length;
   document.getElementById('snapshot').innerHTML =
-    `<p>Visible posts: <b>${list.length}</b></p>
-     <p>Questions open: <b>${list.filter(p => p.postType === 'question').length}</b></p>
-     <p>Knowledge shares: <b>${list.filter(p => p.postType === 'knowledge').length}</b></p>`;
+    `<div class="blogs-snap-row"><span class="blogs-snap-label">Visible posts</span><span class="blogs-snap-val" style="color:#2D6A4F;">${list.length}</span></div>
+     <div class="blogs-snap-row"><span class="blogs-snap-label">Questions open</span><span class="blogs-snap-val" style="color:#1E40AF;">${q}</span></div>
+     <div class="blogs-snap-row"><span class="blogs-snap-label">Knowledge shares</span><span class="blogs-snap-val" style="color:#F4A723;">${k}</span></div>`;
 } catch (e) {
   document.getElementById('msg').innerHTML = alertBox(e.message);
-  document.getElementById('feed').innerHTML = '<div class="card"><h2>Could not load the blog feed</h2><p class="muted">Refresh the page in a moment.</p></div>';
+  document.getElementById('feed').innerHTML = '<section class="blogs-err-card"><div class="blogs-err-title">Could not load the blog feed</div><div class="blogs-err-body">Refresh the page in a moment. If this keeps happening, the server query needs attention.</div></section>';
 }
 </script>
 </body>

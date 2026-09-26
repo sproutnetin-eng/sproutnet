@@ -5,20 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Teams | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+.teams-wrap { padding: clamp(24px, 5vw, 48px); max-width: 960px; margin: 0 auto; }
+.teams-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.teams-wrap h1 { font-family: 'Sora', sans-serif; font-size: 28px; font-weight: 700; color: #1C1410; margin: 0; }
+.teams-sub { font-family: 'DM Sans', sans-serif; font-size: 15px; color: #4A3F38; margin-top: 8px; }
+.teams-head { margin-bottom: 40px; }
+.teams-grid { display: grid; gap: 48px; }
+.teams-sec-t { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin: 0 0 16px; }
+.team-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 12px; padding: 16px 20px; }
+.team-row .tn { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #1C1410; }
+.team-row .tm { font-size: 13px; color: #4A3F38; margin-top: 4px; }
+.team-row .tm span { text-transform: capitalize; }
+.btn-ws-open { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #1C1410; background: #F4A723; border-radius: 8px; padding: 8px 14px; text-decoration: none; }
+.teams-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: clamp(20px, 3vw, 32px); }
+.teams-card h2 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin: 0 0 4px; }
+.teams-card .cd { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #4A3F38; margin: 0 0 20px; }
+.teams-form { display: grid; gap: 14px; }
+.teams-form label.fl { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #1C1410; display: block; margin-bottom: 4px; }
+.teams-form select, .teams-form input { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 10px 12px; outline: none; box-sizing: border-box; }
+.teams-form input.up { text-transform: uppercase; }
+.btn-create { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 12px; cursor: pointer; }
+.btn-create:disabled { opacity: 0.7; cursor: not-allowed; }
+.invite-box { background: rgba(45,106,79,0.12); border-radius: 8px; padding: 16px; text-align: center; }
+.invite-box .il { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.invite-box .ic { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: #F4A723; letter-spacing: 0.12em; }
+.btn-copy { margin-top: 10px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer; }
+.teams-err { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #DC2626; }
+.teams-ok { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #2D6A4F; }
+.teams-list { display: grid; gap: 12px; }
+.teams-view-link { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #2D6A4F; text-decoration: none; }
+.teams-empty { text-align: center; padding: 48px 0; color: #9CA3A0; font-family: 'DM Sans', sans-serif; font-size: 14px; }
+.teams-empty a { color: #2D6A4F; font-weight: 600; }
+.already { font-size: 12px; color: #2D6A4F; font-weight: 600; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:960px">
+<div class="teams-wrap">
   <div id="msg"></div>
-  <p class="muted">// collaborate</p>
-  <h1>Teams</h1>
-  <p class="muted">Form a team, solve problems together, and build faster.</p>
-  <div id="content"><p class="muted">Loading...</p></div>
+  <div class="teams-head"><div class="teams-eyebrow">// collaborate</div><h1>Teams</h1><p class="teams-sub">Form a team, solve problems together, and build faster.</p></div>
+  <div id="content"><p style="font-family:'DM Sans',sans-serif;font-size:14px;color:#9CA3A0">Loading...</p></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
-renderNav('dash');
+renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
 
@@ -27,31 +59,37 @@ if (s) {
   try {
     const { problems, myTeams } = await api('/api/student/teams');
     content.innerHTML = `
-      ${myTeams.length ? `<h2>Your Teams</h2><div class="grid">` + myTeams.map(t => `
-        <div class="card"><h3>${esc(t.team_name)}</h3><p class="muted">${esc(t.problem_title)} · ${esc(t.role)}</p>
-        <a class="btn btn-primary" href="/teams/${esc(t.team_id)}">Open Workspace →</a></div>`).join('') + `</div>` : ''}
-      <div class="card">
+      <div class="teams-grid">
+      ${myTeams.length ? `<div><h2 class="teams-sec-t">Your Teams</h2><div class="teams-list">` + myTeams.map(t => `
+        <div class="team-row"><div><div class="tn">${esc(t.team_name)}</div><div class="tm">${esc(t.problem_title)} · <span>${esc(t.role)}</span></div></div>
+        <a class="btn-ws-open" href="/teams/${esc(t.team_id)}">Open Workspace →</a></div>`).join('') + `</div></div>` : ''}
+      <div class="teams-card">
         <h2>Create a Team</h2>
-        <p class="muted">Pick a problem and name your team.</p>
-        <label>Problem<select class="select" id="prob">
-          <option value="">Select a problem...</option>
-          ${problems.map(p => `<option value="${esc(p.id)}">${esc(p.title)} (${esc(p.domain)}) — ${p.team_mode === 'team' ? 'Team only' : 'Solo or Team'} · up to ${p.max_team_size} members</option>`).join('')}
-        </select></label>
-        <label>Team Name<input class="input" id="tname" placeholder="e.g. The Debuggers"></label>
-        <button class="btn btn-primary" id="create">Create Team →</button>
-        <div id="invite"></div>
+        <p class="cd">Pick a problem and name your team.</p>
+        <div class="teams-form">
+          <div><label class="fl">Problem</label><select id="prob">
+            <option value="">Select a problem...</option>
+            ${problems.map(p => `<option value="${esc(p.id)}">${esc(p.title)} (${esc(p.domain)}) — ${p.team_mode === 'team' ? 'Team only' : 'Solo or Team'} · up to ${p.max_team_size} members</option>`).join('')}
+          </select></div>
+          <div><label class="fl">Team Name</label><input id="tname" placeholder="e.g. The Debuggers"></div>
+          <button class="btn-create" id="create">Create Team →</button>
+          <div id="invite"></div>
+        </div>
       </div>
-      <div class="card">
+      <div class="teams-card">
         <h2>Join a Team</h2>
-        <p class="muted">Enter the invite code shared by your team leader.</p>
-        <label>Invite code<input class="input" id="icode" placeholder="e.g. SPROUT-XXXXXX" style="text-transform:uppercase"></label>
-        <button class="btn btn-primary" id="join">Join Team →</button>
-        <div id="joinmsg"></div>
+        <p class="cd">Enter the invite code shared by your team leader.</p>
+        <div class="teams-form">
+          <input id="icode" class="up" placeholder="e.g. SPROUT-XXXXXX">
+          <button class="btn-create" id="join">Join Team →</button>
+          <div id="joinmsg"></div>
+        </div>
       </div>
-      ${problems.length ? `<h2>Problems You Can Team Up On</h2><div class="grid">` + problems.map(p => `
-        <div class="card"><h3>${esc(p.title)}</h3><p class="muted">${esc(p.domain)} · ${p.team_mode === 'team' ? 'Team only' : 'Solo or Team'} · ${p.min_team_size}–${p.max_team_size} members</p>
-        ${myTeams.some(t => t.problem_title === p.title) ? '<span class="badge">Already in a team</span>' : `<a class="btn" href="/problems/${esc(p.id)}">View Problem →</a>`}</div>`).join('') + `</div>`
-        : (myTeams.length ? '' : `<div class="card" style="text-align:center">No team-enabled problems right now. <a href="/problems">Browse all problems</a>.</div>`)}`;
+      ${problems.length ? `<div><h2 class="teams-sec-t">Problems You Can Team Up On</h2><div class="teams-list">` + problems.map(p => `
+        <div class="team-row"><div><div class="tn">${esc(p.title)}</div><div class="tm">${esc(p.domain)} · ${p.team_mode === 'team' ? 'Team only' : 'Solo or Team'} · ${p.min_team_size}–${p.max_team_size} members</div></div>
+        <div>${myTeams.some(t => t.problem_title === p.title) ? '<span class="already">Already in a team</span>' : `<a class="teams-view-link" href="/problems/${esc(p.id)}">View Problem →</a>`}</div></div>`).join('') + `</div></div>`
+        : (myTeams.length ? '' : `<div class="teams-empty">No team-enabled problems are available right now. Check back later or <a href="/problems">browse all problems</a>.</div>`)}
+      </div>`;
 
     document.getElementById('create').addEventListener('click', async (e) => {
       const btn = e.target;
@@ -61,9 +99,10 @@ if (s) {
       btn.disabled = true; btn.textContent = 'Creating...'; msg.innerHTML = '';
       try {
         const data = await api('/api/teams/create', { method: 'POST', body: { problemId, teamName } });
-        document.getElementById('invite').innerHTML = alertBox(`Team created! Invite code: ${data.inviteCode}`, true);
+        document.getElementById('invite').innerHTML = `<div class="invite-box"><div class="il">Invite Code</div><div class="ic">${esc(data.inviteCode)}</div><button class="btn-copy" id="copycode">Copy Code</button></div>`;
+        document.getElementById('copycode').addEventListener('click', () => navigator.clipboard.writeText(data.inviteCode));
         document.getElementById('tname').value = ''; document.getElementById('prob').value = '';
-      } catch (err) { msg.innerHTML = alertBox(err.message); }
+      } catch (err) { document.getElementById('invite').innerHTML = `<div class="teams-err">${esc(err.message)}</div>`; }
       btn.disabled = false; btn.textContent = 'Create Team →';
     });
     document.getElementById('join').addEventListener('click', async (e) => {
@@ -73,9 +112,9 @@ if (s) {
       btn.disabled = true; btn.textContent = 'Joining...';
       try {
         const data = await api('/api/teams/join', { method: 'POST', body: { inviteCode } });
-        document.getElementById('joinmsg').innerHTML = alertBox(`Joined "${data.teamName}"!`, true);
+        document.getElementById('joinmsg').innerHTML = `<div class="teams-ok">${esc(`Joined "${data.teamName}"!`)}</div>`;
         document.getElementById('icode').value = '';
-      } catch (err) { document.getElementById('joinmsg').innerHTML = alertBox(err.message); }
+      } catch (err) { document.getElementById('joinmsg').innerHTML = `<div class="teams-err">${esc(err.message)}</div>`; }
       btn.disabled = false; btn.textContent = 'Join Team →';
     });
   } catch (err) { msg.innerHTML = alertBox(err.message); content.innerHTML = ''; }

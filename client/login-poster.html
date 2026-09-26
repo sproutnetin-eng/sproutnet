@@ -5,30 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poster login | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .auth-wrap {
+    min-height: 100vh;
+    background: #FAF8F4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+    box-sizing: border-box;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+  .auth-inner { width: 100%; max-width: 440px; }
+  .auth-head { text-align: center; margin-bottom: 40px; }
+  .auth-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 24px; }
+  .auth-logo span { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: #1C1410; }
+  .auth-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 32px; font-weight: 400; color: #1C1410; letter-spacing: -0.5px; line-height: 1.1; display: block; margin: 0; }
+  .auth-head p { font-family: 'DM Sans', sans-serif; font-size: 15px; color: #4A3F38; margin-top: 8px; margin-bottom: 0; font-weight: 300; }
+  .auth-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 36px 40px; box-shadow: 0 4px 24px rgba(28,20,16,0.07); }
+  .auth-form { display: flex; flex-direction: column; gap: 20px; }
+  .auth-err { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #DC2626; }
+  .fld { display: flex; flex-direction: column; gap: 6px; }
+  .fld label { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #1C1410; }
+  .fld input { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
+  .fld input:focus { border-color: #2D6A4F; }
+  .auth-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 13px; cursor: pointer; margin-top: 4px; box-shadow: 0 2px 10px rgba(244,167,35,0.3); width: 100%; }
+  .auth-btn:disabled { background: #F9C05A; cursor: not-allowed; }
+  .auth-center { font-family: 'DM Sans', sans-serif; font-size: 13px; text-align: center; margin: 0; }
+  .auth-center a { color: #2D6A4F; font-weight: 600; text-decoration: none; }
+  .auth-div { border-top: 1px solid rgba(28,20,16,0.07); margin: 24px 0; }
+  .auth-alt { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #9CA3A0; text-align: center; margin: 0; }
+  .auth-alt a { color: #2D6A4F; font-weight: 600; text-decoration: none; }
+  .auth-foot { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; text-align: center; margin-top: 20px; margin-bottom: 0; }
+  .auth-foot.mt8 { margin-top: 8px; }
+  .auth-foot a { color: #2D6A4F; text-decoration: none; font-weight: 600; }
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container" style="max-width:440px">
-  <div class="card" style="text-align:center">
-    <h1>Poster login</h1>
-    <p class="muted">Sign in to post challenges and review submissions.</p>
+<div class="auth-wrap">
+  <div class="auth-inner">
+    <div class="auth-head">
+      <a class="auth-logo" href="/">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+          <rect width="34" height="34" rx="8" fill="#2D6A4F"/>
+          <line x1="17" y1="27" x2="17" y2="15" stroke="#FAF8F4" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F4A723"/>
+          <path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(250,248,244,0.88)"/>
+        </svg>
+        <span>SproutNet</span>
+      </a>
+      <h1>Poster login</h1>
+      <p>Sign in to post challenges and review submissions.</p>
+    </div>
+    <div class="auth-card">
+      <form class="auth-form" id="f">
+        <div id="msg"></div>
+        <div class="fld">
+          <label for="email">Work email</label>
+          <input type="email" id="email" required placeholder="you@company.com">
+        </div>
+        <div class="fld">
+          <label for="password">Password</label>
+          <input type="password" id="password" required placeholder="********">
+        </div>
+        <button class="auth-btn" type="submit" id="btn">Sign in →</button>
+        <p class="auth-center"><a href="/forgot-password">Forgot password?</a></p>
+      </form>
+      <div class="auth-div"></div>
+      <p class="auth-alt">Don&#39;t have an account? <a href="/join?role=poster">Join as Poster</a></p>
+    </div>
+    <p class="auth-foot">Verified poster accounts only · Season 1 open</p>
+    <p class="auth-foot mt8"><a href="/login">Back to role selection</a></p>
   </div>
-  <div class="card">
-    <div id="msg"></div>
-    <form id="f">
-      <label>Work email<input class="input" type="email" id="email" required placeholder="you@company.com"></label>
-      <label>Password<input class="input" type="password" id="password" required placeholder="********"></label>
-      <button class="btn btn-primary" style="width:100%" type="submit" id="btn">Sign in →</button>
-    </form>
-    <p style="text-align:center"><a href="/forgot-password">Forgot password?</a></p>
-    <p class="muted" style="text-align:center">Don't have an account? <a href="/join?role=poster">Join as Poster</a></p>
-  </div>
-  <p class="muted" style="text-align:center"><a href="/login">Back to role selection</a></p>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, renderNav, alertBox } from '/assets/app.js';
-renderNav('login');
+renderNav();
 const msg = document.getElementById('msg');
 document.getElementById('f').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -47,7 +101,7 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     if (role === 'admin') { location.href = '/dashboard'; return; }
     await supabase.auth.signOut();
     throw new Error(`This account has role "${role}". Please use the appropriate login page.`);
-  } catch (err) { msg.innerHTML = alertBox(err.message); }
+  } catch (err) { msg.innerHTML = `<div class="auth-err">${err.message}</div>`; }
   btn.disabled = false; btn.textContent = 'Sign in →';
 });
 </script>

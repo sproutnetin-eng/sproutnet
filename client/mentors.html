@@ -5,28 +5,94 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mentors | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .mt-page { min-height: 100vh; background: #FAF8F4; font-family: 'DM Sans', sans-serif; }
+  .mt-wrap { max-width: 1100px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); }
+  .mt-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .mt-title { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(30px, 5vw, 40px); font-weight: 400; color: #1C1410; margin: 0 0 8px; }
+  .mt-sub { font-size: 15px; color: #4A3F38; max-width: 600px; margin: 0 0 36px; }
+  .mt-head-block { margin-bottom: 36px; }
+  .mt-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; align-items: center; }
+  .mt-search { flex: 1 1 260px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #fff; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 10px; padding: 10px 14px; outline: none; min-width: 0; }
+  .mt-select { font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 12px; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 10px; background: #fff; color: #1C1410; }
+  .mt-check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #4A3F38; cursor: pointer; }
+  .mt-check input { accent-color: #2D6A4F; }
+  .mt-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; margin-bottom: 20px; }
+  .mt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+  .mt-card { background: #fff; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; }
+  .mt-card.available { border: 1.5px solid rgba(45,106,79,0.15); }
+  .mt-card.other { border: 1.5px solid rgba(28,20,16,0.07); }
+  .mt-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+  .mt-name { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; }
+  .mt-exp { font-size: 13px; color: #4A3F38; margin-top: 2px; }
+  .mt-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 3px 8px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .mt-status.available { background: rgba(34,197,94,0.1); color: #16A34A; }
+  .mt-status.busy { background: rgba(244,167,35,0.1); color: #D97706; }
+  .mt-status.other { background: rgba(28,20,16,0.06); color: #9CA3A0; }
+  .mt-bio { font-size: 13px; color: #4A3F38; line-height: 1.6; margin: 0 0 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .mt-label { font-size: 11px; color: #9CA3A0; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-family: 'JetBrains Mono', monospace; }
+  .mt-pills { display: flex; gap: 4px; flex-wrap: wrap; }
+  .mt-skill { font-size: 11px; font-weight: 500; color: #2D6A4F; background: #EAF4EE; padding: 2px 8px; border-radius: 999px; }
+  .mt-tech { font-size: 11px; font-weight: 500; color: #1C1410; background: rgba(28,20,16,0.06); padding: 2px 8px; border-radius: 999px; }
+  .mt-skills-block { margin-bottom: 10px; }
+  .mt-tech-block { margin-bottom: 16px; }
+  .mt-foot { margin-top: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .mt-link { font-size: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+  .mt-link.li { color: #2563EB; }
+  .mt-link.gh { color: #1C1410; }
+  .mt-spacer { flex: 1; }
+  .mt-connect { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #8B5CF6; background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); border-radius: 8px; padding: 8px 14px; cursor: pointer; }
+  .mt-connected { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,0.2); border-radius: 8px; padding: 8px 14px; display: inline-flex; align-items: center; gap: 4px; }
+  .mt-pending { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: #D97706; background: rgba(244,167,35,0.1); border: 1px solid rgba(244,167,35,0.2); border-radius: 8px; padding: 8px 14px; display: inline-flex; align-items: center; gap: 4px; }
+  .mt-mentor-note { font-size: 11px; color: #9CA3A0; }
+  .mt-nomatch { text-align: center; padding: 48px 0; color: #9CA3A0; }
+  .mt-empty-wrap { max-width: 900px; margin: 0 auto; padding: clamp(48px, 8vw, 80px) clamp(16px, 4vw, 24px); text-align: center; }
+  .mt-empty-emoji { font-size: 48px; margin-bottom: 16px; }
+  .mt-empty-title { font-family: 'Instrument Serif', Georgia, serif; font-size: 34px; color: #1C1410; font-weight: 400; margin: 0 0 12px; }
+  .mt-empty-sub { font-size: 15px; color: #4A3F38; max-width: 480px; margin: 0 auto; }
+  .mt-empty-btn { display: inline-block; margin-top: 20px; font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 12px 24px; border-radius: 8px; text-decoration: none; }
+  .mt-modal-bg { position: fixed; inset: 0; background: rgba(28,20,16,0.4); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .mt-modal { width: min(480px, 92vw); background: #fff; border-radius: 16px; padding: 28px; border: 1.5px solid rgba(28,20,16,0.08); }
+  .mt-modal h2 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #1C1410; margin: 0 0 8px; }
+  .mt-modal p { font-size: 14px; color: #4A3F38; margin: 0 0 20px; }
+  .mt-field { display: flex; flex-direction: column; gap: 6px; }
+  .mt-field label { font-size: 13px; font-weight: 500; color: #1C1410; }
+  .mt-field textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; }
+  .mt-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .mt-cancel { padding: 9px 16px; background: #fff; border: 1px solid rgba(28,20,16,0.12); border-radius: 8px; cursor: pointer; }
+  .mt-send { padding: 9px 18px; background: #8B5CF6; border: none; border-radius: 8px; font-weight: 600; color: #fff; cursor: pointer; }
+  .mt-send:disabled { opacity: 0.6; cursor: not-allowed; }
+  .mt-err { color: #DC2626; font-size: 13px; background: rgba(220,38,38,0.06); padding: 10px; border-radius: 8px; margin-bottom: 16px; }
+  .mt-ok { color: #16A34A; font-size: 13px; background: rgba(34,197,94,0.08); padding: 10px; border-radius: 8px; margin-bottom: 16px; }
+</style>
 </head>
 <body>
+<div class="mt-page">
 <div id="sn-nav"></div>
-<div class="container">
+<div class="mt-wrap">
   <div id="msg"></div>
-  <p class="muted">// find your guide</p>
-  <h1>Browse Mentors</h1>
-  <p class="muted">Connect with expert mentors who can guide your team. Filter by skills and technologies.</p>
-  <div class="card"><div class="row">
-    <input class="input" id="f-search" placeholder="Search mentors by name, skills, or bio…" style="max-width:260px;">
-    <select class="select" id="f-skill" style="max-width:180px;"><option value="">All Skills</option></select>
-    <select class="select" id="f-tech" style="max-width:180px;"><option value="">All Technologies</option></select>
-    <label><input type="checkbox" id="f-avail"> Available only</label>
-  </div></div>
-  <p class="muted" id="count"></p>
-  <div id="grid" class="grid"><p class="muted">Loading…</p></div>
+  <div id="main">
+    <div class="mt-head-block">
+      <div class="mt-eyebrow">// find your guide</div>
+      <h1 class="mt-title">Browse Mentors</h1>
+      <p class="mt-sub">Connect with expert mentors who can guide your team through the challenge. Filter by skills and technologies to find the right match.</p>
+    </div>
+    <div class="mt-filters" id="filters">
+      <input class="mt-search" id="f-search" placeholder="Search mentors by name, skills, or bio...">
+      <select class="mt-select" id="f-skill"><option value="">All Skills</option></select>
+      <select class="mt-select" id="f-tech"><option value="">All Technologies</option></select>
+      <label class="mt-check"><input type="checkbox" id="f-avail"> Available only</label>
+    </div>
+    <div class="mt-count" id="count"></div>
+    <div class="mt-grid" id="grid"><p class="mt-count">Loading…</p></div>
+  </div>
   <div id="modal"></div>
+</div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
-renderNav('mentors');
+renderNav();
 const msg = (h) => { document.getElementById('msg').innerHTML = h; };
 let mentors = [], ctx = { currentUser: null, pendingMentorIds: [], connectedMentorIds: [] };
 let search = '', fSkill = '', fTech = '', availOnly = false;
@@ -42,44 +108,64 @@ function filtered() {
   return list;
 }
 
+function statusPill(m) {
+  const st = m.availability_status || '';
+  const cls = st === 'available' ? 'available' : st === 'busy' ? 'busy' : 'other';
+  return `<span class="mt-status ${cls}">${esc(st)}</span>`;
+}
+
+function actionFor(m) {
+  if (ctx.currentUser?.role !== 'student') {
+    if (ctx.currentUser && ctx.currentUser.role === 'mentor') return `<span class="mt-mentor-note">You are a mentor</span>`;
+    return '';
+  }
+  if ((ctx.connectedMentorIds || []).includes(m.user_id))
+    return `<span class="mt-connected"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Connected</span>`;
+  if ((ctx.pendingMentorIds || []).includes(m.user_id))
+    return `<span class="mt-pending"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pending</span>`;
+  return `<button class="mt-connect" data-connect="${esc(m.user_id)}">Connect</button>`;
+}
+
 function render() {
   const list = filtered();
-  document.getElementById('count').textContent = `${list.length} mentor(s) found`;
+  document.getElementById('count').textContent = `${list.length} mentor${list.length !== 1 ? 's' : ''} found`;
   document.getElementById('grid').innerHTML = list.length ? list.map(m => {
-    const st = ctx.currentUser?.role === 'student'
-      ? ctx.connectedMentorIds.includes(m.user_id) ? '<span class="badge">Connected ✓</span>'
-      : ctx.pendingMentorIds.includes(m.user_id) ? '<span class="badge amber">Pending</span>'
-      : `<button class="btn" data-connect="${esc(m.user_id)}">Connect</button>` : '';
-    return `<div class="card"><div class="row"><div><h3 style="margin:0;">${esc(m.users?.name || 'Unknown')}</h3>
-      <span class="muted">${m.experience_years > 0 ? `${esc(String(m.experience_years))} year(s) experience` : 'New mentor'}</span></div>
-      <span class="badge ${m.availability_status === 'available' ? '' : 'gray'}">${esc(m.availability_status || '')}</span></div>
-      ${m.bio ? `<p class="muted">${esc(m.bio)}</p>` : ''}
-      ${(m.skills || []).length ? `<div>${(m.skills || []).map(s => `<span class="badge">${esc(s)}</span>`).join(' ')}</div>` : ''}
-      ${(m.technologies || []).length ? `<div style="margin-top:.4rem;">${(m.technologies || []).map(t => `<span class="badge gray">${esc(t)}</span>`).join(' ')}</div>` : ''}
-      <div class="row" style="margin-top:.6rem;">
-        ${m.linkedin_url ? `<a href="${esc(m.linkedin_url)}" target="_blank" rel="noopener">LinkedIn</a>` : ''}
-        ${m.github_url ? `<a href="${esc(m.github_url)}" target="_blank" rel="noopener">GitHub</a>` : ''}
-        <span style="flex:1;"></span>${st}</div></div>`; }).join('')
-    : '<div class="card"><p class="muted">No mentors match your current filters.</p></div>';
+    const exp = m.experience_years > 0 ? `${esc(String(m.experience_years))} year${m.experience_years > 1 ? 's' : ''} experience` : 'New mentor';
+    return `<div class="mt-card ${m.availability_status === 'available' ? 'available' : 'other'}">
+      <div class="mt-card-top"><div><div class="mt-name">${esc(m.users?.name || 'Unknown')}</div><div class="mt-exp">${exp}</div></div>${statusPill(m)}</div>
+      ${m.bio ? `<div class="mt-bio">${esc(m.bio)}</div>` : ''}
+      ${(m.skills || []).length ? `<div class="mt-skills-block"><div class="mt-label">Skills</div><div class="mt-pills">${(m.skills || []).map(s => `<span class="mt-skill">${esc(s)}</span>`).join('')}</div></div>` : ''}
+      ${(m.technologies || []).length ? `<div class="mt-tech-block"><div class="mt-label">Technologies</div><div class="mt-pills">${(m.technologies || []).map(t => `<span class="mt-tech">${esc(t)}</span>`).join('')}</div></div>` : ''}
+      <div class="mt-foot">
+        ${m.linkedin_url ? `<a class="mt-link li" href="${esc(m.linkedin_url)}" target="_blank" rel="noopener noreferrer"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</a>` : ''}
+        ${m.github_url ? `<a class="mt-link gh" href="${esc(m.github_url)}" target="_blank" rel="noopener noreferrer"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub</a>` : ''}
+        <span class="mt-spacer"></span>${actionFor(m)}</div></div>`; }).join('')
+    : '<div class="mt-nomatch">No mentors match your current filters. Try adjusting your search criteria.</div>';
   document.querySelectorAll('[data-connect]').forEach(b => b.addEventListener('click', () => openModal(b.dataset.connect)));
 }
 
 function openModal(mentorId) {
-  document.getElementById('modal').innerHTML = `<div class="card"><h2>Connect with Mentor</h2>
-    <p class="muted">Send a personal mentorship request. The mentor will be notified.</p>
-    <div id="c-err"></div>
-    <label>Message (optional)</label>
-    <textarea class="textarea" id="c-msg" placeholder="Introduce yourself and explain what you'd like guidance on…"></textarea>
-    <div class="row"><button class="btn" id="c-cancel">Cancel</button>
-    <button class="btn btn-primary" id="c-send">Send Request →</button></div></div>`;
+  if (!ctx.currentUser) return;
+  document.getElementById('modal').innerHTML = `<div class="mt-modal-bg"><div class="mt-modal">
+    <h2>Connect with Mentor</h2>
+    <p>Send a personal mentorship request directly. The mentor will be notified and can start a conversation with you.</p>
+    <form id="c-form"><div id="c-err"></div><div id="c-ok"></div>
+    <div class="mt-field"><label>Message (optional)</label>
+    <textarea id="c-msg" rows="3" placeholder="Introduce yourself and explain what you'd like guidance on..."></textarea></div>
+    <div class="mt-modal-actions"><button type="button" class="mt-cancel" id="c-cancel">Cancel</button>
+    <button type="submit" class="mt-send" id="c-send">Send Request →</button></div></form></div></div>`;
   document.getElementById('c-cancel').addEventListener('click', () => { document.getElementById('modal').innerHTML = ''; });
-  document.getElementById('c-send').addEventListener('click', async (e) => {
-    e.target.disabled = true;
-    try { await api('/api/mentors/connect', { method:'POST', body:{ mentorId, message: document.getElementById('c-msg').value } });
+  document.getElementById('c-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('c-send');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    document.getElementById('c-err').innerHTML = '';
+    try {
+      const res = await api('/api/mentors/connect', { method:'POST', body:{ mentorId, message: document.getElementById('c-msg').value } });
+      document.getElementById('c-ok').innerHTML = `<div class="mt-ok">Connection request sent! The mentor will be notified.</div>`;
       ctx.pendingMentorIds.push(mentorId);
-      document.getElementById('modal').innerHTML = alertBox('Connection request sent! The mentor will be notified.', true);
-      render();
-    } catch (err) { document.getElementById('c-err').innerHTML = alertBox(err.message); e.target.disabled = false; }
+      setTimeout(() => { document.getElementById('modal').innerHTML = ''; render(); }, 1800);
+    } catch (err) { document.getElementById('c-err').innerHTML = `<div class="mt-err">${esc(err.message)}</div>`; btn.disabled = false; btn.textContent = 'Send Request →'; }
   });
 }
 
@@ -93,12 +179,19 @@ try {
   const techs = [...new Set(mentors.flatMap(m => m.technologies || []))].sort();
   document.getElementById('f-skill').innerHTML = '<option value="">All Skills</option>' + skills.map(s => `<option>${esc(s)}</option>`).join('');
   document.getElementById('f-tech').innerHTML = '<option value="">All Technologies</option>' + techs.map(t => `<option>${esc(t)}</option>`).join('');
-  if (!mentors.length) { document.getElementById('grid').innerHTML = `<div class="card" style="text-align:center;"><h2>No mentors registered yet</h2><p class="muted">Mentors will appear here once they set up their profiles.</p></div>`; return; }
-  render();
-  document.getElementById('f-search').oninput = (e) => { search = e.target.value; render(); };
-  document.getElementById('f-skill').onchange = (e) => { fSkill = e.target.value; render(); };
-  document.getElementById('f-tech').onchange = (e) => { fTech = e.target.value; render(); };
-  document.getElementById('f-avail').onchange = (e) => { availOnly = e.target.checked; render(); };
+  if (!mentors.length) {
+    document.getElementById('main').innerHTML = `<div class="mt-empty-wrap"><div class="mt-empty-emoji">🧭</div>
+      <h1 class="mt-empty-title">No mentors registered yet</h1>
+      <p class="mt-empty-sub">Mentors will appear here once they set up their profiles. Check back later.</p>
+      <a class="mt-empty-btn" href="/dashboard">Back to Dashboard</a></div>`;
+    document.getElementById('modal').innerHTML = '';
+  } else {
+    render();
+    document.getElementById('f-search').oninput = (e) => { search = e.target.value; render(); };
+    document.getElementById('f-skill').onchange = (e) => { fSkill = e.target.value; render(); };
+    document.getElementById('f-tech').onchange = (e) => { fTech = e.target.value; render(); };
+    document.getElementById('f-avail').onchange = (e) => { availOnly = e.target.checked; render(); };
+  }
 } catch (e) { msg(alertBox(e.message)); document.getElementById('grid').innerHTML = ''; }
 </script>
 </body>

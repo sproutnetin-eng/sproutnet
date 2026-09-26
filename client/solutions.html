@@ -5,40 +5,84 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Solutions | SproutNet</title>
 <link rel="stylesheet" href="/assets/styles.css">
+<style>
+.sol-page{background:#FAF8F4;min-height:100vh}
+.sol-wrap{max-width:980px;margin:0 auto;padding:clamp(32px,6vw,52px) clamp(16px,4vw,24px)}
+.sol-head{text-align:center;margin-bottom:44px}
+.sol-kicker{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:#2D6A4F;letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px}
+.sol-title{font-family:'Instrument Serif',Georgia,serif;font-size:clamp(30px,6vw,44px);font-weight:400;color:#1C1410;letter-spacing:-.5px;line-height:1.15;margin:0 0 10px}
+.sol-sub{font-size:16px;color:#4A3F38;font-weight:300;max-width:560px;margin:0 auto;line-height:1.6}
+.sol-empty{background:#fff;border:1.5px solid rgba(28,20,16,.07);border-radius:18px;padding:56px 24px;text-align:center}
+.sol-empty-emoji{font-size:40px;margin-bottom:14px}
+.sol-empty-title{font-family:Sora,sans-serif;font-size:19px;font-weight:700;color:#1C1410;margin-bottom:8px}
+.sol-empty-text{font-size:14px;color:#7A7068;line-height:1.7;max-width:420px;margin:0 auto}
+.sol-btn{display:inline-block;margin-top:20px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;color:#1C1410;background:#F4A723;padding:12px 22px;border-radius:10px;text-decoration:none}
+.sol-btn:hover{background:#F9C05A}
+.sol-grid{display:grid;gap:20px}
+.sol-card{background:#fff;border:1.5px solid rgba(28,20,16,.08);border-radius:18px;padding:26px clamp(20px,3vw,30px);box-shadow:0 6px 24px rgba(28,20,16,.05)}
+.sol-badges{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.sol-badge{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 10px;border-radius:6px}
+.sol-badge.domain{color:#6A5F58;background:#F2EEE8}
+.sol-badge.team{color:#2563EB;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.25);border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
+.sol-badge.indiv{color:#0D9488;background:rgba(13,148,136,.08);border:1px solid rgba(13,148,136,.25);border-radius:999px;text-transform:uppercase;letter-spacing:.06em}
+.sol-badge.score{color:#2D6A4F;background:#EAF4EE;border:1px solid rgba(45,106,79,.25);border-radius:999px;font-weight:600}
+.sol-h2{font-family:'Instrument Serif',Georgia,serif;font-size:clamp(21px,4vw,27px);font-weight:400;color:#1C1410;letter-spacing:-.3px;line-height:1.25;margin:0 0 8px}
+.sol-meta{font-size:13px;color:#7A7068;margin-bottom:14px}
+.sol-meta a{color:#2D6A4F;font-weight:700;text-decoration:none}
+.sol-meta strong{color:#1C1410}
+.sol-note{font-size:13.5px;color:#4A3F38;background:#EAF4EE;border:1px solid rgba(45,106,79,.18);border-radius:10px;padding:11px 15px;margin:0 0 16px;font-style:italic;line-height:1.6}
+.sol-deliv{display:grid;gap:8px}
+.sol-dlink{display:flex;align-items:center;gap:10px;padding:11px 15px;border-radius:10px;border:1px solid rgba(45,106,79,.16);background:#FAF8F4;text-decoration:none;min-width:0}
+.sol-dlink:hover{border-color:rgba(45,106,79,.35)}
+.sol-kind{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:6px;flex-shrink:0}
+.sol-kind.link{color:#2D6A4F;background:#EAF4EE;border:1px solid rgba(45,106,79,.25)}
+.sol-kind.file{color:#B45309;background:rgba(180,83,9,.08);border:1px solid rgba(180,83,9,.25)}
+.sol-dlabel{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:#1C1410;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sol-open{margin-left:auto;font-size:12px;color:#2D6A4F;flex-shrink:0}
+.sol-foot{margin-top:16px;padding-top:14px;border-top:1px solid rgba(28,20,16,.06)}
+.sol-foot a{font-size:13px;font-weight:600;color:#2D6A4F;text-decoration:none}
+</style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="container">
-  <div id="msg"></div>
-  <div style="text-align:center;">
-    <p class="muted">// shipped & approved</p>
-    <h1>Completed Solutions</h1>
-    <p class="muted">Real work from SproutNet builders — every solution here passed admin review and delivered its final build, research, and code.</p>
+<div class="sol-page">
+  <div class="sol-wrap">
+    <div id="msg"></div>
+    <div class="sol-head">
+      <div class="sol-kicker">// shipped &amp; approved</div>
+      <h1 class="sol-title">Completed Solutions</h1>
+      <p class="sol-sub">Real work from SproutNet builders — every solution here passed admin review and delivered its final build, research, and code.</p>
+    </div>
+    <div id="list"><p class="muted">Loading…</p></div>
   </div>
-  <div id="list"><p class="muted">Loading…</p></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
-renderNav('');
+renderNav();
 try {
   const { solutions } = await api('/api/public/solutions');
-  document.getElementById('list').innerHTML = solutions.length ? solutions.map(s => `
-    <div class="card">
-      <div>${s.problemDomain ? `<span class="badge gray">${esc(s.problemDomain)}</span> ` : ''}
-        <span class="badge ${s.participantType === 'team' ? 'amber' : ''}">${s.participantType === 'team' ? '👥 Team' : 'Individual'}</span>
-        ${s.score != null ? ` <span class="badge">★ ${esc(String(s.score))}/10 judged</span>` : ''}</div>
-      <h2>${esc(s.problemTitle)}</h2>
-      <p class="muted">by ${s.authorSlug ? `<a href="/profile/${esc(s.authorSlug)}">${esc(s.authorName)}</a>` : `<b>${esc(s.authorName)}</b>`}
-        · completed ${esc(new Date(s.completedAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }))}</p>
-      ${s.feedback ? `<p style="font-style:italic;" class="card">Judge's note: ${esc(s.feedback)}</p>` : ''}
-      ${s.deliverables.map((d, i) => `<p><a class="btn" href="${esc(d.url)}" target="_blank" rel="noreferrer">
-        <span class="badge gray">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span> ${esc(`${i + 1}. ${d.label}`)} ↗</a></p>`).join('')}
-      <p><a href="/problems/${esc(s.problemId)}">View the problem →</a></p>
-    </div>`).join('')
-    : `<div class="card" style="text-align:center;"><h2>No completed solutions yet</h2>
-      <p class="muted">A solution appears here once it clears admin review <b>and</b> the builder submits their final work.</p>
-      <a class="btn btn-primary" href="/problems">Browse open problems →</a></div>`;
+  document.getElementById('list').innerHTML = solutions.length ? `<div class="sol-grid">` + solutions.map(s => `
+    <article class="sol-card">
+      <div class="sol-badges">${s.problemDomain ? `<span class="sol-badge domain">${esc(s.problemDomain)}</span>` : ''}
+        <span class="sol-badge ${s.participantType === 'team' ? 'team' : 'indiv'}">${s.participantType === 'team' ? '👥 Team' : 'Individual'}</span>
+        ${s.score != null ? `<span class="sol-badge score">★ ${esc(String(s.score))}/10 judged</span>` : ''}</div>
+      <h2 class="sol-h2">${esc(s.problemTitle)}</h2>
+      <div class="sol-meta">by ${s.authorSlug ? `<a href="/profile/${esc(s.authorSlug)}">${esc(s.authorName)}</a>` : `<strong>${esc(s.authorName)}</strong>`}
+        · completed ${esc(new Date(s.completedAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' }))}</div>
+      ${s.feedback ? `<p class="sol-note">Judge's note: ${esc(s.feedback)}</p>` : ''}
+      <div class="sol-deliv">
+        ${s.deliverables.map((d, i) => `<a class="sol-dlink" href="${esc(d.url)}" target="_blank" rel="noreferrer">
+          <span class="sol-kind ${esc(d.kind === 'link' ? 'link' : 'file')}">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span>
+          <span class="sol-dlabel">${esc(`${i + 1}. ${d.label}`)}</span>
+          <span class="sol-open">open ↗</span></a>`).join('')}
+      </div>
+      <div class="sol-foot"><a href="/problems/${esc(s.problemId)}">View the problem →</a></div>
+    </article>`).join('') + `</div>`
+    : `<div class="sol-empty"><div class="sol-empty-emoji">🌱</div>
+      <div class="sol-empty-title">No completed solutions yet</div>
+      <div class="sol-empty-text">A solution appears here once it clears admin review <strong>and</strong> the builder submits their final work — app links, GitHub repos, papers, and builds.</div>
+      <a class="sol-btn" href="/problems">Browse open problems →</a></div>`;
 } catch (e) {
   document.getElementById('msg').innerHTML = alertBox(e.message);
   document.getElementById('list').innerHTML = '';

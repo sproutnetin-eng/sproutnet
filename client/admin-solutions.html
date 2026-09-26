@@ -6,108 +6,231 @@
 <title>Solutions — SproutNet Admin</title>
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
-.admin-layout{display:grid;grid-template-columns:230px 1fr;gap:1rem;align-items:start}
-.admin-side{position:sticky;top:70px;display:flex;flex-direction:column;gap:.4rem}
-.admin-side a{padding:.55rem .8rem;border-radius:8px;text-decoration:none;color:inherit;border:1px solid transparent}
-.admin-side a.on{background:#fff;border-color:#e2e8f0;font-weight:700}
-.admin-side .meta{font-size:.75rem;color:#64748b}
-@media(max-width:760px){.admin-layout{grid-template-columns:1fr}.admin-side{position:static;flex-direction:row;flex-wrap:wrap}}
-.table-wrap{overflow-x:auto}
-.review{white-space:pre-wrap}
+  .admin-theme { --bg-main: #F6F7F8; --bg-surface: #FFFFFF; --bg-card: #FFFFFF; --bg-hover: #F0F2F4; --border-primary: #E5E7EB; --border-secondary: #D1D5DB; --border-input: #D1D5DB; --text-primary: #000000; --text-secondary: #000000; --text-muted: #000000; --text-disabled: #000000; --accent-primary: #10A37F; --accent-hover: #1DBF93; --danger: #EF4444; --warning: #F59E0B; background: var(--bg-main); color: var(--text-primary); }
+  .admin-theme * { box-sizing: border-box; color: #000000 !important; }
+  .admin-theme ::placeholder { color: #000000 !important; opacity: 0.55; }
+  .admin-shell { min-height: 100vh; background: var(--bg-main); color: var(--text-primary); font-family: "DM Sans", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; --admin-columns: 260px 1fr; --admin-aside-position: sticky; --admin-aside-height: 100vh; }
+  .admin-grid { display: grid; grid-template-columns: var(--admin-columns, 260px 1fr); min-height: 100vh; }
+  .admin-sidebar { border-right: 1px solid var(--border-primary); background: var(--bg-surface); padding: clamp(16px, 3vw, 22px) clamp(14px, 3vw, 18px); position: var(--admin-aside-position, sticky); top: 0; height: var(--admin-aside-height, 100vh); overflow-y: auto; }
+  .admin-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 18px; }
+  .admin-brand .nm { font-family: Sora, sans-serif; font-weight: 900; font-size: 15px; line-height: 1.1; }
+  .admin-brand .sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-top: 2px; }
+  .admin-access { padding: 12px; margin-bottom: 14px; }
+  .admin-access .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; margin-bottom: 8px; }
+  .admin-access .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .admin-access .who { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-card { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: 16px; }
+  .admin-sidebar-link { text-decoration: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--bg-surface); border: 1px solid var(--border-primary); }
+  .admin-sidebar-link--active { background: var(--bg-hover); border-color: var(--border-secondary); box-shadow: inset 3px 0 0 var(--accent-primary); }
+  .admin-links { display: grid; gap: 8px; }
+  .admin-links .t { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 800; }
+  .admin-links .m { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .admin-tools { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-primary); display: grid; gap: 6px; }
+  .admin-tools .lbl { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .admin-tools button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; background: transparent; border: 1px solid var(--border-primary); border-radius: 8px; padding: 8px 12px; cursor: pointer; text-align: left; }
+  .admin-tools button:disabled { cursor: not-allowed; opacity: 0.6; }
+  .admin-tools .tmsg { font-size: 11px; font-family: 'JetBrains Mono', monospace; line-height: 1.4; }
+  .admin-back { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(148,163,184,0.12); }
+  .admin-back a { justify-content: center; }
+  .admin-pill { font-family: "JetBrains Mono", monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border-secondary); background: var(--bg-hover); }
+  .admin-pill--accent { border-color: rgba(16,163,127,0.35); background: rgba(16,163,127,0.12); }
+  .admin-btn { font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 800; border-radius: 12px; padding: 8px 10px; cursor: pointer; border: 1px solid var(--border-secondary); background: var(--bg-surface); }
+  .admin-linkbtn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .admin-table { overflow: hidden; overflow-x: auto; border-radius: 16px; border: 1px solid var(--border-primary); background: var(--bg-surface); }
+  .admin-head { min-height: 64px; padding: 10px clamp(16px, 3vw, 26px); display: flex; align-items: center; justify-content: flex-end; border-bottom: 1px solid var(--border-primary); background: rgba(246,247,248,0.9); position: sticky; top: 0; z-index: 50; }
+  .admin-main { padding: clamp(20px, 3vw, 28px) clamp(16px, 3vw, 26px) 70px; }
+  .as-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+  .as-title { font-family: Sora, sans-serif; font-size: clamp(22px, 4.5vw, 28px); font-weight: 950; letter-spacing: -0.6px; margin: 0 0 8px; }
+  .as-sub { font-size: 14px; font-weight: 500; margin: 0 0 16px; }
+  .as-filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .as-search { flex: 1 1 260px; font-family: 'DM Sans', sans-serif; font-size: 13px; background: #1A1A1A; border: 1px solid var(--border-input); border-radius: 10px; padding: 10px 14px; outline: none; }
+  .as-select { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; background: #1A1A1A; border: 1px solid var(--border-input); border-radius: 10px; padding: 10px 14px; outline: none; cursor: pointer; }
+  .as-count { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .as-empty { text-align: center; padding: 80px 24px; background: var(--bg-surface); border-radius: 18px; border: 1px solid var(--border-primary); }
+  .as-empty .big { font-size: 40px; margin-bottom: 16px; }
+  .as-empty .t { font-family: Sora, sans-serif; font-size: 18px; font-weight: 900; margin-bottom: 8px; }
+  .as-empty .d { font-size: 14px; }
+  .as-hrow, .as-row { display: grid; grid-template-columns: minmax(220px, 1.5fr) 120px 110px 140px 90px 90px 100px; min-width: 980px; gap: 10px; padding: 12px 14px; align-items: center; }
+  .as-hrow { background: var(--bg-hover); border-bottom: 1px solid var(--border-primary); }
+  .as-hrow .h { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; }
+  .as-item { border-bottom: 1px solid var(--border-primary); }
+  .as-row { cursor: pointer; }
+  .as-row.open { background: var(--bg-hover); }
+  .as-pt { font-family: Sora, sans-serif; font-size: 13px; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .as-sn { font-family: 'DM Sans', sans-serif; font-size: 11px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .as-dom { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .as-tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; padding: 4px 9px; border-radius: 999px; text-transform: uppercase; }
+  .as-tag.team { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.35); }
+  .as-tag.indiv { background: rgba(45,212,191,0.12); border: 1px solid rgba(45,212,191,0.35); }
+  .as-tag.pending { background: rgba(248,180,44,0.1); border: 1px solid rgba(248,180,44,0.3); }
+  .as-tag.approved { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); }
+  .as-tag.rejected { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); }
+  .as-tag.draft { background: rgba(148,163,184,0.1); border: 1px solid rgba(148,163,184,0.25); }
+  .as-tag.final { background: rgba(96,165,250,0.12); border: 1px solid rgba(96,165,250,0.35); }
+  .as-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .as-dash { font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .as-detail { padding: 18px 16px 22px; background: var(--bg-surface); display: grid; gap: 16px; }
+  .as-sec { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .as-link { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border-primary); text-decoration: none; min-width: 0; }
+  .as-link .k { font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .as-link .t { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .as-link .go { margin-left: auto; font-family: 'DM Sans', sans-serif; font-size: 11px; }
+  .as-flabel { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+  .as-fbody { font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.65; }
+  .as-na { font-family: 'DM Sans', sans-serif; font-size: 12px; font-style: italic; }
+  .as-nomatch { text-align: center; padding: 48px 24px; font-family: 'DM Sans', sans-serif; font-size: 13px; border: 1px dashed var(--border-primary); border-radius: 14px; margin-top: 12px; }
+  @media (max-width: 1024px) { .admin-shell { --admin-columns: 1fr; --admin-aside-position: static; --admin-aside-height: auto; } }
 </style>
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="container" style="max-width:1200px">
-<div class="admin-layout">
-<aside class="admin-side card">
-  <a href="/admin"><strong>Overview</strong> <span class="meta">home</span></a>
-  <a href="/admin/problems"><strong>Problems</strong> <span class="meta">moderation</span></a>
-  <a href="/admin/solutions" class="on"><strong>Solutions</strong> <span class="meta">uploads</span></a>
-  <a href="/admin/judging"><strong>Judging</strong> <span class="meta">queue</span></a>
-  <a href="/admin/analytics"><strong>Analytics</strong> <span class="meta">metrics</span></a>
-  <a href="/leaderboard"><strong>Leaderboard</strong> <span class="meta">scores</span></a>
-  <a href="/dashboard" class="btn" style="text-align:center">← Back to Dashboard</a>
-</aside>
-<div>
-  <div class="muted" style="font-size:.75rem;letter-spacing:.12em">SOLUTIONS · ALL SUBMISSIONS</div>
-  <h1>Uploaded solutions</h1>
-  <p class="muted">Every full submission with its written solution, attached files, links, and deliverables. Showing latest 200.</p>
-  <div id="msg"></div>
-  <div class="card"><div class="row">
-    <input class="input" id="q" placeholder="Search by problem, student, or domain…" style="flex:2;min-width:200px">
-    <select class="select" id="status" style="flex:1;min-width:160px">
-      <option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option>
-      <option value="rejected">Rejected</option><option value="draft">Draft</option><option value="final">📦 With final work</option>
-    </select>
-  </div><div class="muted" id="count"></div></div>
-  <div id="list"><p class="muted">Loading…</p></div>
+<div class="admin-theme admin-shell">
+<div class="admin-grid">
+  <aside class="admin-sidebar">
+    <a class="admin-brand" href="/admin">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true"><rect width="34" height="34" rx="8" fill="#10A37F"/><line x1="17" y1="27" x2="17" y2="15" stroke="#0D0D0D" stroke-width="1.7" stroke-linecap="round"/><path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F59E0B"/><path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(236,236,236,0.88)"/></svg>
+      <div><div class="nm">SproutNet</div><div class="sub">admin panel</div></div>
+    </a>
+    <div class="admin-card admin-access">
+      <div class="lbl">YOUR ACCESS</div>
+      <div class="row"><div class="who" id="access-name">…</div><span class="admin-pill admin-pill--accent" id="access-pill">ADMIN</span></div>
+    </div>
+    <div class="admin-links">
+      <a class="admin-sidebar-link" href="/admin"><span class="t">Overview</span><span class="m">home</span></a>
+      <a class="admin-sidebar-link" href="/admin/problems"><span class="t">Problems</span><span class="m">moderation</span></a>
+      <a class="admin-sidebar-link admin-sidebar-link--active" href="/admin/solutions" aria-current="page"><span class="t">Solutions</span><span class="m">uploads</span></a>
+      <a class="admin-sidebar-link" href="/admin/judging"><span class="t">Judging</span><span class="m">queue</span></a>
+      <a class="admin-sidebar-link" href="/admin/analytics"><span class="t">Analytics</span><span class="m">metrics</span></a>
+      <a class="admin-sidebar-link" href="/leaderboard"><span class="t">Leaderboard</span><span class="m">scores</span></a>
+    </div>
+    <div class="admin-tools">
+      <div class="lbl">LEADERBOARD TOOLS</div>
+      <button type="button" id="seed-btn">Seed Test Submissions</button>
+      <button type="button" id="recalc-btn">Recalculate Scores</button>
+      <div class="tmsg" id="tool-msg"></div>
+    </div>
+    <div class="admin-back"><a class="admin-sidebar-link" href="/dashboard">← Back to Dashboard</a></div>
+  </aside>
+  <div>
+    <header class="admin-head"><button type="button" class="admin-btn" id="signout">Sign out</button></header>
+    <main class="admin-main">
+      <div style="margin-bottom:16px">
+        <div class="as-eyebrow">SOLUTIONS · ALL SUBMISSIONS</div>
+        <h1 class="as-title">Uploaded solutions</h1>
+        <p class="as-sub">Every full submission with its written solution, attached files, links, and deliverables. Showing latest 200.</p>
+      </div>
+      <div id="msg"></div>
+      <div id="body"><p style="font-family:'DM Sans',sans-serif;font-size:13px">Loading…</p></div>
+    </main>
+  </div>
 </div>
 </div>
-</main>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
-renderNav('dash');
+import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+renderNav();
 const me = await requireRole('admin');
 const msg = document.getElementById('msg');
-const list = document.getElementById('list');
-const LABELS = { f_understanding: 'Problem Understanding', f_solution: 'Proposed Solution', f_impact: 'Expected Impact', f_rootcause: 'Root Cause Analysis', f_feasibility: 'Feasibility Assessment', f_risks: 'Risks & Limitations', f_implementation: 'Implementation Plan' };
-const strip = (h) => String(h || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+const body = document.getElementById('body');
+const LABELS = [['f_understanding', 'Problem Understanding'], ['f_solution', 'Proposed Solution'], ['f_impact', 'Expected Impact'], ['f_rootcause', 'Root Cause Analysis'], ['f_feasibility', 'Feasibility Assessment'], ['f_risks', 'Risks & Limitations'], ['f_implementation', 'Implementation Plan']];
+const sanitize = (h) => String(h || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '').replace(/\son\w+\s*=\s*"[^"]*"/gi, '').replace(/\son\w+\s*=\s*'[^']*'/gi, '').replace(/javascript:/gi, '');
 const delivs = (arr) => (Array.isArray(arr) ? arr : []).map(d => typeof d === 'string' ? { url: d, label: d, kind: 'link' } : d);
 let items = [];
+let query = '', statusFilter = 'all', expandedId = null;
 function render() {
-  const q = document.getElementById('q').value.trim().toLowerCase();
-  const sf = document.getElementById('status').value;
+  if (!items.length) {
+    body.innerHTML = `<div class="as-empty"><div class="big">📭</div><div class="t">No solutions uploaded yet</div><div class="d">Full student submissions will appear here once submitted.</div></div>`;
+    return;
+  }
+  const q = query.trim().toLowerCase();
   const rows = items.filter(s => {
     const dl = delivs(s.deliverables);
-    if (sf === 'final') { if (!dl.length) return false; }
-    else if (sf !== 'all' && s.status !== sf) return false;
+    if (statusFilter === 'final') { if (!dl.length) return false; }
+    else if (statusFilter !== 'all' && s.status !== statusFilter) return false;
     if (!q) return true;
     return s.problemTitle.toLowerCase().includes(q) || s.studentName.toLowerCase().includes(q) || (s.problemDomain || '').toLowerCase().includes(q);
   });
-  document.getElementById('count').textContent = `${rows.length} of ${items.length}`;
-  if (!items.length) {
-    list.innerHTML = `<div class="card" style="text-align:center;padding:3rem"><div style="font-size:2.5rem">📭</div><strong>No solutions uploaded yet</strong><p class="muted">Full student submissions will appear here once submitted.</p></div>`;
-    return;
-  }
-  list.innerHTML = rows.length ? rows.map(s => {
-    const dl = delivs(s.deliverables);
-    const fields = Object.entries(LABELS).map(([k, l]) => `<div style="margin:.5rem 0"><div class="muted">${l}</div><div class="review">${esc(strip(s.fields[k]) || 'Not answered.')}</div></div>`).join('');
-    return `<div class="card" data-id="${esc(s.id)}">
-      <div class="row" style="justify-content:space-between">
-        <div><strong>${esc(s.problemTitle)}</strong><div class="muted">${esc(s.studentName)}${s.studentDept ? ' · ' + esc(s.studentDept) : ''}${s.studentYear ? ' · ' + esc(s.studentYear) : ''}</div></div>
-        <div><span class="badge gray">${esc(s.problemDomain || '—')}</span>
-        <span class="badge ${s.participantType === 'team' ? 'amber' : ''}">${s.participantType === 'team' ? '👥 Team' : 'Individual'}</span>
-        <span class="badge ${s.status === 'pending' ? 'amber' : ''}">${esc(s.status)}${s.score != null ? ' · ' + esc(s.score) : ''}</span>
-        ${dl.length ? `<span class="badge">📦 ${dl.length}</span>` : ''}</div>
-        <button class="btn" data-act="toggle">View</button>
+  body.innerHTML = `
+    <div class="as-filters">
+      <input class="as-search" id="q" placeholder="Search by problem, student, or domain…" value="${esc(query)}">
+      <select class="as-select" id="fstatus">
+        <option value="all"${statusFilter === 'all' ? ' selected' : ''}>All statuses</option>
+        <option value="pending"${statusFilter === 'pending' ? ' selected' : ''}>Pending</option>
+        <option value="approved"${statusFilter === 'approved' ? ' selected' : ''}>Approved</option>
+        <option value="rejected"${statusFilter === 'rejected' ? ' selected' : ''}>Rejected</option>
+        <option value="draft"${statusFilter === 'draft' ? ' selected' : ''}>Draft</option>
+        <option value="final"${statusFilter === 'final' ? ' selected' : ''}>📦 With final work</option>
+      </select>
+      <span class="as-count">${rows.length} of ${items.length}</span>
+    </div>
+    <div class="admin-table">
+      <div class="as-hrow">${['Problem / Student', 'Domain', 'Entry', 'Submitted', 'Status', 'Final work', 'Actions'].map(h => `<div class="h">${h}</div>`).join('')}</div>
+      <div style="max-height:720px;overflow-y:auto">
+        ${rows.map(s => {
+          const expanded = expandedId === s.id;
+          const dl = delivs(s.deliverables);
+          const st = ['pending', 'approved', 'rejected', 'draft'].includes(s.status) ? s.status : 'draft';
+          const submitted = s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+          const fields = LABELS.map(([k, l]) => `<div><div class="as-flabel">${l}</div>${
+            s.fields[k] ? `<div class="as-fbody">${sanitize(s.fields[k])}</div>` : `<div class="as-na">Not answered.</div>`}</div>`).join('');
+          return `<div class="as-item" data-id="${esc(s.id)}">
+            <div class="as-row${expanded ? ' open' : ''}" data-act="toggle">
+              <div style="min-width:0"><div class="as-pt">${esc(s.problemTitle)}</div><div class="as-sn">${esc(s.studentName)}${s.studentDept ? ` · ${esc(s.studentDept)}` : ''}${s.studentYear ? ` · ${esc(s.studentYear)}` : ''}</div></div>
+              <div class="as-dom">${esc(s.problemDomain || '—')}</div>
+              <div><span class="as-tag ${s.participantType === 'team' ? 'team' : 'indiv'}">${s.participantType === 'team' ? '👥 Team' : 'Individual'}</span></div>
+              <div class="as-date">${esc(submitted)}</div>
+              <div><span class="as-tag ${st}">${esc(s.status)}${s.score != null ? ` · ${esc(s.score)}` : ''}</span></div>
+              <div>${dl.length ? `<span class="as-tag final">📦 ${dl.length}</span>` : `<span class="as-dash">—</span>`}</div>
+              <div style="display:flex;gap:6px;justify-content:flex-end"><button type="button" class="admin-btn admin-linkbtn" style="font-size:11px" data-act="toggle-btn">${expanded ? 'Hide' : 'View'}</button></div>
+            </div>
+            ${expanded ? `<div class="as-detail">
+              <div><div class="as-sec">Final deliverables (${dl.length})</div>
+                ${dl.length ? `<div style="display:grid;gap:8px">${dl.map((d, i) => `<a class="as-link" href="${esc(d.url)}" target="_blank" rel="noreferrer"><span class="k">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span><span class="t">${i + 1}. ${esc(d.label || d.url)}</span><span class="go">open ↗</span></a>`).join('')}</div>` : `<div class="as-na">None added.</div>`}</div>
+              <div><div class="as-sec">Written solution</div><div style="display:grid;gap:12px">${fields}</div></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="admin-btn admin-linkbtn" style="font-size:12px;text-decoration:none" href="/problems/${esc(s.problemId)}">View problem page ↗</a></div>
+            </div>` : ''}
+          </div>`;
+        }).join('')}
       </div>
-      <div class="detail" style="display:none;border-top:1px solid #e2e8f0;margin-top:.75rem;padding-top:.75rem">
-        <div class="muted">Final deliverables (${dl.length})</div>
-        ${dl.length ? dl.map((d, i) => `<div><span class="badge gray">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span> <a href="${esc(d.url)}" target="_blank" rel="noreferrer">${i + 1}. ${esc(d.label || d.url)}</a></div>`).join('') : '<p class="muted">None added.</p>'}
-        <div class="muted" style="margin-top:.5rem">Written solution</div>${fields}
-        <div class="row"><a class="btn" href="/problems/${esc(s.problemId)}">View problem page ↗</a></div>
-      </div>
-    </div>`;
-  }).join('') : `<div class="card" style="text-align:center"><p class="muted">No solutions match your filters.</p></div>`;
+    </div>
+    ${!rows.length ? `<div class="as-nomatch">No solutions match your filters.</div>` : ''}`;
+  document.getElementById('q').addEventListener('input', (e) => { query = e.target.value; render(); restoreFocus(); });
+  document.getElementById('fstatus').addEventListener('change', (e) => { statusFilter = e.target.value; render(); });
+}
+function restoreFocus() {
+  const el = document.getElementById('q');
+  if (el) { el.focus(); const v = el.value; el.value = ''; el.value = v; }
 }
 if (me) {
+  document.getElementById('access-name').textContent = me.profile?.name || 'Admin';
+  document.getElementById('access-pill').textContent = me.profile?.is_master ? 'MASTER' : 'ADMIN';
   try {
     const d = await api('/api/admin/solutions');
     items = d.solutions;
     render();
   } catch (e) { msg.innerHTML = alertBox(e.message); }
+  const tm = document.getElementById('tool-msg');
+  document.getElementById('seed-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
+  });
+  document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
+    ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
+    catch (err) { tm.textContent = '❌ ' + err.message; }
+    ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
+  });
 }
-document.getElementById('q').addEventListener('input', render);
-document.getElementById('status').addEventListener('change', render);
-list.addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-act="toggle"]');
+body.addEventListener('click', (e) => {
+  const btn = e.target.closest('[data-act]');
   if (!btn) return;
-  const det = btn.closest('.card').querySelector('.detail');
-  det.style.display = det.style.display === 'none' ? '' : 'none';
-  btn.textContent = det.style.display === 'none' ? 'View' : 'Hide';
+  const id = btn.closest('.as-item').dataset.id;
+  expandedId = expandedId === id ? null : id;
+  render();
 });
+document.getElementById('signout').addEventListener('click', logout);
 </script>
 </body>
 </html>

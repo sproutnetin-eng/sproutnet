@@ -293,9 +293,12 @@ router.get('/api/public/profile/:slug', async (req, res, next) => {
     if (bySlug.error) throw new Error(bySlug.error.message);
     profile = bySlug.data;
     if (!profile) {
-      const byId = await admin.from('users').select(COLS).eq('id', slug).maybeSingle();
-      if (byId.error) throw new Error(byId.error.message);
-      profile = byId.data;
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+      if (isUuid) {
+        const byId = await admin.from('users').select(COLS).eq('id', slug).maybeSingle();
+        if (byId.error) throw new Error(byId.error.message);
+        profile = byId.data;
+      }
     }
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
 
@@ -308,7 +311,7 @@ router.get('/api/public/profile/:slug', async (req, res, next) => {
       .order('builder_score', { ascending: false });
     if (lbError) throw new Error(lbError.message);
     const allEntries = leaderboardRows || [];
-    const myIdx = allEntries.findIndex((e) => e.profile_slug === slug);
+    const myIdx = allEntries.findIndex((e) => e.profile_slug === (profile.profile_slug || slug));
     const myEntry = myIdx >= 0 ? allEntries[myIdx] : null;
     let neighbors = [];
     if (myEntry) {
@@ -317,10 +320,10 @@ router.get('/api/public/profile/:slug', async (req, res, next) => {
 
     const { data: submissionRows, error: subError } = await admin
       .from('submissions')
-      .select('id, score, status, created_at, problems(title)')
+      .select('id, score, status, submitted_at, problems(title)')
       .eq('student_id', profile.id)
       .eq('status', 'approved')
-      .order('created_at', { ascending: false })
+      .order('submitted_at', { ascending: false })
       .limit(10);
     if (subError) throw new Error(subError.message);
     const submissions = (submissionRows || []).map((s) => {
@@ -330,24 +333,29 @@ router.get('/api/public/profile/:slug', async (req, res, next) => {
         problem_title: (p && p.title) || null,
         score: s.score,
         status: s.status,
-        created_at: s.created_at,
+        created_at: s.submitted_at || null,
       };
     });
 
     const { data: enrollRows, error: enrError } = await admin
       .from('enrollments')
-      .select('problem_id, milestone, problems(title, total_milestones)')
+      .select('problem_id, problems(title, milestones)')
       .eq('student_id', profile.id)
       .neq('status', 'completed')
       .limit(10);
     if (enrError) throw new Error(enrError.message);
     const enrollments = (enrollRows || []).map((e) => {
       const p = Array.isArray(e.problems) ? e.problems[0] : e.problems;
+      const totalMilestones = Array.isArray(p?.milestones)
+        ? p.milestones.length
+        : typeof p?.milestones === 'number'
+        ? p.milestones
+        : 1;
       return {
         problem_id: e.problem_id,
         problem_title: (p && p.title) || null,
-        milestone: e.milestone,
-        total_milestones: (p && p.total_milestones) || 1,
+        milestone: 1,
+        total_milestones: totalMilestones || 1,
       };
     });
 

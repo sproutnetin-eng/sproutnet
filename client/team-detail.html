@@ -85,7 +85,11 @@
 <div id="sn-nav"></div>
 <div class="ws-wrap">
   <div id="msg"></div>
-  <div id="content"><p style="font-size:14px;color:#9CA3A0">Loading workspace...</p></div>
+  <div id="content"><div class="sk-grid cols-3" role="status" aria-label="Loading workspace"><span class="sr-only">Loading workspace...</span>
+    <div class="sk-card" aria-hidden="true"><div class="sk" style="height:20px;width:60%"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:80%"></div></div>
+    <div class="sk-card" aria-hidden="true"><div class="sk" style="height:20px;width:55%"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:75%"></div></div>
+    <div class="sk-card" aria-hidden="true"><div class="sk" style="height:20px;width:50%"></div><div class="sk sk-line" style="width:95%"></div><div class="sk sk-line" style="width:82%"></div></div>
+  </div></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
@@ -191,7 +195,7 @@ if (s) {
         <div class="team-chat">
           <div class="chat-box">
             <div class="chat-top"><div class="t">Realtime Chat</div><input id="search" placeholder="Search messages..."></div>
-            <div id="chatlog"><p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">Loading chat history...</p></div>
+            <div id="chatlog"><div role="status" aria-label="Loading chat history" style="display:flex;flex-direction:column;gap:14px;width:100%"><span class="sr-only">Loading chat history...</span><div aria-hidden="true" class="sk" style="height:44px;width:55%;border-radius:14px"></div><div aria-hidden="true" class="sk" style="height:44px;width:45%;margin-left:auto;border-radius:14px"></div><div aria-hidden="true" class="sk" style="height:44px;width:60%;border-radius:14px"></div></div></div>
             <div class="typing-bar" id="typing"></div>
             <div class="reply-bar" id="replybar" style="display:none"></div>
             <form class="chat-form" id="chatform">

@@ -48,6 +48,7 @@ const pages = {
   '/mentor/dashboard': 'mentor-dashboard.html',
   '/mentor/profile': 'mentor-profile.html',
   '/mentor/connect/:notificationId': 'mentor-connect.html',
+  '/profile': 'profile.html',
   '/profile/:slug': 'profile.html',
   '/setup-admin': 'setup-admin.html',
   '/dashboard': 'dashboard.html',

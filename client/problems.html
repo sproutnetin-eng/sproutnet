@@ -69,7 +69,11 @@
         <div class="prob-pills" id="type-pills"></div>
         <div class="prob-pills" id="domain-pills"></div>
       </div>
-      <div id="list"><p class="prob-sub">Loading…</p></div>
+      <div id="list"><div class="prob-grid" role="status" aria-label="Loading problems"><span class="sr-only">Loading…</span>
+        <div class="pcard" aria-hidden="true"><div class="pcard-thumb sk"></div><div class="pcard-body"><div class="sk sk-line" style="width:45%"></div><div class="sk" style="height:18px;width:90%"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:65%"></div></div></div>
+        <div class="pcard" aria-hidden="true"><div class="pcard-thumb sk"></div><div class="pcard-body"><div class="sk sk-line" style="width:40%"></div><div class="sk" style="height:18px;width:85%"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:60%"></div></div></div>
+        <div class="pcard" aria-hidden="true"><div class="pcard-thumb sk"></div><div class="pcard-body"><div class="sk sk-line" style="width:50%"></div><div class="sk" style="height:18px;width:80%"></div><div class="sk sk-line" style="width:95%"></div><div class="sk sk-line" style="width:70%"></div></div></div>
+      </div></div>
     </div>
   </div>
 </div>
@@ -92,13 +96,14 @@ document.getElementById('domain-pills').innerHTML = DOMAINS.map(d =>
 function daysLeftFor(deadline) {
   return Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 }
-function card(p) {
+function card(p, idx = 0) {
   const isIndustry = p.problem_type === 'industry_challenge';
   const days = p.deadline ? daysLeftFor(p.deadline) : null;
   const snippet = (p.context || '').length > 140 ? `${(p.context || '').slice(0, 140)}...` : (p.context || '');
   const dayClass = days == null || isNaN(days) ? 'pstat-val' : (days <= 7 ? 'pstat-val pstat-val-soon' : 'pstat-val pstat-val-days');
+  const eager = idx < 2;
   return `<a class="pcard-link" href="/problems/${esc(p.id)}"><div class="pcard">
-    ${p.thumbnail_url ? `<div class="pcard-thumb"><img src="${esc(p.thumbnail_url)}" alt="${esc(p.title)} thumbnail"></div>` : ''}
+    ${p.thumbnail_url ? `<div class="pcard-thumb"><img src="${esc(p.thumbnail_url)}" alt="${esc(p.title)} thumbnail" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async"></div>` : ''}
     <div class="pcard-body">
       <div class="pbadges">
         <span class="pbadge pbadge-domain">${esc(DOMAIN_ICONS[p.domain] || '')} ${esc(p.domain || '')}</span>
@@ -119,7 +124,7 @@ try {
   const { problems } = await api(`/api/public/problems?domain=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`);
   document.getElementById('count').textContent = `${problems.length} open problems across ${domain === 'All' ? '8 domains' : domain}`;
   document.getElementById('list').innerHTML = problems.length
-    ? `<div class="prob-grid">${problems.map(card).join('')}</div>`
+    ? `<div class="prob-grid">${problems.map((p, i) => card(p, i)).join('')}</div>`
     : `<div class="pempty"><div class="pempty-ico">🔍</div><div class="pempty-title">No problems found</div><div class="pempty-sub">Try a different domain or type filter.</div></div>`;
 } catch (e) {
   document.getElementById('msg').innerHTML = alertBox(e.message);

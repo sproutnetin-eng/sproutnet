@@ -190,7 +190,18 @@
 <div id="sn-nav"></div>
 <div class="container">
   <div id="msg"></div>
-  <div id="content"><div class="pd-page"><div class="pd-loading"><span>Loading...</span></div></div></div>
+  <div id="content"><div class="pd-page"><div class="pd-grid" role="status" aria-label="Loading problem"><span class="sr-only">Loading...</span>
+    <div class="pd-main" aria-hidden="true">
+      <div class="sk-row" style="margin-bottom:20px"><div class="sk" style="width:90px;height:24px;border-radius:999px"></div><div class="sk" style="width:120px;height:24px;border-radius:999px"></div><div class="sk" style="width:70px;height:24px;border-radius:999px"></div></div>
+      <div class="sk" style="height:38px;width:78%;margin-bottom:28px"></div>
+      <div class="pd-thumb-card"><div class="pd-thumb sk"></div></div>
+      <div class="pd-sec-card"><div class="sk sk-line" style="width:30%;margin-bottom:14px"></div><div class="sk sk-line" style="width:100%;margin-bottom:10px"></div><div class="sk sk-line" style="width:100%;margin-bottom:10px"></div><div class="sk sk-line" style="width:85%;margin-bottom:10px"></div><div class="sk sk-line" style="width:92%"></div></div>
+    </div>
+    <div class="pd-side" aria-hidden="true">
+      <div class="cta"><div class="sk sk-line" style="width:50%;margin-bottom:14px"></div><div class="sk" style="height:24px;width:90%;margin-bottom:20px"></div><div class="sk" style="height:48px;width:100%;border-radius:8px"></div></div>
+      <div class="stats-card"><div class="sk sk-line" style="width:100%;margin-bottom:14px"></div><div class="sk sk-line" style="width:100%;margin-bottom:14px"></div><div class="sk sk-line" style="width:100%"></div></div>
+    </div>
+  </div></div></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
@@ -548,7 +559,7 @@ function render() {
         ${(teamMode === 'team' || teamMode === 'both') ? `<span class="bdg bdg-team"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${teamMode === 'team' ? 'Team' : 'Solo or Team'}</span>` : ''}
       </div>
       <h1 class="pd-title">${esc(problem.title)}</h1>
-      ${problem.thumbnail_url ? `<div class="pd-thumb-card"><div class="pd-thumb"><img src="${esc(problem.thumbnail_url)}" alt="${esc(problem.title)} thumbnail"></div></div>` : ''}
+      ${problem.thumbnail_url ? `<div class="pd-thumb-card"><div class="pd-thumb"><img src="${esc(problem.thumbnail_url)}" alt="${esc(problem.title)} thumbnail" loading="eager" fetchpriority="high" decoding="async"></div></div>` : ''}
       <div class="pd-tabs">${SECTIONS.map(([k, l, icon]) => `<button type="button" data-sec="${k}" class="${activeSection === k ? 'on' : ''}">${icon} ${esc(l)}</button>`).join('')}</div>
       ${SECTIONS.filter(([k]) => activeSection === k).map(([k, l, icon]) => `<div class="pd-sec-card">
         <div class="pd-sec-kicker">${icon} ${esc(l)}</div>

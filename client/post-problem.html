@@ -134,7 +134,7 @@ thumb.addEventListener('change', () => {
   if (!file) { prev.innerHTML = ''; return; }
   if (file.size > 5 * 1024 * 1024) { formMsg.innerHTML = `<div class="pp-err">Thumbnail must be 5 MB or smaller.</div>`; thumb.value = ''; prev.innerHTML = ''; return; }
   const url = URL.createObjectURL(file);
-  prev.innerHTML = `<div class="pp-thumb"><div class="prev"><img src="${url}" alt="Problem thumbnail preview"></div><div class="bar"><span>${esc(file.name)}</span><button type="button" class="pp-remove" id="thumb-clear">Remove image</button></div></div>`;
+  prev.innerHTML = `<div class="pp-thumb"><div class="prev"><img src="${url}" alt="Problem thumbnail preview" loading="eager" decoding="async"></div><div class="bar"><span>${esc(file.name)}</span><button type="button" class="pp-remove" id="thumb-clear">Remove image</button></div></div>`;
   document.getElementById('thumb-clear').addEventListener('click', () => { thumb.value = ''; prev.innerHTML = ''; });
 });
 f.addEventListener('submit', async (e) => {

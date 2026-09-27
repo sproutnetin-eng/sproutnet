@@ -29,10 +29,10 @@
 <main class="pen-wrap">
   <div class="pen-head">
     <h1>Enrollments</h1>
-    <p id="subtitle">Loading…</p>
+    <p id="subtitle" role="status" aria-label="Loading"><span class="sr-only">Loading…</span><span class="sk sk-line" aria-hidden="true" style="display:inline-block;width:220px;vertical-align:middle"></span></p>
   </div>
   <div id="msg"></div>
-  <div id="list"></div>
+  <div id="list" role="status" aria-label="Loading enrollments"><span class="sr-only">Loading enrollments...</span><div class="pen-list" aria-hidden="true"><div class="pen-card"><div class="sk sk-circle" style="width:32px;height:32px"></div><div style="flex:1"><div class="sk sk-line" style="width:40%;margin-bottom:8px"></div><div class="sk sk-line" style="width:65%"></div></div></div><div class="pen-card"><div class="sk sk-circle" style="width:32px;height:32px"></div><div style="flex:1"><div class="sk sk-line" style="width:35%;margin-bottom:8px"></div><div class="sk sk-line" style="width:60%"></div></div></div></div></div>
 </main>
 <script src="/assets/config.js"></script>
 <script type="module">

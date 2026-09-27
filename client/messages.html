@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
 .msg-wrap { max-width: 1200px; margin: 24px auto; padding: 0 20px; height: calc(100vh - 130px); }
+/* Widen the dashboard content column slightly on this page so the chat card uses the extra left/right space */
+.dash-content-inner:has(.msg-wrap) { max-width: 1280px; }
 .messages-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; height: 100%; }
 .messages-sidebar { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
 .messages-sidebar h3 { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #1C1410; margin: 0 0 12px; }
@@ -45,7 +47,10 @@
 <div id="sn-nav"></div>
 <div class="msg-wrap">
   <div id="msg"></div>
-  <div id="content"><p style="font-size:14px;color:#9CA3A0">Loading conversations...</p></div>
+  <div id="content"><div class="messages-layout" role="status" aria-label="Loading conversations"><span class="sr-only">Loading conversations...</span>
+    <div class="messages-sidebar" aria-hidden="true"><div class="sk" style="height:18px;width:60%;margin-bottom:12px"></div><div class="sk" style="height:62px;border-radius:10px;margin-bottom:8px"></div><div class="sk" style="height:62px;border-radius:10px;margin-bottom:8px"></div><div class="sk" style="height:62px;border-radius:10px"></div></div>
+    <div class="chat-box" aria-hidden="true"><div class="chat-top"><div class="sk sk-line" style="width:120px"></div><div class="sk" style="width:180px;height:28px;border-radius:6px"></div></div><div style="flex:1;padding:18px;display:flex;flex-direction:column;gap:14px"><div class="sk" style="height:44px;width:55%;border-radius:14px"></div><div class="sk" style="height:44px;width:45%;margin-left:auto;border-radius:14px"></div><div class="sk" style="height:44px;width:60%;border-radius:14px"></div></div><div class="chat-form"><div class="sk" style="flex:1;height:42px;border-radius:8px"></div><div class="sk" style="width:80px;height:42px;border-radius:8px"></div></div></div>
+  </div></div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
@@ -128,7 +133,7 @@ if (s) {
       document.querySelectorAll('.conv-btn').forEach(b => b.classList.toggle('on', b.dataset.c === id));
       if (rt) { await supabase.removeChannel(rt); rt = null; }
       messages = [];
-      log.innerHTML = '<p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">Loading chat history...</p>';
+      log.innerHTML = '<div role="status" aria-label="Loading chat history" style="display:flex;flex-direction:column;gap:14px;width:100%"><span class="sr-only">Loading chat history...</span><div aria-hidden="true" class="sk" style="height:44px;width:55%;border-radius:14px"></div><div aria-hidden="true" class="sk" style="height:44px;width:45%;margin-left:auto;border-radius:14px"></div><div aria-hidden="true" class="sk" style="height:44px;width:60%;border-radius:14px"></div></div>';
       const { data } = await supabase.from('messages').select('*, sender:sender_id(name), message_reactions(*), message_attachments(*)').eq('conversation_id', id).order('created_at', { ascending: true });
       messages = (data || []).map(m => ({ ...m, sender_name: m.sender?.name || 'Unknown', reactions: m.message_reactions || [], attachments: m.message_attachments || [] }));
       renderChat();

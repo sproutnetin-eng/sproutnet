@@ -51,7 +51,10 @@
   <a class="mc-back" href="/mentor/dashboard">← Dashboard</a>
   <div id="msg"></div>
   <div id="banner"></div>
-  <div id="profile"><p style="font-size:14px;color:#9CA3A0">Loading…</p></div>
+  <div id="profile" role="status" aria-label="Loading profile"><span class="sr-only">Loading…</span><div class="mc-cols" aria-hidden="true">
+    <div class="mc-side"><div class="mc-id"><div class="sk sk-circle" style="width:96px;height:96px;margin:0 auto 12px"></div><div class="sk" style="height:20px;width:70%;margin:0 auto 10px"></div><div class="sk sk-line" style="width:50%;margin:0 auto"></div></div><div class="mc-score"><div class="sk" style="height:32px;width:50%;margin:0 auto"></div></div></div>
+    <div class="mc-main"><div class="mc-card"><div class="sk sk-line" style="width:30%;margin-bottom:10px"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:90%"></div></div><div class="mc-card"><div class="sk sk-line" style="width:25%;margin-bottom:10px"></div><div class="sk sk-line" style="width:100%"></div></div></div>
+  </div></div>
 </main>
 <script src="/assets/config.js"></script>
 <script type="module">
@@ -81,7 +84,7 @@ if (me) {
       document.getElementById('profile').innerHTML = `<div class="mc-cols">
         <div class="mc-side">
           <div class="mc-id">
-            ${student.avatar_url ? `<img src="${esc(student.avatar_url)}" alt="${esc(student.name)}">`
+            ${student.avatar_url ? `<img src="${esc(student.avatar_url)}" alt="${esc(student.name)}" loading="eager" fetchpriority="high" decoding="async">`
               : `<div class="mc-avatar" style="background:${avatarColor(student.name)}">${esc(initialsOf(student.name))}</div>`}
             <h1>${esc(student.name)}</h1>
             <div class="mc-tags"><span class="mc-role">${esc(student.role || 'student')}</span><span class="mc-dept">${esc([student.dept, student.year].filter(Boolean).join(' · '))}</span></div>

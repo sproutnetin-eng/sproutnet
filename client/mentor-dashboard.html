@@ -73,37 +73,69 @@
 </head>
 <body>
 <div id="sn-nav"></div>
-<main class="md-wrap">
-  <div id="msg"></div>
-  <div class="md-welcome">
-    <div><h1 id="welcome">Welcome, Mentor.</h1><p>Guide student teams, review requests, and foster engineering impact.</p></div>
-    <a class="md-edit" href="/mentor/profile">Edit Profile &amp; Availability →</a>
-  </div>
-  <div class="md-stats" id="stats"></div>
-  <div class="md-quick">
-    <a class="q1" href="/mentors">Browse Mentors →</a>
-    <a class="q2" href="/messages">Open Messages →</a>
-    <a class="q3" href="/notifications">View Notifications →</a>
-  </div>
-  <div class="md-sec">
-    <div class="md-sec-head"><h2>Team Mentorship Requests <span class="md-count amber" id="req-count" style="display:none"></span></h2></div>
-    <div id="requests"><p style="font-size:14px;color:#9CA3A0">Loading…</p></div>
-  </div>
-  <div class="md-sec">
-    <div class="md-sec-head"><h2>Individual Connections <span class="md-count purple" id="conn-count" style="display:none"></span></h2></div>
-    <div id="connections"></div>
-    <div id="history" style="margin-top:24px"></div>
-  </div>
-  <div>
-    <div class="md-sec-head"><h2>My Teams</h2></div>
-    <div id="teams"></div>
-  </div>
-</main>
+<div class="dash-layout">
+  <div class="dash-sidebar-backdrop" id="dash-sidebar-backdrop"></div>
+  <aside class="dash-sidebar" id="dash-sidebar"></aside>
+  <main class="dash-main">
+    <div class="dash-mobile-bar">
+      <button type="button" class="dash-mobile-toggle" id="dash-sidebar-toggle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span>Menu</span>
+      </button>
+      <div style="font-family:'Sora',sans-serif;font-weight:600;font-size:14px;color:var(--ink)">Mentor Dashboard</div>
+    </div>
+    <div class="dash-content-inner">
+      <div id="msg"></div>
+      <div class="md-welcome">
+        <div><h1 id="welcome">Welcome, Mentor.</h1><p>Guide student teams, review requests, and foster engineering impact.</p></div>
+        <a class="md-edit" href="/mentor/profile">Edit Profile &amp; Availability →</a>
+      </div>
+      <div class="md-stats" id="stats"></div>
+      <div class="md-quick">
+        <a class="q1" href="/mentors">Browse Mentors →</a>
+        <a class="q2" href="/messages">Open Messages →</a>
+        <a class="q3" href="/notifications">View Notifications →</a>
+      </div>
+      <div class="md-sec">
+        <div class="md-sec-head"><h2>Team Mentorship Requests <span class="md-count amber" id="req-count" style="display:none"></span></h2></div>
+        <div id="requests" role="status" aria-label="Loading requests"><span class="sr-only">Loading…</span><div aria-hidden="true"><div class="sk-card" style="margin-bottom:12px"><div class="sk-row"><div class="sk sk-circle" style="width:36px;height:36px"></div><div style="flex:1"><div class="sk sk-line" style="width:45%;margin-bottom:8px"></div><div class="sk sk-line" style="width:80%"></div></div></div></div><div class="sk-card"><div class="sk-row"><div class="sk sk-circle" style="width:36px;height:36px"></div><div style="flex:1"><div class="sk sk-line" style="width:40%;margin-bottom:8px"></div><div class="sk sk-line" style="width:75%"></div></div></div></div></div></div>
+      </div>
+      <div class="md-sec">
+        <div class="md-sec-head"><h2>Individual Connections <span class="md-count purple" id="conn-count" style="display:none"></span></h2></div>
+        <div id="connections"></div>
+        <div id="history" style="margin-top:24px"></div>
+      </div>
+      <div>
+        <div class="md-sec-head"><h2>My Teams</h2></div>
+        <div id="teams"></div>
+      </div>
+    </div>
+  </main>
+</div>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { api, requireRole, renderNav, renderSidebar, esc, alertBox } from '/assets/app.js';
 renderNav();
+renderSidebar({ targetId: 'dash-sidebar', active: '/mentor/dashboard' });
+
+const toggleBtn = document.getElementById('dash-sidebar-toggle');
+const sidebarEl = document.getElementById('dash-sidebar');
+const backdropEl = document.getElementById('dash-sidebar-backdrop');
+if (toggleBtn && sidebarEl && backdropEl) {
+  toggleBtn.addEventListener('click', () => {
+    sidebarEl.classList.toggle('open');
+    backdropEl.classList.toggle('open');
+  });
+  backdropEl.addEventListener('click', () => {
+    sidebarEl.classList.remove('open');
+    backdropEl.classList.remove('open');
+  });
+}
+
 const me = await requireRole('mentor', 'admin');
+if (me) {
+  renderSidebar({ targetId: 'dash-sidebar', user: me.profile, active: '/mentor/dashboard' });
+}
 const msg = document.getElementById('msg');
 async function respondConnect(notificationId, action, btn) {
   btn.disabled = true;

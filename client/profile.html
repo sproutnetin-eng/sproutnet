@@ -88,7 +88,16 @@
 <div id="sn-nav"></div>
 <div class="p-main">
   <div id="msg" style="max-width:1200px;margin:0 auto;padding:0 clamp(20px,5vw,40px)"></div>
-  <div id="content"><p class="p-loading">Loading…</p></div>
+  <div id="content"><div class="p-row" role="status" aria-label="Loading profile"><span class="sr-only">Loading…</span>
+    <div class="p-col p-col-narrow" aria-hidden="true">
+      <div class="p-identity"><div class="sk sk-circle" style="width:96px;height:96px;margin:0 auto 12px"></div><div class="sk" style="height:20px;width:60%;margin:0 auto 10px"></div><div class="sk sk-line" style="width:45%;margin:0 auto"></div></div>
+      <div class="p-stats"><div class="sk" style="height:44px"></div><div class="sk" style="height:44px"></div><div class="sk" style="height:44px"></div><div class="sk" style="height:44px"></div></div>
+    </div>
+    <div class="p-col" aria-hidden="true">
+      <div class="p-card"><div class="sk sk-line" style="width:35%;margin-bottom:12px"></div><div class="sk sk-line" style="width:100%;margin-bottom:10px"></div><div class="sk sk-line" style="width:85%"></div></div>
+      <div class="p-card"><div class="sk sk-line" style="width:30%;margin-bottom:12px"></div><div class="sk sk-line" style="width:100%;margin-bottom:10px"></div><div class="sk sk-line" style="width:100%;margin-bottom:10px"></div><div class="sk sk-line" style="width:70%"></div></div>
+    </div>
+  </div></div>
   <div id="modal"></div>
 </div>
 </div>
@@ -96,7 +105,14 @@
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
 renderNav();
-const slug = decodeURIComponent(location.pathname.split('/')[2] || '');
+let slug = decodeURIComponent(location.pathname.split('/')[2] || '');
+if (!slug) {
+  try {
+    const me = await api('/api/auth/profile');
+    slug = me.profile?.profile_slug || me.profile?.id || '';
+    if (slug) history.replaceState(null, '', `/profile/${encodeURIComponent(slug)}`);
+  } catch { /* guest */ }
+}
 const COLORS = ['#2D6A4F','#1E40AF','#9C6344','#6B4C2A','#3D8A65','#4A3F38','#7C3AED','#BE123C'];
 const color = (n) => COLORS[(n || '?').charCodeAt(0) % COLORS.length];
 const initials = (n) => (n || 'SN').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
@@ -127,7 +143,7 @@ function render() {
     <div class="p-col p-col-narrow">
       <div class="p-identity">
         <div class="p-avatar-wrap">
-          ${profile.avatar_url ? `<img class="p-avatar-img" src="${esc(profile.avatar_url)}" alt="${esc(profile.name)}">`
+          ${profile.avatar_url ? `<img class="p-avatar-img" src="${esc(profile.avatar_url)}" alt="${esc(profile.name)}" loading="eager" fetchpriority="high" decoding="async">`
             : `<div class="p-avatar-fb" style="background:${color(profile.name)};">${esc(initials(profile.name))}</div>`}
           ${isOwnProfile ? `<input type="file" id="avatar" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
             <button class="p-avatar-edit" id="avatar-btn" title="Change avatar">✎</button>` : ''}

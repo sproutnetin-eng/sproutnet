@@ -58,3 +58,8 @@ The browser holds the Supabase session (localStorage) and sends it as an `Author
 - **Mentor** — guide teams, connect requests
 - **Admin** — cross-user access, judging, analytics
 - Registration gated to `@jyothyit.ac.in` during Phase 1
+
+## Frontend performance
+
+- **Image lazy loading** — below-the-fold images use `loading="lazy"` + `decoding="async"` so pages don't wait for all images at once. Above-the-fold images (detail covers, avatars, first cards) use `loading="eager"` + `fetchpriority="high"`. List pages (problems, blogs) load the first 1–2 card images eagerly and lazy-load the rest. `client/assets/app.js` also runs a `MutationObserver` safety net that backfills `loading`/`decoding` on any dynamically injected `<img>` missing them.
+- **Skeleton loading** — every async page shows shimmer placeholders shaped like its real content instead of bare "Loading…" text. Shared primitives live in `client/assets/styles.css`: `.sk` (shimmer block), `.sk-line`, `.sk-circle`, `.sk-card`, `.sk-row`, `.sk-grid` (`.cols-2`/`.cols-3`). Skeletons combine these with each page's own card/grid classes, carry `role="status"` + `aria-label` with visual content `aria-hidden`, and respect `prefers-reduced-motion`.

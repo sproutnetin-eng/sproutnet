@@ -78,11 +78,13 @@
     </div>
   </section>
   <div class="blogs-layout">
-    <div class="blogs-feed" id="feed"><p class="blogs-date">Loading…</p></div>
+    <div class="blogs-feed" id="feed"><div class="blogs-card" role="status" aria-label="Loading posts"><span class="sr-only">Loading…</span><div aria-hidden="true"><div class="blogs-cover sk"></div><div class="sk sk-line" style="width:40%;margin-bottom:12px"></div><div class="sk" style="height:22px;width:85%;margin-bottom:12px"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:92%"></div></div></div>
+      <div class="blogs-card" aria-hidden="true"><div class="blogs-cover sk"></div><div class="sk sk-line" style="width:35%;margin-bottom:12px"></div><div class="sk" style="height:22px;width:75%;margin-bottom:12px"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:88%"></div></div>
+    </div>
     <aside class="blogs-side">
       <section class="blogs-side-card">
         <div class="blogs-side-eyebrow">// feed snapshot</div>
-        <div id="snapshot"><p class="blogs-date">Loading…</p></div>
+        <div id="snapshot" role="status" aria-label="Loading snapshot"><span class="sr-only">Loading…</span><div aria-hidden="true"><div class="sk sk-line" style="width:100%;margin-bottom:14px"></div><div class="sk sk-line" style="width:100%;margin-bottom:14px"></div><div class="sk sk-line" style="width:100%"></div></div></div>
       </section>
       <section class="blogs-tips">
         <div class="blogs-tips-eyebrow">// how to post well</div>
@@ -119,7 +121,7 @@ try {
   const { posts, error } = await api('/api/blogs/posts');
   if (error) throw new Error(error);
   const list = posts || [];
-  document.getElementById('feed').innerHTML = list.length ? list.map(p => {
+  document.getElementById('feed').innerHTML = list.length ? list.map((p, idx) => {
     const isQ = p.postType === 'question';
     const meta = isQ ? 'Question / Doubt' : 'Knowledge Share';
     const cls = isQ ? 'question' : 'knowledge';
@@ -127,8 +129,9 @@ try {
     const ex = p.excerpt || (txt.slice(0, 250) + (txt.length > 250 ? '...' : ''));
     const aname = p.author?.name || 'SN';
     const aini = aname.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const eager = idx === 0;
     return `<a class="blogs-card-link" href="/blogs/${esc(p.id)}"><article class="blogs-card">
-      ${p.cover_image ? `<div class="blogs-cover"><img src="${esc(p.cover_image)}" alt=""></div>` : ''}
+      ${p.cover_image ? `<div class="blogs-cover"><img src="${esc(p.cover_image)}" alt="" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async"></div>` : ''}
       <div class="blogs-card-top">
         <div class="blogs-author">
           <div class="blogs-avatar ${cls}">${esc(aini)}</div>

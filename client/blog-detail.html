@@ -73,7 +73,9 @@
 <div class="bd-wrap" id="wrap" style="display:none;">
   <div id="content"></div>
 </div>
-<div class="bd-loading" id="loading">Loading...</div>
+<div class="bd-loading" id="loading" role="status" aria-label="Loading post"><span class="sr-only">Loading...</span>
+  <div aria-hidden="true" style="width:100%"><div class="bd-cover sk" style="height:320px"></div><div class="sk-row" style="margin-bottom:20px"><div class="sk sk-circle" style="width:48px;height:48px"></div><div style="flex:1"><div class="sk sk-line" style="width:40%;margin-bottom:8px"></div><div class="sk sk-line" style="width:25%"></div></div></div><div class="sk" style="height:44px;width:85%;margin-bottom:24px"></div><div class="sk sk-line" style="width:100%;margin-bottom:12px"></div><div class="sk sk-line" style="width:100%;margin-bottom:12px"></div><div class="sk sk-line" style="width:100%;margin-bottom:12px"></div><div class="sk sk-line" style="width:70%"></div></div>
+</div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
@@ -103,7 +105,7 @@ function render() {
       ${me ? `<a class="bd-topbtn" href="/dashboard">Dashboard →</a>` : `<a class="bd-topbtn" href="/login">Log in →</a>`}
     </nav>`;
   document.getElementById('content').innerHTML = `
-    ${post.cover_image ? `<div class="bd-cover"><img src="${esc(post.cover_image)}" alt=""></div>` : ''}
+    ${post.cover_image ? `<div class="bd-cover"><img src="${esc(post.cover_image)}" alt="" loading="eager" fetchpriority="high" decoding="async"></div>` : ''}
     <div class="bd-author">
       <div class="bd-avatar ${cls}">${esc(aini(post.author?.name))}</div>
       <div><div class="bd-author-top"><span class="bd-author-name">${esc(post.author?.name || 'SproutNet member')}</span><span class="bd-type ${cls}">${esc(meta)}</span></div>
@@ -133,6 +135,10 @@ function render() {
             <div class="bd-comment-body">${esc(r.body)}</div></div></div>`).join('')}
         </div>`; }).join('') : `<div class="bd-empty">${me ? 'No comments yet. Be the first!' : 'No comments yet.'}</div>`}</div>
     </div>`;
+  document.getElementById('content').querySelectorAll('.sn-blog-body img, .bd-body img').forEach((img) => {
+    if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+    if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+  });
   document.getElementById('like')?.addEventListener('click', async () => {
     try { const d = await api('/api/blogs/likes', { method:'POST', body:{ post_id:id } });
       liked = d.liked; likeCount += liked ? 1 : -1; if (likeCount < 0) likeCount = 0; render();

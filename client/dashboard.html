@@ -65,14 +65,43 @@
 </head>
 <body>
 <div id="sn-nav"></div>
-<div class="dash-wrap">
-  <div id="msg"></div>
-  <div id="content"><p style="font-size:14px;color:#9CA3A0">Loading dashboard...</p></div>
+<div class="dash-layout">
+  <div class="dash-sidebar-backdrop" id="dash-sidebar-backdrop"></div>
+  <aside class="dash-sidebar" id="dash-sidebar"></aside>
+  <main class="dash-main">
+    <div class="dash-mobile-bar">
+      <button type="button" class="dash-mobile-toggle" id="dash-sidebar-toggle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <span>Menu</span>
+      </button>
+      <div style="font-family:'Sora',sans-serif;font-weight:600;font-size:14px;color:var(--ink)">Dashboard</div>
+    </div>
+    <div class="dash-content-inner">
+      <div id="msg"></div>
+      <div id="content"><div role="status" aria-label="Loading dashboard"><span class="sr-only">Loading dashboard...</span><div aria-hidden="true"><div class="sk" style="height:28px;width:45%;margin-bottom:8px"></div><div class="sk sk-line" style="width:65%;margin-bottom:24px"></div><div class="sk-grid cols-3" style="margin-bottom:20px"><div class="sk-card"><div class="sk" style="height:32px;width:40%"></div><div class="sk sk-line" style="width:70%"></div></div><div class="sk-card"><div class="sk" style="height:32px;width:35%"></div><div class="sk sk-line" style="width:65%"></div></div><div class="sk-card"><div class="sk" style="height:32px;width:45%"></div><div class="sk sk-line" style="width:60%"></div></div></div><div class="sk-card"><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:92%"></div></div></div></div></div>
+    </div>
+  </main>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
+import { api, esc, requireRole, renderNav, renderSidebar, alertBox } from '/assets/app.js';
 renderNav();
+renderSidebar({ targetId: 'dash-sidebar', active: '/dashboard' });
+
+const toggleBtn = document.getElementById('dash-sidebar-toggle');
+const sidebarEl = document.getElementById('dash-sidebar');
+const backdropEl = document.getElementById('dash-sidebar-backdrop');
+if (toggleBtn && sidebarEl && backdropEl) {
+  toggleBtn.addEventListener('click', () => {
+    sidebarEl.classList.toggle('open');
+    backdropEl.classList.toggle('open');
+  });
+  backdropEl.addEventListener('click', () => {
+    sidebarEl.classList.remove('open');
+    backdropEl.classList.remove('open');
+  });
+}
+
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
 
@@ -100,6 +129,7 @@ async function cancelEnrollment(problemId, btn) {
 
 const me = await requireRole('student');
 if (me) {
+  renderSidebar({ targetId: 'dash-sidebar', user: me.profile, active: '/dashboard' });
   try {
     const { profile, enrolledProblems, workspaces } = await api('/api/student/overview');
     const first = esc((profile.name || 'there').split(' ')[0]);

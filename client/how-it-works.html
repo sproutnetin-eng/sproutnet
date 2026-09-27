@@ -58,7 +58,9 @@ a{text-decoration:none;color:inherit}
 .score-body{font-family:var(--ff-body);font-size:14px;color:var(--ink-mid)}
 .faq-grid{display:grid;gap:14px;margin-top:36px;overflow-anchor:none}
 .faq-item{background:var(--white);border:1.5px solid rgba(28,20,16,.07);border-radius:var(--r-md);padding:16px 20px;box-shadow:var(--sh)}
-.faq-item summary{font-family:var(--ff-head);font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none}
+.faq-item summary{font-family:var(--ff-head);font-size:15px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.faq-item summary::after{content:'+';flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--green-pale);border:1.5px solid rgba(45,106,79,.2);color:var(--green);font-size:18px;font-weight:400;line-height:1;display:flex;align-items:center;justify-content:center;transition:transform var(--ease),background var(--ease)}
+.faq-item[open] summary::after{content:'–';background:var(--green);border-color:var(--green);color:#fff}
 .faq-item summary::-webkit-details-marker{display:none}
 .faq-item > :not(summary){display:block}
 .faq-content{max-height:0;overflow:hidden;opacity:0;transform:translateY(-6px);transition:max-height .5s ease,opacity .25s ease,transform .4s ease;will-change:max-height}

@@ -135,7 +135,7 @@ if (me) {
       sync();
       const showPrev = (src, name) => {
         document.getElementById('thumb-preview').innerHTML = src
-          ? `<div class="pe-thumb"><div class="prev"><img src="${esc(src)}" alt="Problem thumbnail preview"></div><div class="bar"><span>${esc(name)}</span><button type="button" class="pe-remove" id="clear-thumb">Remove image</button></div></div>` : '';
+          ? `<div class="pe-thumb"><div class="prev"><img src="${esc(src)}" alt="Problem thumbnail preview" loading="eager" decoding="async"></div><div class="bar"><span>${esc(name)}</span><button type="button" class="pe-remove" id="clear-thumb">Remove image</button></div></div>` : '';
         document.getElementById('clear-thumb')?.addEventListener('click', () => { newFile = null; currentThumb = ''; document.getElementById('thumb').value = ''; showPrev('', ''); });
       };
       if (currentThumb) showPrev(currentThumb, 'Current thumbnail');

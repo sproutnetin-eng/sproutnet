@@ -99,8 +99,9 @@ function daysLeftFor(deadline) {
 function card(p, idx = 0) {
   const isIndustry = p.problem_type === 'industry_challenge';
   const days = p.deadline ? daysLeftFor(p.deadline) : null;
+  const closed = days != null && !isNaN(days) && days < 0;
   const snippet = (p.context || '').length > 140 ? `${(p.context || '').slice(0, 140)}...` : (p.context || '');
-  const dayClass = days == null || isNaN(days) ? 'pstat-val' : (days <= 7 ? 'pstat-val pstat-val-soon' : 'pstat-val pstat-val-days');
+  const dayClass = days == null || isNaN(days) || closed ? 'pstat-val' : (days <= 7 ? 'pstat-val pstat-val-soon' : 'pstat-val pstat-val-days');
   const eager = idx < 2;
   return `<a class="pcard-link" href="/problems/${esc(p.id)}"><div class="pcard">
     ${p.thumbnail_url ? `<div class="pcard-thumb"><img src="${esc(p.thumbnail_url)}" alt="${esc(p.title)} thumbnail" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async"></div>` : ''}
@@ -113,7 +114,7 @@ function card(p, idx = 0) {
       <h2 class="pcard-title">${esc(p.title)}</h2>
       <p class="pcard-snippet">${esc(snippet)}</p>
       <div class="pfoot">
-        <div class="pstat"><span class="${dayClass}">${days == null || isNaN(days) ? '—' : `${days}d`}</span><span class="pstat-label">left</span></div>
+        <div class="pstat"><span class="${dayClass}">${days == null || isNaN(days) ? '—' : (closed ? 'Closed' : `${days}d`)}</span><span class="pstat-label">${closed ? 'enrollment closed' : 'left'}</span></div>
         <div class="pstat"><span class="pstat-val">${esc(String(p.submission_count ?? 0))}</span><span class="pstat-label">submissions</span></div>
         <div class="pview"><span>View →</span></div>
       </div>

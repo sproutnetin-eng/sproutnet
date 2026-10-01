@@ -30,13 +30,35 @@ export async function api(path, { method = 'GET', body, form } = {}) {
 export async function requireAuth() {
   const { data } = await sb().auth.getSession();
   if (!data.session) {
-    location.href = '/login';
+    const next = location.pathname + location.search;
+    location.href = '/login' + (next && next !== '/login' ? `?next=${encodeURIComponent(next)}` : '');
     return null;
   }
   return data.session;
 }
 
+// Canonical home page per role — used for post-login / access-denied redirects.
+export function roleHome(profile) {
+  const role = profile?.role;
+  if (profile?.is_master || role === 'admin') return '/admin';
+  if (role === 'poster') return '/poster/dashboard';
+  if (role === 'mentor') return '/mentor/dashboard';
+  return '/dashboard';
+}
+
+// Returns the ?next= destination only when it is a safe same-origin path.
+// Target pages re-enforce roles via requireRole, so this can't escalate access.
+export function safeNext() {
+  try {
+    const n = new URLSearchParams(location.search).get('next');
+    if (n && n.startsWith('/') && !n.startsWith('//') && !n.includes('\\')) return n;
+  } catch { /* ignore */ }
+  return null;
+}
+
 // Redirects away unless the logged-in user has one of the given roles.
+// Role mismatch sends the user to their own home (never the current page,
+// so this can't infinite-loop); missing session preserves ?next= for login.
 export async function requireRole(...roles) {
   const s = await requireAuth();
   if (!s) return null;
@@ -45,12 +67,14 @@ export async function requireRole(...roles) {
     const role = me.profile?.role;
     const isAdmin = role === 'admin' || me.profile?.is_master;
     if (!roles.includes(role) && !(isAdmin && roles.includes('admin'))) {
-      location.href = '/dashboard';
+      const home = roleHome(me.profile);
+      if (location.pathname !== home) location.href = home;
       return null;
     }
     return me;
   } catch {
-    location.href = '/login';
+    const next = location.pathname + location.search;
+    location.href = '/login' + (next && next !== '/login' ? `?next=${encodeURIComponent(next)}` : '');
     return null;
   }
 }
@@ -62,6 +86,8 @@ export function esc(s) {
 }
 
 export async function logout() {
+  try { localStorage.removeItem('sn-profile-cache'); } catch { /* ignore */ }
+  _navInflight = null;
   await sb().auth.signOut();
   try { await api('/api/auth/signout', { method: 'POST' }); } catch { /* ignore */ }
   location.href = '/login';
@@ -215,24 +241,43 @@ export function applyDashboardLayout(user) {
   renderSidebar({ targetId: 'dash-sidebar', user, active: getActiveRoute(path) });
 }
 
-export async function renderNav() {
+function getCachedProfile() {
+  try {
+    const raw = localStorage.getItem('sn-profile-cache');
+    if (!raw) return null;
+    const { profile, ts } = JSON.parse(raw);
+    // 5-minute TTL — fresh enough for nav paint, revalidated in background.
+    if (!profile || Date.now() - ts > 5 * 60 * 1000) return null;
+    return profile;
+  } catch { return null; }
+}
+
+function setCachedProfile(profile) {
+  try {
+    if (!profile) localStorage.removeItem('sn-profile-cache');
+    else localStorage.setItem('sn-profile-cache', JSON.stringify({ profile, ts: Date.now() }));
+  } catch { /* ignore */ }
+}
+
+function hasStoredSession() {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i) || '';
+      // Supabase default storage key: sb-<ref>-auth-token
+      if (k.startsWith('sb-') && k.endsWith('-auth-token')) {
+        const v = localStorage.getItem(k);
+        if (v && v !== 'null' && v !== '{}') return true;
+      }
+    }
+  } catch { /* ignore */ }
+  return false;
+}
+
+function paintNav(user) {
   const el = document.getElementById('sn-nav');
   if (!el) return;
   const path = location.pathname;
   const isActive = (p) => (p === '/' ? path === '/' : path.startsWith(p));
-
-  // Instantly apply dashboard layout wrapper to avoid layout shift
-  applyDashboardLayout(null);
-
-  let user = null;
-  try {
-    const { data } = await sb().auth.getSession();
-    if (data.session) {
-      const me = await api('/api/auth/profile');
-      user = me.profile || null;
-    }
-  } catch { user = null; }
-
   const isPoster = user?.role === 'poster';
   const isMentor = user?.role === 'mentor';
   const dashboardHref = isPoster ? '/poster/dashboard' : isMentor ? '/mentor/dashboard' : '/dashboard';
@@ -247,10 +292,60 @@ export async function renderNav() {
         <a class="sn-pill amber" style="padding:8px 20px;border-radius:6px;font-weight:600" href="/join">Join →</a>
       `}
     </nav>`;
+}
 
-  if (isDashboardPage(path)) {
-    renderSidebar({ targetId: 'dash-sidebar', user, active: getActiveRoute(path) });
+let _navInflight = null;
+
+export function renderNav() {
+  const el = document.getElementById('sn-nav');
+  if (!el) return Promise.resolve();
+
+  // 1. Sync paint — no await before this, so nav appears instantly on refresh.
+  // Use cached profile when available; otherwise guess from stored session so
+  // logged-in users don't flash the guest links.
+  const cached = getCachedProfile();
+  paintNav(cached || (hasStoredSession() ? { role: 'student', name: 'User' } : null));
+
+  // Instantly apply dashboard layout wrapper to avoid layout shift
+  applyDashboardLayout(cached || null);
+
+  const path = location.pathname;
+
+  // 2. Background upgrade — single-flighted so N pages/components share it.
+  if (!_navInflight) {
+    _navInflight = (async () => {
+      let user = null;
+      try {
+        const { data } = await sb().auth.getSession();
+        if (data.session) {
+          try {
+            const me = await api('/api/auth/profile');
+            user = me.profile || null;
+            setCachedProfile(user);
+          } catch {
+            user = cached || null;
+          }
+        } else {
+          user = null;
+          setCachedProfile(null);
+        }
+      } catch { user = cached || null; }
+      return user;
+    })().finally(() => { /* keep cache until next navigation */ });
   }
+
+  return _navInflight.then((user) => {
+    // Repaint only if auth state actually changed (avoids layout shift/flicker).
+    const before = el.innerHTML;
+    paintNav(user);
+    if (el.innerHTML !== before) {
+      // content changed (guest <-> user) — repaint done above
+    }
+    if (isDashboardPage(path)) {
+      renderSidebar({ targetId: 'dash-sidebar', user, active: getActiveRoute(path) });
+    }
+    return user;
+  });
 }
 
 export async function renderSidebar({ targetId = 'dash-sidebar', user = null, active = '/dashboard' } = {}) {

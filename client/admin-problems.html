@@ -122,6 +122,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('admin');
 const msg = document.getElementById('msg');
@@ -149,7 +150,7 @@ function render() {
   const domains = ['All', ...Array.from(new Set(items.map(p => p.domain).filter(Boolean))).sort()];
   const rows = filtered();
   if (!items.length) {
-    body.innerHTML = `<div class="admin-surface ap-none"><div class="big">📦</div><div class="t">No problems yet</div><div class="d">If you already have problems, verify they exist in the \`problems\` table and that this environment points at the right Supabase project.</div></div>`;
+    body.innerHTML = `<div class="admin-surface ap-none"><div class="big">${icon('package', 44)}</div><div class="t">No problems yet</div><div class="d">If you already have problems, verify they exist in the \`problems\` table and that this environment points at the right Supabase project.</div></div>`;
     return;
   }
   body.innerHTML = `
@@ -171,7 +172,7 @@ function render() {
       <div class="ap-fmeta"><span>Showing ${rows.length} of ${items.length}</span>
         <span><span id="seed-result" style="font-size:11px"></span> <button type="button" class="ap-seed" id="seed">Seed Test Data</button></span></div>
     </div>
-    ${!rows.length ? `<div class="admin-surface ap-none"><div class="big">🔎</div><div class="t">No matches</div><div class="d">Try clearing filters or changing the search query.</div></div>` : `
+    ${!rows.length ? `<div class="admin-surface ap-none"><div class="big">${icon('search', 44)}</div><div class="t">No matches</div><div class="d">Try clearing filters or changing the search query.</div></div>` : `
     <div class="admin-table">
       <div class="ap-hrow">${['Title', 'Poster', 'Domain', 'Type', 'Status', 'Deadline', 'Actions'].map(h => `<div class="h">${h}</div>`).join('')}</div>
       <div style="max-height:680px;overflow-y:auto">
@@ -255,14 +256,14 @@ if (me) {
   const tm = document.getElementById('tool-msg');
   document.getElementById('seed-btn').addEventListener('click', async (ev) => {
     ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
-    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
-    catch (err) { tm.textContent = '❌ ' + err.message; }
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.innerHTML = `${icon('check', 14)} ${esc(r.summary || r.message || 'done')}`; }
+    catch (err) { tm.innerHTML = `${icon('x', 14)} ${esc(err.message)}`; }
     ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
   });
   document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
     ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
-    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
-    catch (err) { tm.textContent = '❌ ' + err.message; }
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.innerHTML = `${icon('check', 14)} ${esc(r.message || 'done')}`; }
+    catch (err) { tm.innerHTML = `${icon('x', 14)} ${esc(err.message)}`; }
     ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
   });
 }

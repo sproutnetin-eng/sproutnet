@@ -94,6 +94,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
@@ -160,7 +161,7 @@ if (s) {
           </div>
           <div class="ws-card">
             <div class="ws-card-head"><h3>Assigned Mentors</h3>${(isLeader || isAdmin) ? '<button class="btn-req" id="mentorbtn">+ Request Mentor</button>' : ''}</div>
-            ${(d.assignedMentors || []).length ? d.assignedMentors.map(a => `<div class="mentor-box"><div class="n">🛡️ ${esc(a.users?.name || '')}</div><div class="e">${esc(a.users?.email || '')}</div></div>`).join('') : '<div class="ws-muted">No mentor assigned yet.</div>'}
+            ${(d.assignedMentors || []).length ? d.assignedMentors.map(a => `<div class="mentor-box"><div class="n">${icon('shield', 14)} ${esc(a.users?.name || '')}</div><div class="e">${esc(a.users?.email || '')}</div></div>`).join('') : '<div class="ws-muted">No mentor assigned yet.</div>'}
             <div id="mentorform" style="display:none">
               <label class="ws-sec-label">Mentor</label>
               <select class="in" id="mentorid"><option value="">-- Choose a mentor --</option>${(d.availableMentors || []).map(m => `<option value="${esc(m.user_id)}">${esc(m.users?.name || '')} (${esc((m.skills || []).join(', ') || 'General Expert')})</option>`).join('')}</select>
@@ -180,7 +181,7 @@ if (s) {
             ${(isLeader || isAdmin) ? `<div class="ws-mini-row"><input class="in" id="mstitle" placeholder="Milestone title"><button class="btn-ghost" id="msbtn">Add</button></div>` : ''}
           </div>
           <div class="ws-card"><div class="ws-card-head"><h3 class="sm">Files</h3></div>
-            <div>${files.map(f => `<div style="font-size:13px;padding:4px 0"><a style="color:#2D6A4F;font-weight:600;text-decoration:none" href="${esc(f.file_url || f.url || '#')}" target="_blank" rel="noreferrer">📎 ${esc(f.file_name || f.name || 'file')}</a></div>`).join('') || '<div class="ws-muted">No files yet.</div>'}</div>
+            <div>${files.map(f => `<div style="font-size:13px;padding:4px 0"><a style="color:#2D6A4F;font-weight:600;text-decoration:none" href="${esc(f.file_url || f.url || '#')}" target="_blank" rel="noreferrer">${icon('paperclip', 13)} ${esc(f.file_name || f.name || 'file')}</a></div>`).join('') || '<div class="ws-muted">No files yet.</div>'}</div>
             <input class="in" type="file" id="wsfile" style="margin-top:10px">
           </div>
           <div class="ws-card"><div class="ws-card-head"><h3 class="sm">Announcements</h3></div>
@@ -199,7 +200,7 @@ if (s) {
             <div class="typing-bar" id="typing"></div>
             <div class="reply-bar" id="replybar" style="display:none"></div>
             <form class="chat-form" id="chatform">
-              <label class="clip" title="Upload file">📎<input type="file" id="chatfile" style="display:none"></label>
+              <label class="clip" title="Upload file">${icon('paperclip', 14)}<input type="file" id="chatfile" style="display:none"></label>
               <input type="text" id="chatinput" placeholder="Type a message... (Press Enter to send)">
               <button class="btn-send" type="submit">Send →</button>
             </form>
@@ -208,7 +209,7 @@ if (s) {
       </div>
       <div id="modal"></div>`;
 
-    document.getElementById('copy')?.addEventListener('click', (e) => { navigator.clipboard.writeText(team.invite_code || ''); e.target.textContent = 'Copied! ✓'; setTimeout(() => e.target.textContent = 'Copy', 2000); });
+    document.getElementById('copy')?.addEventListener('click', (e) => { navigator.clipboard.writeText(team.invite_code || ''); e.target.textContent = 'Copied!'; setTimeout(() => e.target.textContent = 'Copy', 2000); });
     document.getElementById('mentorbtn')?.addEventListener('click', () => {
       const f = document.getElementById('mentorform'); f.style.display = f.style.display === 'none' ? '' : 'none';
     });
@@ -306,19 +307,19 @@ if (s) {
       log.innerHTML = list.length ? list.map(m => {
         const mine = m.sender_id === currentUserId;
         const rx = (m.reactions || []).map(r => r.emoji).join(' ');
-        const atts = (m.attachments || []).map(a => `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2)"><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
+        const atts = (m.attachments || []).map(a => `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2)"><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">${icon('paperclip', 13)} ${esc(a.file_name)}</a></div>`).join('');
         return `<div class="msg-col ${mine ? 'mine' : 'theirs'}">
           <div class="msg-meta">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
           <div class="bubble ${mine ? 'mine' : 'theirs'}">${m.parent_id ? `<div class="replyq">Replying to thread</div>` : ''}<div>${esc(m.content || '')}</div>${atts}</div>
           ${rx ? `<div style="font-size:13px">${esc(rx)}</div>` : ''}
-          <div class="msg-actions"><button data-reply="${esc(m.id)}">Reply</button>${['👍', '❤️', '🎉'].map(e2 => `<button data-react="${esc(m.id)}" data-emoji="${e2}">${e2}</button>`).join('')}</div>
+          <div class="msg-actions"><button data-reply="${esc(m.id)}">Reply</button>${[['thumbsup', '\u{1F44D}'], ['heart', '\u2764\uFE0F'], ['sparkles', '\u{1F389}']].map(([ic, e2]) => `<button data-react="${esc(m.id)}" data-emoji="${e2}">${icon(ic, 14)}</button>`).join('')}</div>
         </div>`;
       }).join('') : '<p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">No messages yet. Start the conversation!</p>';
       log.scrollTop = log.scrollHeight;
       log.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
         replyTo = messages.find(x => x.id === b.dataset.reply) || null;
         const bar = document.getElementById('replybar');
-        if (replyTo) { bar.style.display = ''; bar.innerHTML = `<span>Replying to <strong>${esc(replyTo.sender_name || '')}</strong>: &ldquo;${esc((replyTo.content || '').slice(0, 40))}...&rdquo;</span><button data-x style="background:none;border:none;cursor:pointer;font-weight:bold">✕</button>`; bar.querySelector('[data-x]').addEventListener('click', () => { replyTo = null; bar.style.display = 'none'; }); }
+        if (replyTo) { bar.style.display = ''; bar.innerHTML = `<span>Replying to <strong>${esc(replyTo.sender_name || '')}</strong>: &ldquo;${esc((replyTo.content || '').slice(0, 40))}...&rdquo;</span><button data-x style="background:none;border:none;cursor:pointer;font-weight:bold">${icon('x', 14)}</button>`; bar.querySelector('[data-x]').addEventListener('click', () => { replyTo = null; bar.style.display = 'none'; }); }
       }));
       log.querySelectorAll('[data-react]').forEach(b => b.addEventListener('click', async () => {
         try {

@@ -101,7 +101,7 @@ const id = location.pathname.split('/')[3];
 let currentThumb = '', newFile = null;
 function showPopup() {
   document.getElementById('popup').innerHTML = `<div class="pe-popup"><div class="box">
-    <div class="mono">// updated</div><div class="big">Problem updated.</div>
+    <div class="big">Problem updated.</div>
     <p>Your changes are saved. Redirecting to your problems.</p>
     <button type="button" id="popup-ok">Okay</button></div></div>`;
   document.getElementById('popup-ok').addEventListener('click', () => { document.getElementById('popup').innerHTML = ''; });

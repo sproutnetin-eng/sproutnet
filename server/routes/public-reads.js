@@ -3,6 +3,7 @@
 // Mounted by server/server.js via app.use(require('./routes/public-reads')).
 const express = require('express');
 const { getAdmin, getUserFromToken } = require('../supabase');
+const { authRequired, loadProfile } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -217,64 +218,280 @@ function parseDeliverables(value) {
 }
 
 // GET /api/public/solutions -> { solutions }
+// GET /api/public/solutions?id=<submissionId> -> { solution } (full detail
+// with the 7 framework fields, for the solution detail page)
 router.get('/api/public/solutions', async (req, res, next) => {
   try {
     const admin = getAdmin();
-    const { data: rows, error } = await admin
+    const detailId = typeof req.query.id === 'string' ? req.query.id.trim() : '';
+    const baseSelect = detailId
+      ? 'id, problem_id, student_id, participant_type, score, judge_feedback, final_deliverables, submitted_at, f_understanding, f_rootcause, f_solution, f_impact, f_feasibility, f_risks, f_implementation'
+      : 'id, problem_id, student_id, participant_type, score, judge_feedback, final_deliverables, submitted_at';
+    let q = admin
       .from('submissions')
-      .select('id, problem_id, student_id, participant_type, score, judge_feedback, final_deliverables, submitted_at')
+      .select(baseSelect)
       .eq('stage', 'full')
-      .eq('status', 'approved')
-      .order('submitted_at', { ascending: false })
-      .limit(100);
+      .eq('status', 'approved');
+    if (detailId) q = q.eq('id', detailId).limit(1);
+    else q = q.order('submitted_at', { ascending: false }).limit(100);
+    const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
     const completed = (rows || []).filter((r) => parseDeliverables(r.final_deliverables).length > 0);
 
-    const problemIds = Array.from(new Set(completed.map((r) => r.problem_id)));
-    const studentIds = Array.from(new Set(completed.map((r) => r.student_id)));
-
-    const [probRes, userRes, teamRes] = await Promise.all([
-      problemIds.length
-        ? admin.from('problems').select('id, title, domain').in('id', problemIds)
-        : Promise.resolve({ data: [] }),
-      studentIds.length
-        ? admin.from('users').select('id, name, profile_slug').in('id', studentIds)
-        : Promise.resolve({ data: [] }),
-      studentIds.length
-        ? admin.from('team_members').select('user_id, teams!inner(problem_id)').in('user_id', studentIds)
-        : Promise.resolve({ data: [] }),
-    ]);
-    if (probRes.error) throw new Error(probRes.error.message);
-    if (userRes.error) throw new Error(userRes.error.message);
-
-    const problemMap = new Map((probRes.data || []).map((p) => [p.id, p]));
-    const userMap = new Map((userRes.data || []).map((u) => [u.id, u]));
-    const teamKeys = new Set();
-    for (const row of teamRes.data || []) {
-      const t = Array.isArray(row.teams) ? row.teams[0] : row.teams;
-      if (t && t.problem_id) teamKeys.add(`${row.user_id}:${t.problem_id}`);
+    if (detailId && !completed.length) {
+      return res.status(404).json({ error: 'Solution not found.' });
     }
 
-    const solutions = completed.map((r) => {
-      const p = problemMap.get(r.problem_id);
-      const u = userMap.get(r.student_id);
-      const participantType =
-        teamKeys.has(`${r.student_id}:${r.problem_id}`) || r.participant_type === 'team' ? 'team' : 'individual';
-      return {
-        id: r.id,
-        problemId: r.problem_id,
-        problemTitle: (p && p.title) || 'Unknown problem',
-        problemDomain: (p && p.domain) || null,
-        authorName: (u && u.name) || 'SproutNet builder',
-        authorSlug: (u && u.profile_slug) || null,
-        participantType,
-        score: r.score ?? null,
-        feedback: r.judge_feedback ?? null,
-        deliverables: parseDeliverables(r.final_deliverables),
-        completedAt: r.submitted_at,
-      };
+    const enriched = await enrichSolutions(admin, completed);
+    if (detailId) {
+      const s = enriched[0];
+      return res.json({
+        solution: {
+          ...s,
+          fields: {
+            understanding: rows[0].f_understanding || '',
+            rootcause: rows[0].f_rootcause || '',
+            solution: rows[0].f_solution || '',
+            impact: rows[0].f_impact || '',
+            feasibility: rows[0].f_feasibility || '',
+            risks: rows[0].f_risks || '',
+            implementation: implText(rows[0].f_implementation),
+            files: implFiles(rows[0].f_implementation),
+          },
+        },
+      });
+    }
+    res.json({ solutions: enriched });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// f_implementation may be plain text or JSON { text, files[] } (see submit.html).
+function implText(value) {
+  if (!value) return '';
+  const t = String(value).trim();
+  if (!t.startsWith('{')) return value;
+  try {
+    const j = JSON.parse(t);
+    return typeof j.text === 'string' ? j.text : '';
+  } catch {
+    return value;
+  }
+}
+
+function implFiles(value) {
+  if (!value) return [];
+  const t = String(value).trim();
+  if (!t.startsWith('{')) return [];
+  try {
+    const j = JSON.parse(t);
+    return Array.isArray(j.files) ? j.files.filter((f) => f && typeof f.name === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+async function enrichSolutions(admin, completed) {
+  const problemIds = Array.from(new Set(completed.map((r) => r.problem_id)));
+  const studentIds = Array.from(new Set(completed.map((r) => r.student_id)));
+
+  const [probRes, userRes, teamRes] = await Promise.all([
+    problemIds.length
+      ? admin.from('problems').select('id, title, domain').in('id', problemIds)
+      : Promise.resolve({ data: [] }),
+    studentIds.length
+      ? admin.from('users').select('id, name, profile_slug').in('id', studentIds)
+      : Promise.resolve({ data: [] }),
+    studentIds.length
+      ? admin.from('team_members').select('user_id, teams!inner(problem_id)').in('user_id', studentIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+  if (probRes.error) throw new Error(probRes.error.message);
+  if (userRes.error) throw new Error(userRes.error.message);
+
+  const problemMap = new Map((probRes.data || []).map((p) => [p.id, p]));
+  const userMap = new Map((userRes.data || []).map((u) => [u.id, u]));
+  const teamKeys = new Set();
+  for (const row of teamRes.data || []) {
+    const t = Array.isArray(row.teams) ? row.teams[0] : row.teams;
+    if (t && t.problem_id) teamKeys.add(`${row.user_id}:${t.problem_id}`);
+  }
+
+  return completed.map((r) => {
+    const p = problemMap.get(r.problem_id);
+    const u = userMap.get(r.student_id);
+    const participantType =
+      teamKeys.has(`${r.student_id}:${r.problem_id}`) || r.participant_type === 'team' ? 'team' : 'individual';
+    return {
+      id: r.id,
+      problemId: r.problem_id,
+      problemTitle: (p && p.title) || 'Unknown problem',
+      problemDomain: (p && p.domain) || null,
+      authorId: r.student_id,
+      authorName: (u && u.name) || 'SproutNet builder',
+      authorSlug: (u && u.profile_slug) || null,
+      participantType,
+      score: r.score ?? null,
+      feedback: r.judge_feedback ?? null,
+      deliverables: parseDeliverables(r.final_deliverables),
+      completedAt: r.submitted_at,
+    };
+  });
+}
+
+// --- Solution comments (mirrors blog comments) -------------------------------
+const SOLUTION_COMMENTS_SETUP_SQL_PATH = 'supabase/migrations/20260826_solution_comments.sql';
+const SOLUTION_COMMENTS_SETUP_REQUIRED_MESSAGE =
+  `Solution comments are not set up yet. Run the SQL in ${SOLUTION_COMMENTS_SETUP_SQL_PATH} and refresh this page.`;
+
+function isMissingSolutionCommentsTableError(message) {
+  if (!message) return false;
+  const normalized = String(message).toLowerCase();
+  return (
+    normalized.includes('solution_comments') &&
+    (normalized.includes('schema cache') ||
+      normalized.includes('does not exist') ||
+      normalized.includes('unknown table') ||
+      normalized.includes('relation'))
+  );
+}
+
+// GET /api/solutions/comments?solution_id=<id> -> { comments } (public)
+router.get('/api/solutions/comments', async (req, res, next) => {
+  try {
+    const solutionId = typeof req.query.solution_id === 'string' ? req.query.solution_id.trim() : '';
+    if (!solutionId) return res.status(400).json({ error: 'solution_id is required.' });
+    const admin = getAdmin();
+    const { data: rows, error } = await admin
+      .from('solution_comments')
+      .select('id, solution_id, body, created_at, author_id, parent_comment_id')
+      .eq('solution_id', solutionId)
+      .order('created_at', { ascending: true });
+    if (error) {
+      if (isMissingSolutionCommentsTableError(error.message)) {
+        return res.status(503).json({ error: SOLUTION_COMMENTS_SETUP_REQUIRED_MESSAGE });
+      }
+      throw new Error(error.message);
+    }
+    const authorIds = Array.from(new Set((rows || []).map((c) => c.author_id)));
+    const { data: users } = authorIds.length
+      ? await admin.from('users').select('id, name').in('id', authorIds)
+      : { data: [] };
+    const userById = new Map((users || []).map((u) => [u.id, u]));
+    res.json({
+      comments: (rows || []).map((c) => ({
+        id: c.id,
+        body: c.body,
+        createdAt: c.created_at,
+        author: userById.get(c.author_id) ? { id: c.author_id, name: userById.get(c.author_id).name } : null,
+        parentId: c.parent_comment_id || null,
+      })),
     });
-    res.json({ solutions });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// POST /api/solutions/comments — add a comment (auth required)
+router.post('/api/solutions/comments', authRequired, async (req, res, next) => {
+  try {
+    const user = req.user;
+    const payload = req.body || {};
+    const solutionId = typeof payload.solution_id === 'string' ? payload.solution_id.trim() : '';
+    const body = typeof payload.body === 'string' ? payload.body.trim() : '';
+    const parentCommentId = typeof payload.parent_comment_id === 'string' && payload.parent_comment_id.trim()
+      ? payload.parent_comment_id.trim()
+      : null;
+    if (!solutionId) return res.status(400).json({ error: 'solution_id is required.' });
+    if (!body) return res.status(400).json({ error: 'Comment body is required.' });
+    if (body.length > 2000) return res.status(400).json({ error: 'Comment is too long (max 2000 characters).' });
+
+    const admin = getAdmin();
+    // Only comment on publicly visible (approved, full-stage) solutions.
+    const { data: sub, error: subError } = await admin
+      .from('submissions')
+      .select('id')
+      .eq('id', solutionId)
+      .eq('stage', 'full')
+      .eq('status', 'approved')
+      .maybeSingle();
+    if (subError) throw new Error(subError.message);
+    if (!sub) return res.status(404).json({ error: 'Solution not found.' });
+
+    if (parentCommentId) {
+      const { data: parent, error: parentError } = await admin
+        .from('solution_comments')
+        .select('id')
+        .eq('id', parentCommentId)
+        .eq('solution_id', solutionId)
+        .maybeSingle();
+      if (parentError) {
+        if (isMissingSolutionCommentsTableError(parentError.message)) {
+          return res.status(503).json({ error: SOLUTION_COMMENTS_SETUP_REQUIRED_MESSAGE });
+        }
+        throw new Error(parentError.message);
+      }
+      if (!parent) return res.status(404).json({ error: 'Parent comment not found.' });
+    }
+
+    const { data: inserted, error } = await admin
+      .from('solution_comments')
+      .insert({ solution_id: solutionId, author_id: user.id, body, parent_comment_id: parentCommentId })
+      .select('id, solution_id, body, created_at, author_id, parent_comment_id')
+      .single();
+    if (error) {
+      if (isMissingSolutionCommentsTableError(error.message)) {
+        return res.status(503).json({ error: SOLUTION_COMMENTS_SETUP_REQUIRED_MESSAGE });
+      }
+      throw new Error(error.message);
+    }
+    const { data: author } = await admin.from('users').select('id, name').eq('id', user.id).single();
+    res.json({
+      comment: {
+        id: inserted.id,
+        body: inserted.body,
+        createdAt: inserted.created_at,
+        author: author ? { id: author.id, name: author.name } : null,
+        parentId: inserted.parent_comment_id || null,
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// DELETE /api/solutions/comments — delete own comment (admins can delete any)
+router.delete('/api/solutions/comments', authRequired, loadProfile, async (req, res, next) => {
+  try {
+    const user = req.user;
+    const payload = req.body || {};
+    const commentId = typeof payload.comment_id === 'string' ? payload.comment_id.trim() : '';
+    if (!commentId) return res.status(400).json({ error: 'comment_id is required.' });
+
+    const admin = getAdmin();
+    const { data: rows, error } = await admin
+      .from('solution_comments')
+      .select('id, author_id')
+      .eq('id', commentId);
+    if (error) {
+      if (isMissingSolutionCommentsTableError(error.message)) {
+        return res.status(503).json({ error: SOLUTION_COMMENTS_SETUP_REQUIRED_MESSAGE });
+      }
+      throw new Error(error.message);
+    }
+    if (!rows || !rows.length) return res.status(404).json({ error: 'Comment not found.' });
+    const isModerator = req.profile?.role === 'admin' || req.profile?.is_master;
+    if (rows[0].author_id !== user.id && !isModerator) {
+      return res.status(403).json({ error: 'You can only delete your own comments.' });
+    }
+    // Delete the comment plus its direct replies.
+    const { error: delError } = await admin
+      .from('solution_comments')
+      .delete()
+      .or(`id.eq.${commentId},parent_comment_id.eq.${commentId}`);
+    if (delError) throw new Error(delError.message);
+    res.json({ ok: true });
   } catch (e) {
     next(e);
   }

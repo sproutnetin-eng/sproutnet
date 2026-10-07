@@ -55,6 +55,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
@@ -85,7 +86,7 @@ if (s) {
           <div class="typing-bar" id="typing"></div>
           <div class="reply-bar" id="replybar" style="display:none"></div>
           <form class="chat-form" id="chatform">
-            <label class="clip" title="Upload file">📎<input type="file" id="chatfile" style="display:none"></label>
+            <label class="clip" title="Upload file">${icon('paperclip', 14)}<input type="file" id="chatfile" style="display:none"></label>
             <input type="text" id="chatinput" placeholder="Type a message... (Press Enter to send)">
             <button class="btn-send" type="submit">Send →</button>
           </form>
@@ -99,18 +100,18 @@ if (s) {
       log.innerHTML = list.length ? list.map(m => {
         const mine = m.sender_id === currentUserId;
         const rx = (m.reactions || []).map(r => r.emoji).join(' ');
-        const atts = (m.attachments || []).map(a => `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2)"><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">📎 ${esc(a.file_name)}</a></div>`).join('');
+        const atts = (m.attachments || []).map(a => `<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2)"><a href="${esc(a.file_url)}" target="_blank" rel="noreferrer">${icon('paperclip', 13)} ${esc(a.file_name)}</a></div>`).join('');
         return `<div class="msg-col ${mine ? 'mine' : 'theirs'}">
           <div class="msg-meta">${esc(m.sender_name || '')} · ${m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</div>
           <div class="bubble ${mine ? 'mine' : 'theirs'}">${m.parent_id ? `<div class="replyq">Replying to thread</div>` : ''}<div>${esc(m.content || '')}</div>${atts}</div>
           ${rx ? `<div style="font-size:13px">${esc(rx)}</div>` : ''}
-          <div class="msg-actions"><button data-reply="${esc(m.id)}">Reply</button>${['👍', '❤️', '🎉'].map(e2 => `<button data-react="${esc(m.id)}" data-emoji="${e2}">${e2}</button>`).join('')}</div></div>`;
+          <div class="msg-actions"><button data-reply="${esc(m.id)}">Reply</button>${[['thumbsup', '\u{1F44D}'], ['heart', '\u2764\uFE0F'], ['sparkles', '\u{1F389}']].map(([ic, e2]) => `<button data-react="${esc(m.id)}" data-emoji="${e2}">${icon(ic, 14)}</button>`).join('')}</div></div>`;
       }).join('') : '<p style="text-align:center;color:#9CA3A0;font-size:14px;margin:auto">No messages yet. Start the conversation!</p>';
       log.scrollTop = log.scrollHeight;
       log.querySelectorAll('[data-reply]').forEach(b => b.addEventListener('click', () => {
         replyTo = messages.find(x => x.id === b.dataset.reply) || null;
         const bar = document.getElementById('replybar');
-        if (replyTo) { bar.style.display = ''; bar.innerHTML = `<span>Replying to <strong>${esc(replyTo.sender_name || '')}</strong></span><button data-x style="background:none;border:none;cursor:pointer;font-weight:bold">✕</button>`; bar.querySelector('[data-x]').addEventListener('click', () => { replyTo = null; bar.style.display = 'none'; }); }
+        if (replyTo) { bar.style.display = ''; bar.innerHTML = `<span>Replying to <strong>${esc(replyTo.sender_name || '')}</strong></span><button data-x style="background:none;border:none;cursor:pointer;font-weight:bold">${icon('x', 14)}</button>`; bar.querySelector('[data-x]').addEventListener('click', () => { replyTo = null; bar.style.display = 'none'; }); }
       }));
       log.querySelectorAll('[data-react]').forEach(b => b.addEventListener('click', async () => {
         try {

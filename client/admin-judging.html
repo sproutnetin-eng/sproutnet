@@ -136,6 +136,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('admin');
 const msg = document.getElementById('msg');
@@ -150,7 +151,7 @@ const feedbacks = {};
 function submitted(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
 function render() {
   if (!rows.length) {
-    list.innerHTML = `<div class="jg-empty"><div class="big">⚖️</div><div class="t">The queue is clear</div><div class="d">New Stage-1 submissions will appear here for review.</div></div>`;
+    list.innerHTML = `<div class="jg-empty"><div class="big">${icon('scale', 44)}</div><div class="t">The queue is clear</div><div class="d">New Stage-1 submissions will appear here for review.</div></div>`;
     return;
   }
   list.innerHTML = `<div class="admin-table">
@@ -166,7 +167,7 @@ function render() {
         <div class="jg-row${open ? ' open' : ''}" data-act="toggle">
           <div style="min-width:0"><div class="jg-pt">${esc(r.problemTitle)}</div><div class="jg-sn">${esc(r.studentName)}${r.studentDept ? ` · ${esc(r.studentDept)}` : ''}${r.studentYear ? ` · ${esc(r.studentYear)}` : ''}</div></div>
           <div class="jg-dom">${esc(r.problemDomain || '—')}</div>
-          <span class="jg-entry ${r.participantType === 'team' ? 'team' : 'indiv'}">${r.participantType === 'team' ? '👥 Team' : 'Indiv.'}</span>
+          <span class="jg-entry ${r.participantType === 'team' ? 'team' : 'indiv'}">${r.participantType === 'team' ? icon('users', 13) + ' Team' : 'Indiv.'}</span>
           <div class="jg-date">${esc(submitted(r.submittedAt))}</div>
           <button type="button" class="admin-btn" data-act="toggle-btn" style="font-size:11px">${open ? 'Close' : 'Review'}</button>
         </div>
@@ -177,7 +178,7 @@ function render() {
               <div class="jg-scores">${Array.from({ length: 11 }, (_, n) => `<button type="button" data-score="${n}" class="${n === score ? 'on' : ''}">${n}</button>`).join('')}</div></div>
             <textarea class="jg-fb" rows="2" data-f="feedback" placeholder="Feedback for the builder (optional) — shown with the result…">${esc(feedbacks[r.id] || '')}</textarea>
             <div class="jg-err" data-f="error" style="display:none"></div>
-            <div class="jg-verdict"><button type="button" class="jg-reject" data-act="reject">✗ Reject</button><button type="button" class="jg-approve" data-act="approve">✓ Approve</button></div>
+            <div class="jg-verdict"><button type="button" class="jg-reject" data-act="reject">${icon('x', 13)} Reject</button><button type="button" class="jg-approve" data-act="approve">${icon('check', 13)} Approve</button></div>
             <div class="jg-foot">APPROVAL UNLOCKS THE STUDENT&#8217;S STAGE-2 FINAL UPLOAD · SCORE FEEDS THE LEADERBOARD</div>
           </div>
           ${dl.length ? `<div><div class="jg-sec">Final deliverables (${dl.length})</div><div style="display:grid;gap:8px">${dl.map((d, i) => `<a class="jg-link" href="${esc(d.url)}" target="_blank" rel="noreferrer"><span class="k">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span><span class="t">${i + 1}. ${esc(d.label || d.url)}</span><span class="go">open ↗</span></a>`).join('')}</div></div>` : ''}
@@ -231,14 +232,14 @@ if (me) {
   const tm = document.getElementById('tool-msg');
   document.getElementById('seed-btn').addEventListener('click', async (ev) => {
     ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
-    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
-    catch (err) { tm.textContent = '❌ ' + err.message; }
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.innerHTML = `${icon('check', 14)} ${esc(r.summary || r.message || 'done')}`; }
+    catch (err) { tm.innerHTML = `${icon('x', 14)} ${esc(err.message)}`; }
     ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
   });
   document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
     ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
-    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
-    catch (err) { tm.textContent = '❌ ' + err.message; }
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.innerHTML = `${icon('check', 14)} ${esc(r.message || 'done')}`; }
+    catch (err) { tm.innerHTML = `${icon('x', 14)} ${esc(err.message)}`; }
     ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
   });
 }

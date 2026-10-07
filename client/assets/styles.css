@@ -80,6 +80,44 @@ h1, h2, h3, .font-display { font-family: 'Sora', sans-serif; }
   padding: 6px 14px; cursor: pointer;
 }
 
+/* ---- Top-nav profile dropdown (Messages / Notifications / Sign out) ---- */
+.sn-profile-menu { position: relative; display: inline-flex; }
+.sn-avatar-btn {
+  background: none; border: none; padding: 0; cursor: pointer;
+  border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.sn-avatar-btn:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.sn-caret { color: var(--muted); display: inline-flex; transition: transform 0.15s ease; }
+.sn-avatar-btn[aria-expanded="true"] .sn-caret { transform: rotate(180deg); }
+.sn-dropdown {
+  position: absolute; right: 0; top: calc(100% + 10px); min-width: 240px;
+  max-width: calc(100vw - 32px); background: #fff; border: 1px solid var(--line);
+  border-radius: 12px; padding: 8px; box-shadow: 0 12px 30px rgba(28, 20, 16, 0.16); z-index: 999;
+}
+.sn-dropdown[hidden] { display: none; }
+.sn-drop-head {
+  display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;
+  border-bottom: 1px solid var(--line-soft); margin-bottom: 6px; padding-bottom: 14px;
+}
+.sn-drop-id { display: flex; flex-direction: column; gap: 5px; align-items: flex-start; min-width: 0; }
+.sn-drop-namerow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.sn-drop-name {
+  font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+}
+.sn-drop-view { font-size: 12px; font-weight: 600; color: var(--green); text-decoration: none; }
+.sn-drop-view:hover { text-decoration: underline; }
+.sn-drop-link {
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
+  padding: 9px 10px; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; color: var(--ink); text-decoration: none;
+  background: none; border: none; cursor: pointer; text-align: left;
+}
+.sn-drop-link:hover { background: rgba(28, 20, 16, 0.05); }
+.sn-drop-link.on { background: var(--green-soft); color: var(--green); font-weight: 600; }
+.sn-drop-link svg { flex-shrink: 0; }
+.sn-drop-signout:hover { background: #FEE2E2; color: #DC2626; }
+
 /* ---- Mobile menu (from original layout) ---- */
 .sn-mobile-menu { display: none; position: relative; }
 .sn-mobile-menu summary {

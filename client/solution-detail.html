@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solution | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .sd-page { min-height: 100vh; background: #FAF8F4; font-family: 'DM Sans', sans-serif; }
+  .sd-topbar { padding: 12px clamp(16px, 4vw, 52px); display: flex; justify-content: space-between; align-items: center; background: rgba(250,248,244,0.94); border-bottom: 1px solid rgba(28,20,16,0.07); }
+  .sd-back { display: flex; align-items: center; gap: 10px; text-decoration: none; color: #1C1410; font-weight: 600; font-size: 14px; }
+  .sd-topbtn { font-size: 14px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 8px 18px; border-radius: 8px; text-decoration: none; }
+  .sd-wrap { max-width: 860px; margin: 0 auto; padding: clamp(24px, 5vw, 48px) clamp(16px, 4vw, 24px); }
+  .sd-badges { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .sd-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 6px; }
+  .sd-badge.domain { color: #6A5F58; background: #F2EEE8; }
+  .sd-badge.team { color: #2563EB; background: rgba(37,99,235,.08); border: 1px solid rgba(37,99,235,.25); border-radius: 999px; text-transform: uppercase; letter-spacing: .06em; }
+  .sd-badge.indiv { color: #0D9488; background: rgba(13,148,136,.08); border: 1px solid rgba(13,148,136,.25); border-radius: 999px; text-transform: uppercase; letter-spacing: .06em; }
+  .sd-badge.score { color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,.25); border-radius: 999px; font-weight: 600; }
+  .sd-title { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(30px, 6vw, 44px); font-weight: 400; color: #1C1410; line-height: 1.1; letter-spacing: -0.5px; margin: 0 0 12px; }
+  .sd-title a { color: inherit; text-decoration: none; }
+  .sd-title a:hover { color: #2D6A4F; }
+  .sd-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 13px; color: #7A7068; margin-bottom: 20px; }
+  .sd-author { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #1C1410; font-weight: 700; }
+  .sd-avatar { width: 30px; height: 30px; border-radius: 50%; background: #EAF4EE; color: #2D6A4F; display: inline-flex; align-items: center; justify-content: center; font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 700; }
+  .sd-note { font-size: 14px; color: #4A3F38; background: #EAF4EE; border: 1px solid rgba(45,106,79,.18); border-radius: 12px; padding: 14px 18px; margin: 0 0 28px; font-style: italic; line-height: 1.7; }
+  .sd-sec { background: #fff; border: 1.5px solid rgba(28,20,16,.08); border-radius: 16px; padding: clamp(20px, 3vw, 28px); margin-bottom: 16px; }
+  .sd-sec-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: #2D6A4F; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 6px; }
+  .sd-sec-title { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: #1C1410; margin: 0 0 10px; }
+  .sd-sec-body { font-size: 14.5px; color: #3F352E; line-height: 1.8; white-space: pre-wrap; margin: 0; }
+  .sd-sec-head { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin: 32px 0 14px; }
+  .sd-deliv { display: grid; gap: 8px; }
+  .sd-dlink { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(45,106,79,.16); background: #fff; text-decoration: none; min-width: 0; }
+  .sd-dlink:hover { border-color: rgba(45,106,79,.35); }
+  .sd-kind { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; color: #2D6A4F; background: #EAF4EE; border: 1px solid rgba(45,106,79,.25); }
+  .sd-dlabel { font-size: 14px; font-weight: 600; color: #1C1410; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sd-open { margin-left: auto; font-size: 12px; color: #2D6A4F; flex-shrink: 0; }
+  .sd-files { display: flex; flex-wrap: wrap; gap: 8px; }
+  .sd-file { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #4A3F38; background: #F2EEE8; border: 1px solid rgba(28,20,16,.1); padding: 6px 12px; border-radius: 999px; text-decoration: none; }
+  a.sd-file:hover { border-color: #2D6A4F; color: #2D6A4F; }
+  .sd-discuss { margin-top: 40px; padding-top: 28px; border-top: 1px solid rgba(28,20,16,.08); }
+  .sd-discuss h3 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin: 0 0 6px; }
+  .sd-count { font-size: 13px; color: #7A7068; margin-bottom: 16px; }
+  .sd-form { display: grid; gap: 10px; margin-bottom: 24px; }
+  .sd-textarea { width: 100%; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 12px; padding: 12px 14px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; resize: vertical; outline: none; line-height: 1.65; box-sizing: border-box; background: #fff; }
+  .sd-form-row { display: flex; justify-content: flex-end; }
+  .sd-submit { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #FAF8F4; background: #2D6A4F; border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; }
+  .sd-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .sd-login { font-size: 14px; color: #4A3F38; background: #fff; border: 1px solid rgba(28,20,16,.1); border-radius: 12px; padding: 14px 18px; margin-bottom: 24px; }
+  .sd-login a { color: #2D6A4F; font-weight: 700; text-decoration: none; }
+  .sd-comments { display: grid; gap: 14px; }
+  .sd-comment { background: #fff; border: 1px solid rgba(28,20,16,0.06); border-radius: 14px; padding: 14px; }
+  .sd-comment-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .sd-comment-name { font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 700; color: #1C1410; }
+  .sd-comment-date { font-size: 11px; color: #8A8078; }
+  .sd-del { margin-left: auto; font-size: 12px; font-weight: 600; color: #DC2626; background: none; border: 1px solid rgba(220,38,38,0.25); border-radius: 6px; padding: 3px 10px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .sd-comment-body { font-size: 14px; color: #3F352E; line-height: 1.7; white-space: pre-wrap; }
+  .sd-reply-wrap { margin-left: 24px; margin-top: 10px; padding-left: 16px; border-left: 2px solid rgba(28,20,16,0.06); }
+  .sd-reply { background: #fff; border: 1px solid rgba(28,20,16,0.06); border-radius: 14px; padding: 12px; }
+  .sd-empty { font-size: 14px; color: #7A7068; }
+  .sd-loading, .sd-notfound { min-height: 60vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; font-size: 14px; color: #9CA3A0; }
+  .sd-notfound-title { font-size: 18px; color: #1C1410; font-weight: 700; }
+  .sd-notfound a { font-size: 14px; color: #2D6A4F; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="sd-page">
+<div id="sn-nav"></div>
+<div id="msg"></div>
+<div id="topbar-slot"></div>
+<div class="sd-wrap" id="wrap" style="display:none;">
+  <div id="content"></div>
+</div>
+<div class="sd-loading" id="loading" role="status" aria-label="Loading solution"><span class="sr-only">Loading...</span>
+  <div aria-hidden="true" style="width:100%;max-width:860px"><div class="sk sk-line" style="width:35%;margin-bottom:14px"></div><div class="sk" style="height:40px;width:80%;margin-bottom:16px"></div><div class="sk sk-line" style="width:100%;margin-bottom:12px"></div><div class="sk sk-line" style="width:100%;margin-bottom:12px"></div><div class="sk sk-line" style="width:70%"></div></div>
+</div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
+renderNav();
+const id = location.pathname.split('/')[2];
+let solution = null, me = null, comments = [], commentsUnavailable = false;
+const msg = (h) => { document.getElementById('msg').innerHTML = h; };
+const fmtDate = (v) => new Date(v).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+const fmtDay = (v) => new Date(v).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+const aini = (n) => (n || 'SN').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+// Field values are stored wrapped in <p>...</p> markup — drop the tags but
+// keep the details as readable plain text (line breaks preserved).
+const plainField = (s) => (s || '')
+  .replace(/<\s*br\s*\/?>/gi, '\n')
+  .replace(/<\/(p|div|li|h[1-6]|blockquote|tr)>/gi, '\n')
+  .replace(/<li[^>]*>/gi, '• ')
+  .replace(/<[^>]*>/g, '')
+  .replace(/&nbsp;/gi, ' ')
+  .replace(/\n{3,}/g, '\n\n')
+  .trim();
+
+const FIELD_DEFS = [
+  ['understanding', 'Problem Understanding'],
+  ['rootcause', 'Root Cause Analysis'],
+  ['solution', 'Proposed Solution'],
+  ['impact', 'Expected Impact'],
+  ['feasibility', 'Feasibility Assessment'],
+  ['risks', 'Risks & Limitations'],
+  ['implementation', 'Implementation Plan'],
+];
+
+function canDelete(c) {
+  if (!me) return false;
+  if (c.author?.id === me.id) return true;
+  return me.role === 'admin' || me.isMaster;
+}
+
+function render() {
+  const s = solution;
+  const roots = comments.filter(c => !c.parentId);
+  document.title = `${s.problemTitle} — solution by ${s.authorName} | SproutNet`;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('wrap').style.display = '';
+  document.getElementById('topbar-slot').innerHTML = `
+    <nav class="sd-topbar">
+      <a class="sd-back" href="/solutions">← Back to Solutions</a>
+      ${me ? '' : `<a class="sd-topbtn" href="/login">Log in →</a>`}
+    </nav>`;
+  const filled = FIELD_DEFS
+    .map(([k, label], i) => ({ n: i + 1, label, text: plainField(s.fields?.[k] || '') }))
+    .filter(f => f.text);
+  document.getElementById('content').innerHTML = `
+    <div class="sd-badges">${s.problemDomain ? `<span class="sd-badge domain">${esc(s.problemDomain)}</span>` : ''}
+      <span class="sd-badge ${s.participantType === 'team' ? 'team' : 'indiv'}">${s.participantType === 'team' ? `${icon('users', 14)} Team` : 'Individual'}</span>
+      ${s.score != null ? `<span class="sd-badge score">${icon('star', 14)} ${esc(String(s.score))}/10 judged</span>` : ''}</div>
+    <h1 class="sd-title"><a href="/problems/${esc(s.problemId)}">${esc(s.problemTitle)}</a></h1>
+    <div class="sd-meta">
+      ${s.authorSlug
+        ? `<a class="sd-author" href="/profile/${esc(s.authorSlug)}"><span class="sd-avatar">${esc(aini(s.authorName))}</span>${esc(s.authorName)}</a>`
+        : `<span class="sd-author"><span class="sd-avatar">${esc(aini(s.authorName))}</span>${esc(s.authorName)}</span>`}
+      <span>· completed ${esc(fmtDay(s.completedAt))}</span>
+    </div>
+    ${s.feedback ? `<p class="sd-note">Judge's note: ${esc(s.feedback)}</p>` : ''}
+    ${filled.map(f => `<section class="sd-sec"><div class="sd-sec-num">Field ${f.n} of 7</div><h2 class="sd-sec-title">${esc(f.label)}</h2><p class="sd-sec-body">${esc(f.text)}</p></section>`).join('')}
+    ${s.fields?.files?.length ? `<h2 class="sd-sec-head">Attached files</h2><div class="sd-files">${s.fields.files.map(f =>
+      f.url
+        ? `<a class="sd-file" href="${esc(f.url)}" target="_blank" rel="noreferrer">${icon('paperclip', 14)} ${esc(f.name)}</a>`
+        : `<span class="sd-file">${icon('paperclip', 14)} ${esc(f.name)}</span>`).join('')}</div>` : ''}
+    ${s.deliverables?.length ? `<h2 class="sd-sec-head">Final deliverables</h2><div class="sd-deliv">${s.deliverables.map((d, i) =>
+      `<a class="sd-dlink" href="${esc(d.url)}" target="_blank" rel="noreferrer">
+        <span class="sd-kind">${esc(d.kind === 'link' ? 'LINK' : 'FILE')}</span>
+        <span class="sd-dlabel">${esc(`${i + 1}. ${d.label}`)}</span>
+        <span class="sd-open">open ↗</span></a>`).join('')}</div>` : ''}
+    <div class="sd-discuss">
+      <h3>Discussion</h3>
+      <div class="sd-count">${commentsUnavailable ? 'Comments are being set up.' : `${comments.length} comment${comments.length !== 1 ? 's' : ''}`}</div>
+      ${commentsUnavailable ? '' : me ? `<form class="sd-form" id="c-form"><textarea class="sd-textarea" id="c-body" placeholder="Add a comment..." rows="3"></textarea>
+        <div class="sd-form-row"><button class="sd-submit" type="submit" id="c-post">Post comment</button></div></form>`
+        : `<div class="sd-login"><a href="/login?next=${encodeURIComponent(location.pathname)}">Sign in</a> to join the discussion.</div>`}
+      ${commentsUnavailable ? '' : `<div class="sd-comments" id="clist">${roots.length ? roots.map(c => {
+        const reps = comments.filter(r => r.parentId === c.id);
+        return `<div><div class="sd-comment"><div class="sd-comment-head"><span class="sd-comment-name">${esc(c.author?.name || 'SproutNet member')}</span>
+          <span class="sd-comment-date">${esc(fmtDate(c.createdAt))}</span>
+          ${canDelete(c) ? `<button class="sd-del" data-del="${esc(c.id)}" title="Delete comment">Delete</button>` : ''}</div>
+          <div class="sd-comment-body">${esc(c.body)}</div></div>
+          ${reps.map(r => `<div class="sd-reply-wrap"><div class="sd-reply"><div class="sd-comment-head"><span class="sd-comment-name">${esc(r.author?.name || 'SproutNet member')}</span>
+            <span class="sd-comment-date">${esc(fmtDate(r.createdAt))}</span>
+            ${canDelete(r) ? `<button class="sd-del" data-del="${esc(r.id)}" title="Delete reply">Delete</button>` : ''}</div>
+            <div class="sd-comment-body">${esc(r.body)}</div></div></div>`).join('')}
+        </div>`; }).join('') : `<div class="sd-empty">${me ? 'No comments yet. Be the first!' : 'No comments yet.'}</div>`}</div>`}
+    </div>`;
+  document.getElementById('c-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const ta = document.getElementById('c-body');
+    const body = ta.value.trim();
+    if (!body) return;
+    const btn = document.getElementById('c-post');
+    btn.disabled = true; btn.textContent = 'Posting...';
+    try {
+      const d = await api('/api/solutions/comments', { method: 'POST', body: { solution_id: id, body } });
+      if (d.comment) comments.push(d.comment);
+      render();
+    } catch (err) { msg(alertBox(err.message)); btn.disabled = false; btn.textContent = 'Post comment'; }
+  });
+  document.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Delete this comment? Replies under it will also be removed.')) return;
+    try {
+      await api('/api/solutions/comments', { method: 'DELETE', body: { comment_id: b.dataset.del } });
+      comments = comments.filter(c => c.id !== b.dataset.del && c.parentId !== b.dataset.del);
+      render();
+    } catch (e) { msg(alertBox(e.message)); }
+  }));
+}
+
+try {
+  const { data: { session } } = await sb().auth.getSession();
+  if (session) {
+    try {
+      const r = await api('/api/auth/profile');
+      if (r.profile) me = { id: r.profile.id, name: r.profile.name, role: r.profile.role, isMaster: !!r.profile.is_master };
+    } catch {}
+  }
+  const d = await api(`/api/public/solutions?id=${encodeURIComponent(id)}`);
+  solution = d.solution;
+  try {
+    const c = await api(`/api/solutions/comments?solution_id=${encodeURIComponent(id)}`);
+    comments = c.comments || [];
+  } catch (e) {
+    commentsUnavailable = /not set up yet|503/.test(e.message) || (e.message || '').includes('not set up yet');
+    if (!commentsUnavailable) msg(alertBox(e.message));
+  }
+  render();
+} catch (e) {
+  document.getElementById('loading').innerHTML = `<div class="sd-notfound-title">Solution not found</div><a href="/solutions">← Back to solutions</a>`;
+  if (!/404|not found/i.test(e.message)) msg(alertBox(e.message));
+}
+</script>
+</body>
+</html>

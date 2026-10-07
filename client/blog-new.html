@@ -48,10 +48,10 @@
   <div id="msg"></div>
   <div class="bloged-head">
     <div class="left">
-      <div><div class="bloged-eyebrow">// new post</div><div class="bloged-title">Write a new post</div></div>
+      <div><div class="bloged-title">Write a new post</div></div>
       <div class="mode-toggle" role="tablist" aria-label="Editor mode">
-        <button id="m-write" class="on" role="tab" aria-selected="true">✎ Write</button>
-        <button id="m-prev" role="tab" aria-selected="false">👁 Preview</button>
+        <button id="m-write" class="on" role="tab" aria-selected="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg> Write</button>
+        <button id="m-prev" role="tab" aria-selected="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg> Preview</button>
       </div>
     </div>
     <div class="bloged-actions">
@@ -91,6 +91,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const msg = document.getElementById('msg');
 const feedback = document.getElementById('feedback');
@@ -165,7 +166,7 @@ if (s) {
         category: document.getElementById('category').value.trim(),
         status,
       } });
-      feedback.innerHTML = `<div class="bloged-ok">${status === 'published' ? 'Published! 🎉' : 'Draft saved.'}</div>`;
+      feedback.innerHTML = `<div class="bloged-ok">${status === 'published' ? `${icon('sparkles', 14)} ${esc('Published!')}` : esc('Draft saved.')}</div>`;
       if (status === 'published') setTimeout(() => location.href = '/blogs/manage', 800);
     } catch (err) { feedback.innerHTML = `<div class="bloged-err">${esc(err.message)}</div>`; }
     btn.disabled = false; btn.textContent = label;

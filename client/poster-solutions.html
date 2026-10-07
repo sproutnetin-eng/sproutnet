@@ -49,6 +49,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('poster', 'admin');
 const msg = document.getElementById('msg');
@@ -59,7 +60,7 @@ function render() {
   const pid = filter.value;
   const rows = pid === 'all' ? subs : subs.filter(s => s.problem_id === pid);
   if (!rows.length) {
-    list.innerHTML = `<div class="ps-empty"><div class="big">📝</div><div class="t">No submissions yet</div><div class="d">Once students submit solutions, they will appear here.</div></div>`;
+    list.innerHTML = `<div class="ps-empty"><div class="big">${icon('filetext', 44)}</div><div class="t">No submissions yet</div><div class="d">Once students submit solutions, they will appear here.</div></div>`;
     return;
   }
   list.innerHTML = `<div class="ps-grid">` + rows.map(s => `<div class="ps-card" data-id="${esc(s.id)}">
@@ -72,7 +73,7 @@ function render() {
     <div class="ps-judge" style="display:${s.status === 'pending' ? '' : 'none'}">
       <label>Score (0–10)<input type="number" min="0" max="10" value="7" data-f="score"></label>
       <label>Feedback (optional)<textarea data-f="feedback" rows="2" placeholder="Feedback for the student…"></textarea></label>
-      <div class="row"><button type="button" class="ps-approve" data-act="approve">✓ Approve</button><button type="button" class="ps-reject" data-act="reject">✕ Reject</button></div>
+      <div class="row"><button type="button" class="ps-approve" data-act="approve">${icon('check', 14)} Approve</button><button type="button" class="ps-reject" data-act="reject">${icon('x', 14)} Reject</button></div>
     </div>
   </div>`).join('') + `</div>`;
 }

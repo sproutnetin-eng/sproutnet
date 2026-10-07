@@ -79,6 +79,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
@@ -168,7 +169,7 @@ try {
     fill.style.background = d === 7 ? '#2D6A4F' : '#F4A723';
     document.getElementById('ppct').textContent = pct + '%';
     const rem = document.getElementById('remaining');
-    if (d === 7) { rem.className = 'sub-rem ok'; rem.innerHTML = '✓ All 7 fields completed.'; }
+    if (d === 7) { rem.className = 'sub-rem ok'; rem.innerHTML = `${icon('check', 13)} All 7 fields completed.`; }
     else { rem.className = 'sub-rem'; rem.textContent = `${7 - d} field(s) remaining.`; }
     const all = d === 7;
     const panel = document.getElementById('upanel');
@@ -188,7 +189,7 @@ try {
       document.getElementById('wrap-' + k).classList.toggle('done', filled);
       const req = document.getElementById('req-' + k);
       req.className = 'sub-req' + (filled ? ' ok' : '');
-      req.textContent = filled ? '✓ Completed' : 'Required';
+      req.innerHTML = filled ? icon('check', 12) + ' Completed' : 'Required';
       document.getElementById('wc-' + k).textContent = wc(v) + ' words';
     });
     renderFiles();

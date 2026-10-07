@@ -85,6 +85,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, requireRole, renderNav, renderSidebar, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 renderSidebar({ targetId: 'dash-sidebar', active: '/dashboard' });
 
@@ -141,7 +142,7 @@ if (me) {
     ];
     let html = `<div class="dash-welcome"><h1>Good to see you, ${first}.</h1><p>Browse open problems and start building.</p></div>`;
     html += `<div class="dash-stats">` + stats.map(([l, v, a]) => `<div class="dash-stat"><div class="v" style="color:${a}">${esc(String(v))}</div><div class="l">${l}</div></div>`).join('') + `</div>`;
-    html += `<div class="dash-sec"><div class="dash-sec-head"><div><div class="dash-eyebrow">// enrolled problems</div><h2>Keep building where you left off</h2><div class="dash-sub">You can keep up to 2 active problem enrollments at a time.</div></div><a class="dash-browse" href="/problems">Browse more problems →</a></div>`;
+    html += `<div class="dash-sec"><div class="dash-sec-head"><div><h2>Keep building where you left off</h2><div class="dash-sub">You can keep up to 2 active problem enrollments at a time.</div></div><a class="dash-browse" href="/problems">Browse more problems →</a></div>`;
     if (!enrolledProblems.length) {
       html += `<div class="dash-empty"><div style="margin-bottom:10px;display:flex;justify-content:center">${ICONS.compass}</div><div class="t">No enrolled problems yet</div><div class="d">Enroll in a problem and it will appear here so you can jump back in quickly.</div><a class="cta" href="/problems">Explore Open Problems →</a></div>`;
     } else {
@@ -153,11 +154,11 @@ if (me) {
           <div class="dash-card-foot">
             <span class="dash-status ${p.status === 'open' ? 'open' : 'closed'}">${esc(p.status)}</span>
             <div class="dash-actions">
-              ${p.teamId ? `<a class="btn-ws" title="Team ${esc(p.teamName || '')} — chat & collaborate" href="/teams/${esc(p.teamId)}">💬 Go to Workspace →</a>` : ''}
+              ${p.teamId ? `<a class="btn-ws" title="Team ${esc(p.teamName || '')} — chat & collaborate" href="/teams/${esc(p.teamId)}">${icon('chat', 14)} Go to Workspace →</a>` : ''}
               <a class="btn-view" href="/problems/${esc(p.id)}">View problem</a>
-              ${p.submissionStatus === 'approved' ? `<a class="btn-final" href="/problems/${esc(p.id)}/final-upload">🎉 Upload Final Work${p.submissionScore != null ? ` · ${p.submissionScore}/10` : ''} →</a>` : ''}
-              ${p.submissionStatus === 'pending' ? `<span class="badge-pending">⏳ Awaiting review</span>` : ''}
-              ${p.submissionStatus === 'rejected' ? `<span class="badge-rejected">✗ Not approved — resubmit</span>` : ''}
+              ${p.submissionStatus === 'approved' ? `<a class="btn-final" href="/problems/${esc(p.id)}/final-upload">${icon('sparkles', 14)} Upload Final Work${p.submissionScore != null ? ` · ${p.submissionScore}/10` : ''} →</a>` : ''}
+              ${p.submissionStatus === 'pending' ? `<span class="badge-pending">${icon('eye', 14)} Awaiting review</span>` : ''}
+              ${p.submissionStatus === 'rejected' ? `<span class="badge-rejected">${icon('x', 14)} Not approved — resubmit</span>` : ''}
               <a class="btn-solve" href="/problems/${esc(p.id)}/submit">${p.hasSubmission ? 'Continue Solving →' : 'Start Solving →'}</a>
               <button class="btn-cancel" data-cancel="${esc(p.id)}">Cancel</button>
             </div>
@@ -166,7 +167,7 @@ if (me) {
     }
     html += `</div>`;
     if (workspaces.length) {
-      html += `<div class="dash-sec"><div class="dash-sec-head"><div><div class="dash-eyebrow">// team workspaces</div><h2>Your Workspaces</h2><div class="dash-sub">Collaborate with your team in your shared workspace.</div></div></div>`;
+      html += `<div class="dash-sec"><div class="dash-sec-head"><div><h2>Your Workspaces</h2><div class="dash-sub">Collaborate with your team in your shared workspace.</div></div></div>`;
       html += `<div class="dash-ws-grid">` + workspaces.map(w => `
         <div class="dash-ws">
           <div class="tags"><span class="tag-dom">${esc(w.problem_domain || '')}</span><span class="tag-role ${w.role === 'leader' ? 'leader' : ''}">${esc(w.role || '')}</span></div>

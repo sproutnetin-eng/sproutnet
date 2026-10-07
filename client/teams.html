@@ -19,6 +19,8 @@
 .team-row .tm span { text-transform: capitalize; }
 .btn-ws-open { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #1C1410; background: #F4A723; border-radius: 8px; padding: 8px 14px; text-decoration: none; }
 .teams-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: clamp(20px, 3vw, 32px); }
+.teams-cards-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+@media(max-width:720px){.teams-cards-row{grid-template-columns:1fr}}
 .teams-card h2 { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: #1C1410; margin: 0 0 4px; }
 .teams-card .cd { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #4A3F38; margin: 0 0 20px; }
 .teams-form { display: grid; gap: 14px; }
@@ -44,7 +46,7 @@
 <div id="sn-nav"></div>
 <div class="teams-wrap">
   <div id="msg"></div>
-  <div class="teams-head"><div class="teams-eyebrow">// collaborate</div><h1>Teams</h1><p class="teams-sub">Form a team, solve problems together, and build faster.</p></div>
+  <div class="teams-head"><h1>Teams</h1><p class="teams-sub">Form a team, solve problems together, and build faster.</p></div>
   <div id="content"><div class="teams-list" role="status" aria-label="Loading teams"><span class="sr-only">Loading...</span>
     <div class="team-row" aria-hidden="true"><div style="flex:1"><div class="sk" style="height:18px;width:45%;margin-bottom:8px"></div><div class="sk sk-line" style="width:65%"></div></div><div class="sk" style="width:110px;height:34px"></div></div>
     <div class="team-row" aria-hidden="true"><div style="flex:1"><div class="sk" style="height:18px;width:40%;margin-bottom:8px"></div><div class="sk sk-line" style="width:60%"></div></div><div class="sk" style="width:110px;height:34px"></div></div>
@@ -66,6 +68,7 @@ if (s) {
       ${myTeams.length ? `<div><h2 class="teams-sec-t">Your Teams</h2><div class="teams-list">` + myTeams.map(t => `
         <div class="team-row"><div><div class="tn">${esc(t.team_name)}</div><div class="tm">${esc(t.problem_title)} · <span>${esc(t.role)}</span></div></div>
         <a class="btn-ws-open" href="/teams/${esc(t.team_id)}">Open Workspace →</a></div>`).join('') + `</div></div>` : ''}
+      <div class="teams-cards-row">
       <div class="teams-card">
         <h2>Create a Team</h2>
         <p class="cd">Pick a problem and name your team.</p>
@@ -87,6 +90,7 @@ if (s) {
           <button class="btn-create" id="join">Join Team →</button>
           <div id="joinmsg"></div>
         </div>
+      </div>
       </div>
       ${problems.length ? `<div><h2 class="teams-sec-t">Problems You Can Team Up On</h2><div class="teams-list">` + problems.map(p => `
         <div class="team-row"><div><div class="tn">${esc(p.title)}</div><div class="tm">${esc(p.domain)} · ${p.team_mode === 'team' ? 'Team only' : 'Solo or Team'} · ${p.min_team_size}–${p.max_team_size} members</div></div>

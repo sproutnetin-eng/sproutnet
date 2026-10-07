@@ -49,6 +49,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('poster', 'admin');
 const list = document.getElementById('list');
@@ -57,7 +58,7 @@ async function load() {
   try {
     const { problems } = await api('/api/poster/problems');
     if (!problems.length) {
-      list.innerHTML = `<div class="pl-empty"><div class="big">🗂️</div><div class="t">No problems yet</div><div class="d">Post your first problem to see it here.</div></div>`;
+      list.innerHTML = `<div class="pl-empty"><div class="big">${icon('inbox', 44)}</div><div class="t">No problems yet</div><div class="d">Post your first problem to see it here.</div></div>`;
       return;
     }
     list.innerHTML = `<div class="pl-list">` + problems.map(p => {

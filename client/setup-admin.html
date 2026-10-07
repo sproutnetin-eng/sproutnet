@@ -23,7 +23,7 @@
 <div id="sn-nav"></div>
 <div class="setup-wrap">
   <div class="setup-card">
-    <div class="setup-icon" id="icon">⏳</div>
+    <div class="setup-icon" id="icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
     <h1 id="title">Checking...</h1>
     <p id="desc"></p>
     <div id="actions"></div>
@@ -32,6 +32,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav } from '/assets/app.js';
+import { icon as svgIcon } from '/assets/icons.js';
 renderNav();
 const icon = document.getElementById('icon');
 const title = document.getElementById('title');
@@ -39,7 +40,7 @@ const desc = document.getElementById('desc');
 const actions = document.getElementById('actions');
 try {
   const data = await api('/api/admin/seed', { method: 'POST' });
-  icon.textContent = '✅'; title.textContent = 'You are now an admin!';
+  icon.innerHTML = svgIcon('checkCircle', 44); title.textContent = 'You are now an admin!';
   desc.textContent = data.message || 'Promoted to admin!';
   actions.innerHTML = '<button class="setup-btn" id="go-admin">Go to Admin Panel →</button>';
   document.getElementById('go-admin').addEventListener('click', () => { location.href = '/admin'; });
@@ -48,7 +49,7 @@ try {
     title.textContent = 'Not logged in'; desc.textContent = 'You need to be logged in first.';
     actions.innerHTML = '<div class="setup-actions"><a class="setup-btn-sm amber" href="/join">Sign Up First</a><a class="setup-btn-sm mint" href="/login/student">Log In</a></div>';
   } else {
-    icon.textContent = '❌'; title.textContent = 'Something went wrong'; desc.textContent = err.message;
+    icon.innerHTML = svgIcon('xCircle', 44); title.textContent = 'Something went wrong'; desc.textContent = err.message;
     actions.innerHTML = '<a class="setup-btn-sm amber" href="/login/student">Try Logging In First</a>';
   }
 }

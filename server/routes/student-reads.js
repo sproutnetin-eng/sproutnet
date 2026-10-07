@@ -225,10 +225,29 @@ router.get('/api/student/teams/:id', authRequired, async (req, res, next) => {
       .select('id, role, joined_at, user_id, users(id, name, email, profile_slug)')
       .eq('team_id', teamId);
 
-    const { data: assignedMentors } = await admin
+    const { data: assignedMentorRows } = await admin
       .from('mentor_assignments')
-      .select('assigned_at, mentor_id, users(id, name, email), mentor_profiles(*)')
+      .select('assigned_at, mentor_id, users:mentor_id(id, name, email)')
       .eq('team_id', teamId);
+
+    // mentor_profiles has no FK to mentor_assignments, so join it manually.
+    let assignedMentors = assignedMentorRows || [];
+    {
+      const mIds = [...new Set(assignedMentors.map((a) => a.mentor_id).filter(Boolean))];
+      if (mIds.length) {
+        const { data: profs } = await admin
+          .from('mentor_profiles')
+          .select('*')
+          .in('user_id', mIds);
+        const byUser = new Map((profs || []).map((p) => [p.user_id, p]));
+        assignedMentors = assignedMentors.map((a) => ({
+          ...a,
+          mentor_profiles: byUser.get(a.mentor_id) || null,
+        }));
+      } else {
+        assignedMentors = assignedMentors.map((a) => ({ ...a, mentor_profiles: null }));
+      }
+    }
 
     const { data: workspace } = await admin
       .from('workspaces')

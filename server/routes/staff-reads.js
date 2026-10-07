@@ -111,11 +111,13 @@ router.get('/api/poster/submissions', ...posterOnly, async (req, res) => {
     if (!problemIds.length) return res.json({ problems: [], submissions: [] });
     const { data, error } = await admin
       .from('submissions')
-      .select('id, stage, milestone, status, score, created_at, problem_id, student_id, problems(title, domain), users(name, dept, year)')
+      .select('id, stage, milestone, status, score, submitted_at, problem_id, student_id, problems(title, domain), users:student_id(name, dept, year)')
       .in('problem_id', problemIds)
-      .order('created_at', { ascending: false });
+      .order('submitted_at', { ascending: false });
     if (error) throw error;
-    res.json({ problems: problems || [], submissions: data || [] });
+    // Client reads `created_at`; real column is `submitted_at` — alias it.
+    const submissions = (data || []).map((s) => ({ ...s, created_at: s.submitted_at }));
+    res.json({ problems: problems || [], submissions });
   } catch (e) { fail(res, e); }
 });
 
@@ -135,7 +137,7 @@ router.get('/api/mentor/dashboard', ...mentorOnly, async (req, res) => {
         .select('team_id, assigned_at, teams(id, name, status, problem_id, problems(id, title, domain))')
         .eq('mentor_id', req.user.id),
       admin.from('mentor_requests')
-        .select('id, team_id, message, created_at, requested_by, users(name, email), teams(id, name, problems(title, domain))')
+        .select('id, team_id, message, created_at, requested_by, users:requested_by(name, email), teams(id, name, problems(title, domain))')
         .eq('mentor_id', req.user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false }),

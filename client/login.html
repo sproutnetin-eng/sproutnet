@@ -76,6 +76,18 @@
 <script type="module">
 import { renderNav } from '/assets/app.js';
 renderNav();
+// Preserve ?next= (set when requireAuth bounces a deep link like /admin)
+// so the chosen role login can return there after sign-in.
+try {
+  const n = new URLSearchParams(location.search).get('next');
+  if (n && n.startsWith('/') && !n.startsWith('//')) {
+    document.querySelectorAll('.role-grid a.role-link').forEach((a) => {
+      const u = new URL(a.getAttribute('href'), location.origin);
+      u.searchParams.set('next', n);
+      a.setAttribute('href', u.pathname + u.search);
+    });
+  }
+} catch { /* ignore */ }
 </script>
 </body>
 </html>

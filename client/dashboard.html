@@ -127,7 +127,7 @@ async function cancelEnrollment(problemId, btn) {
   }
 }
 
-const me = await requireRole('student');
+const me = await requireRole('student', 'admin');
 if (me) {
   renderSidebar({ targetId: 'dash-sidebar', user: me.profile, active: '/dashboard' });
   try {

@@ -70,6 +70,14 @@ router.post('/api/enrollments/create', authRequired, loadProfile, requireRole('s
   }
 
   const admin = getAdmin();
+  const { data: problem } = await admin
+    .from('problems')
+    .select('id, deadline')
+    .eq('id', problemId)
+    .maybeSingle();
+  if (problem?.deadline && new Date(problem.deadline).getTime() < Date.now()) {
+    return res.status(403).json({ error: 'Enrollment closed. The submission deadline for this problem has passed.' });
+  }
   const completedProblemIds = await syncCompletedEnrollments(admin, user.id);
 
   if (completedProblemIds.includes(problemId)) {

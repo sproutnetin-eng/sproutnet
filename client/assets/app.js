@@ -200,6 +200,8 @@ export function getActiveRoute(path = location.pathname) {
   if (path === '/messages' || path.startsWith('/messages/')) return '/messages';
   if (path === '/notifications' || path.startsWith('/notifications/')) return '/notifications';
   if (path === '/poster/post-problem') return '/poster/post-problem';
+  if (path === '/poster/solutions') return '/poster/solutions';
+  if (path.startsWith('/poster/problems')) return '/poster/problems';
   if (path.startsWith('/poster')) return '/poster/dashboard';
   if (path.startsWith('/mentor')) return '/mentor/dashboard';
   if (path === '/dashboard' || path.startsWith('/dashboard/')) return '/dashboard';
@@ -363,7 +365,7 @@ function setCachedProfile(profile) {
 // network) on refresh/navigation, then the background upgrade repaints it
 // with fresh data. Keyed by user id so accounts never see each other's menu.
 const SIDEBAR_MARKUP_TTL = 24 * 60 * 60 * 1000;
-const SIDEBAR_MARKUP_VERSION = 'v5';
+const SIDEBAR_MARKUP_VERSION = 'v7';
 function sidebarMarkupKey(uid) {
   return `sn-sidebar-markup:${SIDEBAR_MARKUP_VERSION}:${uid}`;
 }
@@ -706,6 +708,10 @@ export async function renderSidebar({ targetId = 'dash-sidebar', user = null, ac
         <span class="dash-nav-icon">${NAV_ICONS.blogs}</span>
         <span class="dash-nav-text">Blogs</span>
       </a>
+      <a class="dash-nav-link ${active === '/notifications' ? 'active' : ''}" href="/notifications">
+        <span class="dash-nav-icon">${NAV_ICONS.notifications}</span>
+        <span class="dash-nav-text">Notifications</span>
+      </a>
       ${noExplore ? '' : `
       <a class="dash-nav-link ${active === '/leaderboard' ? 'active' : ''}" href="/leaderboard">
         <span class="dash-nav-icon">${NAV_ICONS.leaderboard}</span>
@@ -719,13 +725,21 @@ export async function renderSidebar({ targetId = 'dash-sidebar', user = null, ac
 
     ${isAdmin || isPoster ? `
     <div class="dash-nav-section">
-      <div class="dash-nav-title">WORKSPACE TOOLS</div>
+      <div class="dash-nav-title">${isPoster ? 'POSTER SPACE' : 'WORKSPACE TOOLS'}</div>
       ${isAdmin ? `
         <a class="dash-nav-link ${active === '/admin' ? 'active' : ''}" href="/admin">
           <span class="dash-nav-icon">${NAV_ICONS.admin}</span>
           <span class="dash-nav-text">Admin Panel</span>
         </a>` : ''}
       ${isPoster ? `
+        <a class="dash-nav-link ${active === '/poster/problems' ? 'active' : ''}" href="/poster/problems">
+          <span class="dash-nav-icon">${NAV_ICONS.problems}</span>
+          <span class="dash-nav-text">My Problems</span>
+        </a>
+        <a class="dash-nav-link ${active === '/poster/solutions' ? 'active' : ''}" href="/poster/solutions">
+          <span class="dash-nav-icon">${NAV_ICONS.solutions}</span>
+          <span class="dash-nav-text">Student Solutions</span>
+        </a>
         <a class="dash-nav-link ${active === '/poster/post-problem' ? 'active' : ''}" href="/poster/post-problem">
           <span class="dash-nav-icon">${NAV_ICONS.postProblem}</span>
           <span class="dash-nav-text">Post a Problem</span>

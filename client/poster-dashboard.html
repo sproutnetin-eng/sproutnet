@@ -81,8 +81,15 @@ if (me) {
   document.getElementById('welcome').textContent = `Welcome back, ${first}.`;
   try {
     const [p, s] = await Promise.all([api('/api/poster/problems'), api('/api/poster/submissions')]);
+    const nowMs = Date.now();
+    const isLive = (x) => {
+      if (x.status !== 'open') return false;
+      if (!x.deadline) return true;
+      const t = new Date(x.deadline).getTime();
+      return Number.isNaN(t) || t >= nowMs;
+    };
     document.getElementById('stat-problems').textContent = p.problems.length;
-    document.getElementById('stat-open').textContent = p.problems.filter(x => x.status === 'open').length;
+    document.getElementById('stat-open').textContent = p.problems.filter(isLive).length;
     document.getElementById('stat-subs').textContent = s.submissions.length;
   } catch (e) {
     document.getElementById('msg').innerHTML = alertBox(e.message);

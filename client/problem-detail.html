@@ -462,7 +462,7 @@ function ctaHtml() {
   if (enroll.enrolled) {
     return `<div class="cta-stack">
       ${enroll.submissionStatus === 'approved' ? `<a class="cta-btn-green" href="/problems/${esc(id)}/final-upload">${icon('sparkles', 15)} Approved! Upload Final Work (APK, papers…) →</a>` : ''}
-      ${enroll.submissionStatus === 'pending' ? '<div class="banner banner-pending">${icon("activity", 14)} Submitted — waiting for admin review</div>' : ''}
+      ${enroll.submissionStatus === 'pending' ? `<div class="banner banner-pending">${icon('activity', 14)} Submitted — waiting for the poster to review</div>` : ''}
       ${enroll.submissionStatus === 'rejected' ? '<div class="banner banner-rejected">${icon("x", 14)} Solution was not approved — improve it and resubmit</div>' : ''}
       <a class="cta-btn" href="/problems/${esc(id)}/submit">${enroll.hasSubmitted ? 'Continue Solving →' : 'Start Solving →'}</a>
       <button type="button" class="cancel-link" id="cancel-enroll">Cancel enrollment</button>

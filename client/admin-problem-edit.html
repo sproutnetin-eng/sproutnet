@@ -125,6 +125,7 @@
           <div class="ae-2col">
             <label class="ae-field"><span>Submission deadline</span><input class="ae-input" type="date" name="deadline" id="deadline" required></label>
             <label class="ae-field"><span>Judging deadline</span><input class="ae-input" type="date" name="judging_deadline" id="jdeadline" required></label>
+            <label class="ae-field"><span>Milestones (2–5)</span><input class="ae-input" type="number" name="milestones" id="milestones" min="2" max="5" step="1" value="3" required></label>
           </div>
           <label class="ae-field"><span>Background &amp; context</span><textarea class="ae-textarea" name="context" id="context" required rows="4"></textarea></label>
           <label class="ae-field"><span>Problem statement</span><textarea class="ae-textarea" name="problem_stmt" id="stmt" required rows="4"></textarea></label>
@@ -166,6 +167,7 @@ if (me) {
       document.getElementById('reward').value = p.reward_amount ?? '';
       document.getElementById('deadline').value = (p.deadline || '').slice(0, 10);
       document.getElementById('jdeadline').value = (p.judging_deadline || '').slice(0, 10);
+      document.getElementById('milestones').value = p.milestones ?? 3;
       document.getElementById('context').value = p.context || '';
       document.getElementById('stmt').value = p.problem_stmt || '';
       document.getElementById('scope').value = p.scope || '';
@@ -205,7 +207,7 @@ f.addEventListener('submit', async (e) => {
       id, title: String(fd.get('title')).trim(), domain: fd.get('domain'),
       problem_type: fd.get('problem_type'),
       reward_amount: fd.get('problem_type') === 'industry_challenge' && fd.get('reward_amount') ? Number(fd.get('reward_amount')) : null,
-      milestones: 1, deadline: fd.get('deadline'), judging_deadline: fd.get('judging_deadline'),
+      milestones: Math.min(5, Math.max(2, Number(fd.get('milestones')) || 3)), deadline: fd.get('deadline'), judging_deadline: fd.get('judging_deadline'),
       context: String(fd.get('context')).trim(), problem_stmt: String(fd.get('problem_stmt')).trim(),
       scope: String(fd.get('scope')).trim(), constraints: String(fd.get('constraints')).trim(),
       deliverables: String(fd.get('deliverables')).trim(), team_mode: fd.get('team_mode'),

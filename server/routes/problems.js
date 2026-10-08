@@ -793,7 +793,11 @@ router.post('/api/problems/create', authRequired, loadProfile, requireRole('post
     }
   }
 
-  const milestones = payload.milestones ? Number(payload.milestones) : 1;
+  const milestones = payload.milestones == null || payload.milestones === '' ? 3 : Number(payload.milestones);
+
+  if (!Number.isInteger(milestones) || milestones < 2 || milestones > 5) {
+    return res.status(422).json({ error: 'Milestones must be a whole number between 2 and 5.' });
+  }
 
   if (
     typeof payload.deadline === 'string' &&
@@ -883,6 +887,9 @@ router.post('/api/problems/create', authRequired, loadProfile, requireRole('post
       details: displayError.details,
       hint: displayError.hint,
     });
+    if (displayError.message && displayError.message.includes('problems_milestones_check')) {
+      return res.status(422).json({ error: 'Milestones must be a whole number between 2 and 5.' });
+    }
     return res.status(400).json(
       { error: displayError.message, code: displayError.code, details: displayError.details, hint: displayError.hint }
     );
@@ -899,7 +906,7 @@ router.post('/api/problems/create', authRequired, loadProfile, requireRole('post
         scope: payload.scope,
         constraints: payload.constraints,
         deliverables: payload.deliverables,
-        milestones: payload.milestones ?? 1,
+        milestones,
         deadline: payload.deadline,
         team_mode: payload.team_mode,
         min_team_size: payload.min_team_size,
@@ -963,9 +970,12 @@ router.post('/api/problems/update', authRequired, loadProfile, requireRole('post
       missing.push(key);
     }
   }
-  const milestones = payload.milestones ? Number(payload.milestones) : 1;
+  const milestones = payload.milestones == null || payload.milestones === '' ? 3 : Number(payload.milestones);
   if (missing.length > 0) {
     return res.status(422).json({ error: `Missing or invalid fields: ${missing.join(', ')}` });
+  }
+  if (!Number.isInteger(milestones) || milestones < 2 || milestones > 5) {
+    return res.status(422).json({ error: 'Milestones must be a whole number between 2 and 5.' });
   }
   if (payload.judging_deadline < payload.deadline) {
     return res.status(422).json({ error: 'Judging deadline must be on or after the submission deadline.' });
@@ -1042,6 +1052,9 @@ router.post('/api/problems/update', authRequired, loadProfile, requireRole('post
   }
 
   if (error) {
+    if (error.message && error.message.includes('problems_milestones_check')) {
+      return res.status(422).json({ error: 'Milestones must be a whole number between 2 and 5.' });
+    }
     return res.status(400).json({ error: error.message });
   }
 
@@ -1202,7 +1215,7 @@ router.post('/api/problems/evaluate', authRequired, loadProfile, requireRole('po
     scope: problem.scope ?? '',
     constraints: problem.constraints ?? '',
     deliverables: problem.deliverables ?? '',
-    milestones: problem.milestones ?? 1,
+    milestones: problem.milestones ?? 3,
     deadline: problem.deadline ?? '',
     team_mode: problem.team_mode,
     min_team_size: problem.min_team_size,

@@ -235,7 +235,12 @@ try {
       }
       const ok = stage === 'draft' ? 'Draft saved successfully! You can return to edit and submit at any time.' : 'Solution submitted for judging! Redirecting to your dashboard...';
       document.getElementById('errbox').innerHTML = `<div class="sub-alert-ok"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><div>${esc(ok)}</div></div>`;
-      if (stage === 'full') setTimeout(() => location.href = '/dashboard', 1500);
+      if (stage === 'full') {
+        // Route the submission to the poster for review (best-effort —
+        // never blocks the redirect if it fails).
+        try { await api('/api/submissions/notify-poster', { method: 'POST', body: { problem_id: problemId } }); } catch { /* ignore */ }
+        setTimeout(() => location.href = '/dashboard', 1500);
+      }
     } catch (err) { document.getElementById('errbox').innerHTML = `<div class="sub-alert-err"><div>${esc(err.message)}</div></div>`; }
     btn.disabled = false; btn.textContent = label;
   }

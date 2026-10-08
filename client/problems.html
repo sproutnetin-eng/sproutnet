@@ -123,7 +123,15 @@ function card(p, idx = 0) {
   </div></a>`;
 }
 try {
-  const { problems } = await api(`/api/public/problems?domain=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`);
+  const { problems: raw } = await api(`/api/public/problems?domain=${encodeURIComponent(domain)}&type=${encodeURIComponent(type)}`);
+  // Safety net: never show deadline-passed problems in the student listing.
+  // (Server already filters these; expired items live on as poster "Archived".)
+  const nowMs = Date.now();
+  const problems = (raw || []).filter((p) => {
+    if (!p.deadline) return true;
+    const t = new Date(p.deadline).getTime();
+    return Number.isNaN(t) || t >= nowMs;
+  });
   document.getElementById('count').textContent = `${problems.length} open problems across ${domain === 'All' ? '8 domains' : domain}`;
   document.getElementById('list').innerHTML = problems.length
     ? `<div class="prob-grid">${problems.map((p, i) => card(p, i)).join('')}</div>`

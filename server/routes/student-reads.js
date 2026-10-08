@@ -143,9 +143,12 @@ router.get('/api/student/overview', authRequired, async (req, res, next) => {
 
 // GET /api/student/teams — open team-enabled problems + my teams.
 // Mirrors app/(student)/teams/page.tsx.
+// Only enrollable problems are listed (deadline not passed); expired ones
+// stay out of the student view but remain visible to posters as archived.
 router.get('/api/student/teams', authRequired, async (req, res, next) => {
   try {
     const admin = getAdmin();
+    const nowMs = Date.now();
     const [{ data: problems }, { data: memberRows }] = await Promise.all([
       admin
         .from('problems')
@@ -171,7 +174,14 @@ router.get('/api/student/teams', authRequired, async (req, res, next) => {
       }
     }
 
-    res.json({ problems: problems || [], myTeams });
+    res.json({
+      problems: (problems || []).filter((p) => {
+        if (!p.deadline) return true;
+        const t = new Date(p.deadline).getTime();
+        return Number.isNaN(t) || t >= nowMs;
+      }),
+      myTeams,
+    });
   } catch (e) {
     next(e);
   }

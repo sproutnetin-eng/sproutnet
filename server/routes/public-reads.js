@@ -50,13 +50,17 @@ async function authUser(req) {
 }
 
 // GET /api/public/stats -> { openProblems }
+// Counts only enrollable problems: status=open AND deadline not passed.
+// (Expired problems are hidden from student listings but stay visible to posters.)
 router.get('/api/public/stats', async (req, res, next) => {
   try {
     const admin = getAdmin();
+    const nowIso = new Date().toISOString();
     const { count, error } = await admin
       .from('problems')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'open');
+      .eq('status', 'open')
+      .or(`deadline.is.null,deadline.gt.${nowIso}`);
     if (error) throw new Error(error.message);
     res.json({ openProblems: count ?? 0 });
   } catch (e) {
@@ -71,21 +75,32 @@ function applyProblemFilters(query, domain, type) {
 }
 
 // GET /api/public/problems?domain=All&type=all -> { problems }
+// Student-facing listing: only enrollable problems (status=open AND
+// deadline not passed). Expired problems stay visible to posters via
+// /api/poster/problems and to enrolled students via /api/student/overview.
+function isEnrollable(p, nowMs) {
+  if (!p || !p.deadline) return true;
+  const t = new Date(p.deadline).getTime();
+  if (Number.isNaN(t)) return true;
+  return t >= nowMs;
+}
 router.get('/api/public/problems', async (req, res, next) => {
   try {
     const admin = getAdmin();
     const domain = req.query.domain || 'All';
     const type = req.query.type || 'all';
+    const nowIso = new Date().toISOString();
+    const nowMs = Date.now();
     const FULL =
       'id, title, domain, problem_type, status, thumbnail_url, reward_amount, milestones, deadline, submission_count, context, difficulty_label, difficulty_score, impact_score, estimated_hours';
     const FALLBACK =
       'id, title, domain, problem_type, status, reward_amount, milestones, deadline, submission_count, context, rejected_reason, difficulty_label, difficulty_score, impact_score, estimated_hours';
 
-    let q = admin.from('problems').select(FULL).order('created_at', { ascending: false }).eq('status', 'open');
+    let q = admin.from('problems').select(FULL).order('created_at', { ascending: false }).eq('status', 'open').or(`deadline.is.null,deadline.gt.${nowIso}`);
     let { data, error } = await applyProblemFilters(q, domain, type);
 
     if (error && isMissingThumbnailColumnError(error.message)) {
-      let q2 = admin.from('problems').select(FALLBACK).order('created_at', { ascending: false }).eq('status', 'open');
+      let q2 = admin.from('problems').select(FALLBACK).order('created_at', { ascending: false }).eq('status', 'open').or(`deadline.is.null,deadline.gt.${nowIso}`);
       const fb = await applyProblemFilters(q2, domain, type);
       error = fb.error;
       data = (fb.data || []).map((p) => ({
@@ -94,7 +109,9 @@ router.get('/api/public/problems', async (req, res, next) => {
       }));
     }
     if (error) throw new Error(error.message);
-    res.json({ problems: data || [] });
+    // Safety net for clock skew / cached rows: drop anything already past deadline.
+    const problems = (data || []).filter((p) => isEnrollable(p, nowMs));
+    res.json({ problems });
   } catch (e) {
     next(e);
   }

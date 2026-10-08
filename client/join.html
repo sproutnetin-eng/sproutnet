@@ -65,19 +65,19 @@
     </div>
     <div class="role-pick" id="rolepick">
       <button class="role-btn" data-role="student" type="button">
-        <div class="emoji">🎓</div>
+        <div class="emoji"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></div>
         <div class="t">I&#39;m a Student</div>
         <div class="d">Browse real problems, build structured solutions, earn your Builder Score.</div>
         <div><span class="pill pill-student">@jyothyit.ac.in only · Phase 1</span></div>
       </button>
       <button class="role-btn" data-role="mentor" type="button">
-        <div class="emoji">🧭</div>
+        <div class="emoji"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88"/></svg></div>
         <div class="t">I want to Mentor</div>
         <div class="d">Guide student teams, share your expertise, and shape the next generation of builders.</div>
         <div><span class="pill pill-mentor">Industry Experts · Alumni · Faculty</span></div>
       </button>
       <button class="role-btn" data-role="poster" type="button">
-        <div class="emoji">🏢</div>
+        <div class="emoji"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1"/><line x1="9" y1="7" x2="10" y2="7"/><line x1="14" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="10" y2="11"/><line x1="14" y1="11" x2="15" y2="11"/><path d="M10 21v-3h4v3"/></svg></div>
         <div class="t">I have a Problem to Post</div>
         <div class="d">Post real challenges. Get structured solutions from India&#39;s sharpest students.</div>
         <div><span class="pill pill-poster">NGOs · Companies · Individuals</span></div>
@@ -87,7 +87,7 @@
     <div class="auth-card" id="formcard" style="display:none">
       <button class="back-btn" id="back" type="button">← Back</button>
       <div class="form-title">
-        <div class="emoji" id="femoji">🎓</div>
+        <div class="emoji" id="femoji"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg></div>
         <div class="t" id="ftitle"></div>
       </div>
       <div id="msg"></div>
@@ -134,20 +134,21 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const qs = new URLSearchParams(location.search);
 let role = qs.get('role') === 'poster' ? 'poster' : qs.get('role') === 'mentor' ? 'mentor' : qs.get('role') === 'student' ? 'student' : null;
 const rolepick = document.getElementById('rolepick');
 const formcard = document.getElementById('formcard');
 const msg = document.getElementById('msg');
-const EMOJI = { student: '🎓', mentor: '🧭', poster: '🏢' };
+const ROLE_ICON = { student: icon('gradcap', 22), mentor: icon('compass', 22), poster: icon('building', 22) };
 
 function showForm(r) {
   role = r;
   rolepick.style.display = 'none';
   formcard.style.display = '';
   document.getElementById('ftitle').textContent = r === 'student' ? 'Create Student Account' : r === 'mentor' ? 'Create Mentor Account' : 'Create Poster Account';
-  document.getElementById('femoji').textContent = EMOJI[r] || '🎓';
+  document.getElementById('femoji').innerHTML = ROLE_ICON[r] || ROLE_ICON.student;
   document.getElementById('studentfields').style.display = r === 'student' ? 'flex' : 'none';
   document.getElementById('posterfields').style.display = r === 'poster' ? 'flex' : 'none';
   document.getElementById('mentorfields').style.display = r === 'mentor' ? 'flex' : 'none';

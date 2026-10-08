@@ -73,7 +73,6 @@
   <div id="msg"></div>
   <div id="main">
     <div class="mt-head-block">
-      <div class="mt-eyebrow">// find your guide</div>
       <h1 class="mt-title">Browse Mentors</h1>
       <p class="mt-sub">Connect with expert mentors who can guide your team through the challenge. Filter by skills and technologies to find the right match.</p>
     </div>
@@ -96,6 +95,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const msg = (h) => { document.getElementById('msg').innerHTML = h; };
 let mentors = [], ctx = { currentUser: null, pendingMentorIds: [], connectedMentorIds: [] };
@@ -184,7 +184,7 @@ try {
   document.getElementById('f-skill').innerHTML = '<option value="">All Skills</option>' + skills.map(s => `<option>${esc(s)}</option>`).join('');
   document.getElementById('f-tech').innerHTML = '<option value="">All Technologies</option>' + techs.map(t => `<option>${esc(t)}</option>`).join('');
   if (!mentors.length) {
-    document.getElementById('main').innerHTML = `<div class="mt-empty-wrap"><div class="mt-empty-emoji">🧭</div>
+    document.getElementById('main').innerHTML = `<div class="mt-empty-wrap"><div class="mt-empty-emoji">${icon('compass', 44)}</div>
       <h1 class="mt-empty-title">No mentors registered yet</h1>
       <p class="mt-empty-sub">Mentors will appear here once they set up their profiles. Check back later.</p>
       <a class="mt-empty-btn" href="/dashboard">Back to Dashboard</a></div>`;

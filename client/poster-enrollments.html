@@ -37,6 +37,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('poster', 'admin');
 const id = location.pathname.split('/')[3];
@@ -45,7 +46,7 @@ const list = document.getElementById('list');
 let enrollments = [];
 function render() {
   if (!enrollments.length) {
-    list.innerHTML = `<div class="pen-empty"><div class="big">👥</div><div class="t">No enrollments yet</div><div class="d">Students will appear here after they enroll.</div></div>`;
+    list.innerHTML = `<div class="pen-empty"><div class="big">${icon('users', 44)}</div><div class="t">No enrollments yet</div><div class="d">Students will appear here after they enroll.</div></div>`;
     return;
   }
   list.innerHTML = `<div class="pen-list">` + enrollments.map(x => `<div class="pen-card">

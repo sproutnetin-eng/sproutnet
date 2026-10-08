@@ -128,6 +128,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox, logout } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('admin');
 const msg = document.getElementById('msg');
@@ -139,7 +140,7 @@ let items = [];
 let query = '', statusFilter = 'all', expandedId = null;
 function render() {
   if (!items.length) {
-    body.innerHTML = `<div class="as-empty"><div class="big">📭</div><div class="t">No solutions uploaded yet</div><div class="d">Full student submissions will appear here once submitted.</div></div>`;
+    body.innerHTML = `<div class="as-empty"><div class="big">${icon('inbox', 44)}</div><div class="t">No solutions uploaded yet</div><div class="d">Full student submissions will appear here once submitted.</div></div>`;
     return;
   }
   const q = query.trim().toLowerCase();
@@ -159,7 +160,7 @@ function render() {
         <option value="approved"${statusFilter === 'approved' ? ' selected' : ''}>Approved</option>
         <option value="rejected"${statusFilter === 'rejected' ? ' selected' : ''}>Rejected</option>
         <option value="draft"${statusFilter === 'draft' ? ' selected' : ''}>Draft</option>
-        <option value="final"${statusFilter === 'final' ? ' selected' : ''}>📦 With final work</option>
+        <option value="final"${statusFilter === 'final' ? ' selected' : ''}>${icon('package', 13)} With final work</option>
       </select>
       <span class="as-count">${rows.length} of ${items.length}</span>
     </div>
@@ -177,10 +178,10 @@ function render() {
             <div class="as-row${expanded ? ' open' : ''}" data-act="toggle">
               <div style="min-width:0"><div class="as-pt">${esc(s.problemTitle)}</div><div class="as-sn">${esc(s.studentName)}${s.studentDept ? ` · ${esc(s.studentDept)}` : ''}${s.studentYear ? ` · ${esc(s.studentYear)}` : ''}</div></div>
               <div class="as-dom">${esc(s.problemDomain || '—')}</div>
-              <div><span class="as-tag ${s.participantType === 'team' ? 'team' : 'indiv'}">${s.participantType === 'team' ? '👥 Team' : 'Individual'}</span></div>
+              <div><span class="as-tag ${s.participantType === 'team' ? 'team' : 'indiv'}">${s.participantType === 'team' ? icon('users', 13) + ' Team' : 'Individual'}</span></div>
               <div class="as-date">${esc(submitted)}</div>
               <div><span class="as-tag ${st}">${esc(s.status)}${s.score != null ? ` · ${esc(s.score)}` : ''}</span></div>
-              <div>${dl.length ? `<span class="as-tag final">📦 ${dl.length}</span>` : `<span class="as-dash">—</span>`}</div>
+              <div>${dl.length ? `<span class="as-tag final">${icon('package', 13)} ${dl.length}</span>` : `<span class="as-dash">—</span>`}</div>
               <div style="display:flex;gap:6px;justify-content:flex-end"><button type="button" class="admin-btn admin-linkbtn" style="font-size:11px" data-act="toggle-btn">${expanded ? 'Hide' : 'View'}</button></div>
             </div>
             ${expanded ? `<div class="as-detail">
@@ -212,14 +213,14 @@ if (me) {
   const tm = document.getElementById('tool-msg');
   document.getElementById('seed-btn').addEventListener('click', async (ev) => {
     ev.target.disabled = true; ev.target.textContent = 'Seeding...'; tm.textContent = '';
-    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.textContent = '✅ ' + (r.summary || r.message || 'done'); }
-    catch (err) { tm.textContent = '❌ ' + err.message; }
+    try { const r = await api('/api/leaderboard/seed', { method: 'POST' }); tm.innerHTML = `${icon('check', 14)} ${esc(r.summary || r.message || 'done')}`; }
+    catch (err) { tm.innerHTML = `${icon('x', 14)} ${esc(err.message)}`; }
     ev.target.disabled = false; ev.target.textContent = 'Seed Test Submissions';
   });
   document.getElementById('recalc-btn').addEventListener('click', async (ev) => {
     ev.target.disabled = true; ev.target.textContent = 'Recalculating...'; tm.textContent = '';
-    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.textContent = '✅ ' + (r.message || 'done'); }
-    catch (err) { tm.textContent = '❌ ' + err.message; }
+    try { const r = await api('/api/leaderboard/recalculate', { method: 'POST' }); tm.innerHTML = `${icon('check', 14)} ${esc(r.message || 'done')}`; }
+    catch (err) { tm.innerHTML = `${icon('x', 14)} ${esc(err.message)}`; }
     ev.target.disabled = false; ev.target.textContent = 'Recalculate Scores';
   });
 }

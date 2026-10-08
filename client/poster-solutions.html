@@ -7,32 +7,59 @@
 <link rel="stylesheet" href="/assets/styles.css">
 <style>
   .ps-wrap { max-width: 1100px; margin: 0 auto; padding: clamp(32px, 6vw, 52px) clamp(16px, 4vw, 24px); }
-  .ps-head { margin-bottom: 32px; }
+  .ps-head { margin-bottom: 24px; }
   .ps-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(28px, 6vw, 38px); font-weight: 400; color: #1C1410; letter-spacing: -0.5px; margin: 0 0 8px; }
   .ps-head p { font-size: 15px; color: #4A3F38; font-weight: 300; margin: 0; }
-  .ps-filter { margin-bottom: 16px; max-width: 280px; font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
+  .ps-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .ps-filter { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #fff; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 10px 14px; outline: none; box-sizing: border-box; }
+  .ps-filter.problem { flex: 1 1 220px; }
   .ps-empty { text-align: center; padding: 80px 24px; background: #fff; border-radius: 12px; border: 1.5px solid rgba(28,20,16,0.07); }
   .ps-empty .big { font-size: 40px; margin-bottom: 16px; }
   .ps-empty .t { font-family: Sora, sans-serif; font-size: 18px; font-weight: 600; color: #1C1410; margin-bottom: 8px; }
   .ps-empty .d { font-size: 14px; color: #9CA3A0; }
-  .ps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
-  .ps-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 12px; padding: clamp(18px, 3vw, 22px); }
-  .ps-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; margin-bottom: 10px; }
-  .ps-title { font-family: Sora, sans-serif; font-size: 16px; font-weight: 600; color: #1C1410; margin-bottom: 6px; }
-  .ps-domain { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #4A3F38; margin-bottom: 12px; }
-  .ps-who { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .ps-avatar { width: 28px; height: 28px; border-radius: 50%; background: #2D6A4F; display: flex; align-items: center; justify-content: center; color: #fff; font-family: Sora, sans-serif; font-size: 11px; font-weight: 700; }
-  .ps-name { font-family: Sora, sans-serif; font-size: 13px; font-weight: 600; color: #1C1410; }
-  .ps-sub { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; }
-  .ps-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; background: #EAF4EE; padding: 4px 10px; border-radius: 999px; }
-  .ps-judge { margin-top: 12px; border-top: 1px solid rgba(28,20,16,0.06); padding-top: 12px; display: grid; gap: 10px; }
-  .ps-judge label { display: flex; flex-direction: column; gap: 6px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #1C1410; }
-  .ps-judge input, .ps-judge textarea { font-family: 'DM Sans', sans-serif; font-size: 14px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 11px 14px; outline: none; width: 100%; box-sizing: border-box; }
-  .ps-judge textarea { resize: vertical; }
-  .ps-judge .row { display: flex; gap: 10px; flex-wrap: wrap; }
-  .ps-approve { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: #fff; background: #2D6A4F; border: none; border-radius: 8px; padding: 9px 18px; cursor: pointer; }
-  .ps-reject { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #DC2626; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 9px 18px; cursor: pointer; }
+  .ps-list { display: grid; gap: 14px; }
+  .ps-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 12px; overflow: hidden; }
+  .ps-row { display: flex; align-items: center; gap: 14px; padding: 16px 20px; cursor: pointer; flex-wrap: wrap; }
+  .ps-row.open { background: #FAF8F4; }
+  .ps-avatar { width: 36px; height: 36px; border-radius: 50%; background: #2D6A4F; display: flex; align-items: center; justify-content: center; color: #fff; font-family: Sora, sans-serif; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .ps-main { flex: 1 1 200px; min-width: 0; }
+  .ps-title { font-family: Sora, sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ps-sub { font-size: 12px; color: #6A5F58; margin-top: 2px; }
+  .ps-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .ps-status { display: inline-flex; align-items: center; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 4px 10px; border-radius: 999px; text-transform: capitalize; }
+  .ps-status.pending { color: #92400e; background: rgba(244,167,35,0.15); border: 1px solid rgba(244,167,35,0.35); }
+  .ps-status.approved { color: #15803d; background: rgba(21,128,61,0.1); border: 1px solid rgba(21,128,61,0.25); }
+  .ps-status.rejected { color: #991B1B; background: rgba(220,38,38,0.07); border: 1px solid rgba(220,38,38,0.25); }
+  .ps-status.judged, .ps-status.draft { color: #57534e; background: rgba(28,20,16,0.06); border: 1px solid rgba(28,20,16,0.15); }
+  .ps-score { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: #2D6A4F; }
+  .ps-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; }
+  .ps-toggle { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 8px 16px; cursor: pointer; }
+  .ps-panel { border-top: 1px solid rgba(28,20,16,0.08); padding: 20px; display: grid; gap: 18px; background: #FFFDF8; }
+  .ps-judge { border: 1.5px solid rgba(244,167,35,0.4); background: #fff; border-radius: 12px; padding: 16px; display: grid; gap: 12px; }
+  .ps-judge .cap { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #92400e; text-transform: uppercase; letter-spacing: 0.1em; }
+  .ps-judge .meta { font-size: 11px; color: #9CA3A0; }
+  .ps-scores { display: flex; gap: 5px; flex-wrap: wrap; }
+  .ps-scores button { width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid rgba(28,20,16,0.15); background: #FAF8F4; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: #1C1410; cursor: pointer; }
+  .ps-scores button.on { border-color: #2D6A4F; background: #EAF4EE; }
+  .ps-judge textarea { width: 100%; box-sizing: border-box; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.12); border-radius: 8px; padding: 10px 12px; outline: none; resize: vertical; }
+  .ps-verdict { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ps-approve { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: #fff; background: #2D6A4F; border: none; border-radius: 8px; padding: 11px 0; cursor: pointer; }
+  .ps-reject { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; color: #DC2626; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); border-radius: 8px; padding: 11px 0; cursor: pointer; }
   .ps-approve:disabled, .ps-reject:disabled { cursor: not-allowed; opacity: 0.6; }
+  .ps-result { border-radius: 8px; padding: 12px 14px; font-size: 13px; }
+  .ps-result.approved { color: #15803d; background: rgba(21,128,61,0.08); border: 1px solid rgba(21,128,61,0.2); }
+  .ps-result.rejected { color: #991B1B; background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); }
+  .ps-sec { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #2D6A4F; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .ps-field { margin-bottom: 12px; }
+  .ps-field:last-child { margin-bottom: 0; }
+  .ps-flabel { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: #1C1410; margin-bottom: 4px; }
+  .ps-fbody { font-size: 13px; color: #4A3F38; line-height: 1.65; white-space: pre-wrap; overflow-wrap: break-word; }
+  .ps-na { font-size: 12px; color: #9CA3A0; font-style: italic; }
+  .ps-link { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 8px; border: 1px solid rgba(28,20,16,0.12); background: #fff; text-decoration: none; margin-bottom: 8px; }
+  .ps-link .k { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #2D6A4F; }
+  .ps-link .t { font-size: 13px; font-weight: 600; color: #1C1410; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ps-link .go { margin-left: auto; font-size: 11px; color: #2D6A4F; flex-shrink: 0; }
+  .ps-problink { font-size: 12px; font-weight: 600; color: #2D6A4F; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -40,65 +67,181 @@
 <main class="ps-wrap">
   <div class="ps-head">
     <h1>Student solutions</h1>
-    <p>Solutions submitted by students for your posted problems.</p>
+    <p>Open any submission to read the full solution, then approve or reject it and set the score.</p>
   </div>
   <div id="msg"></div>
-  <select class="ps-filter" id="filter"><option value="all">All problems</option></select>
-  <div id="list"><div role="status" aria-label="Loading solutions"><span class="sr-only">Loading…</span><div aria-hidden="true"><div class="sk-card" style="margin-bottom:12px"><div class="sk-row"><div class="sk sk-circle" style="width:28px;height:28px"></div><div style="flex:1"><div class="sk sk-line" style="width:50%;margin-bottom:8px"></div><div class="sk sk-line" style="width:80%"></div></div></div></div><div class="sk-card"><div class="sk-row"><div class="sk sk-circle" style="width:28px;height:28px"></div><div style="flex:1"><div class="sk sk-line" style="width:45%;margin-bottom:8px"></div><div class="sk sk-line" style="width:75%"></div></div></div></div></div></div></div>
+  <div class="ps-filters">
+    <select class="ps-filter problem" id="filter"><option value="all">All problems</option></select>
+    <select class="ps-filter" id="status-filter">
+      <option value="pending">Needs review</option>
+      <option value="all">All statuses</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+  <div id="list"><div role="status" aria-label="Loading solutions"><span class="sr-only">Loading…</span><div aria-hidden="true"><div class="sk-card" style="margin-bottom:12px"><div class="sk-row"><div class="sk sk-circle" style="width:36px;height:36px"></div><div style="flex:1"><div class="sk sk-line" style="width:50%;margin-bottom:8px"></div><div class="sk sk-line" style="width:80%"></div></div></div></div><div class="sk-card"><div class="sk-row"><div class="sk sk-circle" style="width:36px;height:36px"></div><div style="flex:1"><div class="sk sk-line" style="width:45%;margin-bottom:8px"></div><div class="sk sk-line" style="width:75%"></div></div></div></div></div></div></div>
 </main>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { api, apiCacheClear, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('poster', 'admin');
 const msg = document.getElementById('msg');
 const list = document.getElementById('list');
 const filter = document.getElementById('filter');
+const statusFilter = document.getElementById('status-filter');
+const LABELS = [['f_understanding', 'Problem Understanding'], ['f_rootcause', 'Root Cause Analysis'], ['f_solution', 'Proposed Solution'], ['f_feasibility', 'Feasibility Assessment'], ['f_impact', 'Expected Impact'], ['f_risks', 'Risks & Limitations'], ['f_implementation', 'Implementation Plan']];
 let subs = [];
-function render() {
+let openId = null;
+const scores = {};
+const feedbacks = {};
+
+function implParts(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return { text: '', files: [] };
+  if (!raw.startsWith('{')) return { text: raw, files: [] };
+  try {
+    const j = JSON.parse(raw);
+    return {
+      text: typeof j.text === 'string' ? j.text : '',
+      files: Array.isArray(j.files) ? j.files.filter((f) => f && typeof f.name === 'string') : [],
+    };
+  } catch { return { text: raw, files: [] }; }
+}
+
+function normalizeDelivs(arr) {
+  return (Array.isArray(arr) ? arr : []).map((d) =>
+    typeof d === 'string' ? { url: d, label: d, kind: 'link' } : d
+  ).filter((d) => d && typeof d.url === 'string');
+}
+
+function submittedOn(d) {
+  return d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+}
+
+function visibleRows() {
   const pid = filter.value;
-  const rows = pid === 'all' ? subs : subs.filter(s => s.problem_id === pid);
+  const st = statusFilter.value;
+  let rows = pid === 'all' ? [...subs] : subs.filter((s) => s.problem_id === pid);
+  if (st !== 'all') rows = rows.filter((s) => s.status === st);
+  const rank = { pending: 0, draft: 1, judged: 2, approved: 3, rejected: 4 };
+  return rows.sort((a, b) =>
+    (rank[a.status] ?? 9) - (rank[b.status] ?? 9) ||
+    new Date(b.created_at || 0) - new Date(a.created_at || 0)
+  );
+}
+
+function fieldHtml(key, label, s) {
+  const F = s.fields || {};
+  if (key === 'f_implementation') {
+    const { text, files } = implParts(F[key]);
+    const fbody = text.trim()
+      ? `<div class="ps-fbody">${esc(text)}</div>`
+      : (files.length ? '' : `<div class="ps-na">Not answered.</div>`);
+    const flinks = files.length
+      ? files.map((f) => `<a class="ps-link" href="${esc(f.url || '#')}" target="_blank" rel="noreferrer"><span class="k">FILE</span><span class="t">${esc(f.name)}</span><span class="go">open ↗</span></a>`).join('')
+      : '';
+    return `<div class="ps-field"><div class="ps-flabel">${label}</div>${fbody}${flinks}</div>`;
+  }
+  const v = String(F[key] || '').trim();
+  return `<div class="ps-field"><div class="ps-flabel">${label}</div>${v ? `<div class="ps-fbody">${esc(v)}</div>` : `<div class="ps-na">Not answered.</div>`}</div>`;
+}
+
+function render() {
+  const rows = visibleRows();
   if (!rows.length) {
-    list.innerHTML = `<div class="ps-empty"><div class="big">📝</div><div class="t">No submissions yet</div><div class="d">Once students submit solutions, they will appear here.</div></div>`;
+    list.innerHTML = `<div class="ps-empty"><div class="big">${icon('filetext', 44)}</div><div class="t">No submissions here</div><div class="d">Once enrolled students submit solutions, they will appear here for review.</div></div>`;
     return;
   }
-  list.innerHTML = `<div class="ps-grid">` + rows.map(s => `<div class="ps-card" data-id="${esc(s.id)}">
-    <div class="ps-date">${s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</div>
-    <div class="ps-title">${esc(s.problems?.title || 'Problem')}</div>
-    <div class="ps-domain">${esc(s.problems?.domain || '—')}</div>
-    <div class="ps-who"><div class="ps-avatar">${esc((s.users?.name || '?')[0])}</div>
-      <div><div class="ps-name">${esc(s.users?.name || 'Student')}</div><div class="ps-sub">${esc(s.users?.dept || 'Department')} · ${esc(s.users?.year || 'Year')}</div></div></div>
-    <span class="ps-status">Status: ${esc(s.status || 'pending')}${s.score != null ? ` · ${esc(s.score)}` : ''}</span>
-    <div class="ps-judge" style="display:${s.status === 'pending' ? '' : 'none'}">
-      <label>Score (0–10)<input type="number" min="0" max="10" value="7" data-f="score"></label>
-      <label>Feedback (optional)<textarea data-f="feedback" rows="2" placeholder="Feedback for the student…"></textarea></label>
-      <div class="row"><button type="button" class="ps-approve" data-act="approve">✓ Approve</button><button type="button" class="ps-reject" data-act="reject">✕ Reject</button></div>
-    </div>
-  </div>`).join('') + `</div>`;
+  list.innerHTML = `<div class="ps-list">` + rows.map((s) => {
+    const open = openId === s.id;
+    const dl = normalizeDelivs(s.deliverables);
+    const F = s.fields || {};
+    const answered = LABELS.filter(([k]) => String(F[k] || '').trim()).length;
+    const score = scores[s.id] ?? 7;
+    const judgeOpen = s.status === 'pending';
+    const panel = open ? `<div class="ps-panel">
+      ${judgeOpen ? `<div class="ps-judge">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:baseline"><span class="cap">Judge this solution</span><span class="meta">${answered}/7 sections answered · ${dl.length} deliverable${dl.length === 1 ? '' : 's'}</span></div>
+        <div><div class="ps-flabel" style="margin-bottom:6px">Score — ${score}/10</div>
+          <div class="ps-scores">${Array.from({ length: 11 }, (_, n) => `<button type="button" data-score="${n}" class="${n === score ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+        <textarea rows="2" data-f="feedback" placeholder="Feedback for the student (optional) — shown with the result…">${esc(feedbacks[s.id] || '')}</textarea>
+        <div class="ps-verdict"><button type="button" class="ps-reject" data-act="reject">${icon('x', 13)} Reject</button><button type="button" class="ps-approve" data-act="approve">${icon('check', 13)} Approve</button></div>
+      </div>` : `<div class="ps-result ${s.status === 'approved' ? 'approved' : 'rejected'}"><strong style="text-transform:capitalize">${esc(s.status)}</strong>${s.score != null ? ` · Score ${esc(String(s.score))}/10` : ''}${s.judge_feedback ? `<div style="margin-top:6px">${esc(s.judge_feedback)}</div>` : ''}</div>`}
+      ${dl.length ? `<div><div class="ps-sec">Deliverables (${dl.length})</div>${dl.map((d, i) => `<a class="ps-link" href="${esc(d.url)}" target="_blank" rel="noreferrer"><span class="k">${esc((d.kind || 'link').toUpperCase())}</span><span class="t">${i + 1}. ${esc(d.label || d.url)}</span><span class="go">open ↗</span></a>`).join('')}</div>` : ''}
+      <div><div class="ps-sec">Full written solution</div>${LABELS.map(([k, l]) => fieldHtml(k, l, s)).join('')}</div>
+      <div><a class="ps-problink" href="/problems/${esc(s.problem_id)}">View problem page ↗</a></div>
+    </div>` : '';
+    return `<div class="ps-card" data-id="${esc(s.id)}">
+      <div class="ps-row${open ? ' open' : ''}" data-act="toggle">
+        <div class="ps-avatar">${esc((s.users?.name || '?')[0])}</div>
+        <div class="ps-main">
+          <div class="ps-title">${esc(s.problems?.title || 'Problem')}</div>
+          <div class="ps-sub">${esc(s.users?.name || 'Student')}${s.users?.dept ? ` · ${esc(s.users.dept)}` : ''}${s.users?.year ? ` · ${esc(s.users.year)}` : ''}${s.participantType === 'team' ? ' · Team entry' : ''}${s.stage ? ` · ${esc(s.stage)}` : ''}</div>
+        </div>
+        <div class="ps-badges">
+          <span class="ps-status ${esc(s.status || 'pending')}">${esc(s.status || 'pending')}</span>
+          ${s.score != null ? `<span class="ps-score">${esc(String(s.score))}/10</span>` : ''}
+          <span class="ps-date">${esc(submittedOn(s.created_at))}</span>
+          <button type="button" class="ps-toggle" data-act="toggle-btn">${open ? 'Close' : 'Review'}</button>
+        </div>
+      </div>
+      ${panel}
+    </div>`;
+  }).join('') + `</div>`;
+  const ta = list.querySelector('textarea[data-f="feedback"]');
+  if (ta) ta.addEventListener('input', (e) => { feedbacks[openId] = e.target.value; });
 }
+
 if (me) {
   try {
+    apiCacheClear(); // drop any pre-fix cached payload (response shape changed)
     const { problems, submissions } = await api('/api/poster/submissions');
-    subs = submissions;
-    filter.innerHTML = `<option value="all">All problems (${subs.length})</option>` + problems.map(p => `<option value="${esc(p.id)}">${esc(p.title)}</option>`).join('');
+    subs = Array.isArray(submissions) ? submissions : [];
+    if (subs.length && !subs.some((s) => s && s.fields)) {
+      msg.innerHTML = alertBox('Solution text is missing from the API response. Restart the server (npm run serve or serve:dev) so the updated /api/poster/submissions loads.');
+    }
+    const qp = new URLSearchParams(location.search).get('problem');
+    filter.innerHTML = `<option value="all">All problems (${subs.length})</option>` + problems.map((p) => `<option value="${esc(p.id)}"${qp === p.id ? ' selected' : ''}>${esc(p.title)}</option>`).join('');
+    if (qp && problems.some((p) => p.id === qp)) filter.value = qp;
     render();
   } catch (e) { msg.innerHTML = alertBox(e.message); }
 }
-filter.addEventListener('change', render);
+filter.addEventListener('change', () => { openId = null; render(); });
+statusFilter.addEventListener('change', () => { openId = null; render(); });
 list.addEventListener('click', async (e) => {
-  const btn = e.target.closest('button[data-act]');
-  if (!btn) return;
-  const card = btn.closest('.ps-card');
-  const submission_id = card.dataset.id;
-  const score = Number(card.querySelector('[data-f="score"]').value);
-  const feedback = card.querySelector('[data-f="feedback"]').value || undefined;
-  btn.disabled = true;
-  try {
-    await api('/api/submissions/judge', { method: 'POST', body: { submission_id, score, feedback, decision: btn.dataset.act } });
-    msg.innerHTML = alertBox(`Submission ${btn.dataset.act}d.`, true);
-    subs = subs.map(s => s.id === submission_id ? { ...s, status: btn.dataset.act === 'approve' ? 'approved' : 'rejected', score } : s);
+  const scoreBtn = e.target.closest('button[data-score]');
+  if (scoreBtn) {
+    const card = scoreBtn.closest('.ps-card');
+    scores[card.dataset.id] = Number(scoreBtn.dataset.score);
     render();
-  } catch (err) { msg.innerHTML = alertBox(err.message); btn.disabled = false; }
+    return;
+  }
+  const t = e.target.closest('[data-act]');
+  if (!t) return;
+  const card = t.closest('.ps-card');
+  const id = card.dataset.id;
+  const act = t.dataset.act;
+  if (act === 'toggle' || act === 'toggle-btn') {
+    if (t.tagName === 'BUTTON' && act === 'toggle-btn') { openId = openId === id ? null : id; render(); return; }
+    if (e.target.closest('button, a, textarea')) return;
+    openId = openId === id ? null : id; render(); return;
+  }
+  t.disabled = true;
+  try {
+    await api('/api/submissions/judge', { method: 'POST', body: {
+      submission_id: id,
+      score: scores[id] ?? 7,
+      feedback: (card.querySelector('[data-f="feedback"]') || {}).value || undefined,
+      decision: act,
+    }});
+    msg.innerHTML = alertBox(`Solution ${act}d and scored.`, true);
+    subs = subs.map((s) => s.id === id
+      ? { ...s, status: act === 'approve' ? 'approved' : 'rejected', score: scores[id] ?? 7, judge_feedback: (card.querySelector('[data-f="feedback"]') || {}).value || s.judge_feedback }
+      : s);
+    render();
+  } catch (err) { msg.innerHTML = alertBox(err.message); t.disabled = false; }
 });
 </script>
 </body>

@@ -180,6 +180,25 @@ router.post('/api/mentors/profile', optionalAuth, async (req, res) => {
   return res.redirect(307, '/mentor/dashboard');
 });
 
+// POST /api/mentors/availability — mentor flips their own availability status
+router.post('/api/mentors/availability', authRequired, loadProfile, requireRole('mentor', 'admin'), async (req, res) => {
+  const status = req.body?.availability_status;
+  if (!['available', 'busy', 'unavailable'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid availability status.' });
+  }
+  const admin = getAdmin();
+  const { error } = await admin
+    .from('mentor_profiles')
+    .upsert(
+      { user_id: req.user.id, availability_status: status, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id' }
+    );
+  if (error) {
+    return res.status(500).json({ error: error.message });
+  }
+  return res.json({ ok: true, availability_status: status });
+});
+
 // POST /api/mentors/request — mentor accepts/rejects a team mentor request (HTML form post)
 router.post('/api/mentors/request', optionalAuth, async (req, res) => {
   const user = req.user;

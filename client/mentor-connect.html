@@ -59,6 +59,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('mentor', 'admin');
 const msg = document.getElementById('msg');
@@ -78,9 +79,9 @@ if (me) {
         : `<div class="mc-banner ${resp === 'accepted' ? 'accepted' : 'declined'}"><div><div class="mc-eyebrow ${resp === 'accepted' ? 'green' : 'red'}">Request ${resp === 'accepted' ? 'Accepted' : 'Declined'}</div></div>
            ${resp === 'accepted' ? `<a class="mc-chat" href="/messages?user=${esc(student.id)}">Start Chat →</a>` : ''}</div>`;
       const links = [];
-      if (student.github) links.push(`<a href="${esc(student.github)}" target="_blank" rel="noreferrer"><span style="font-size:15px">⌨</span> GitHub</a>`);
-      if (student.linkedin) links.push(`<a href="${esc(student.linkedin)}" target="_blank" rel="noreferrer"><span style="font-size:15px">🔗</span> LinkedIn</a>`);
-      if (student.twitter) links.push(`<a href="${esc(student.twitter)}" target="_blank" rel="noreferrer"><span style="font-size:15px">𝕏</span> Twitter</a>`);
+      if (student.github) links.push(`<a href="${esc(student.github)}" target="_blank" rel="noreferrer">${icon('link', 15)} GitHub</a>`);
+      if (student.linkedin) links.push(`<a href="${esc(student.linkedin)}" target="_blank" rel="noreferrer">${icon('link', 15)} LinkedIn</a>`);
+      if (student.twitter) links.push(`<a href="${esc(student.twitter)}" target="_blank" rel="noreferrer">${icon('link', 15)} Twitter</a>`);
       document.getElementById('profile').innerHTML = `<div class="mc-cols">
         <div class="mc-side">
           <div class="mc-id">

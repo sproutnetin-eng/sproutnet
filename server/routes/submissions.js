@@ -252,7 +252,7 @@ router.post('/api/submissions/deliverable-upload', authRequired, loadProfile, re
 
 // ---- POST /api/submissions/judge (port of app/api/submissions/judge/route.ts) ----
 
-router.post('/api/submissions/judge', authRequired, loadProfile, requireRole('admin'), async (req, res) => {
+router.post('/api/submissions/judge', authRequired, loadProfile, requireRole('poster', 'admin'), async (req, res) => {
   const { submission_id, score, feedback, decision } = (req.body || {});
 
   if (!submission_id || score == null || score < 0 || score > 10) {
@@ -265,12 +265,26 @@ router.post('/api/submissions/judge', authRequired, loadProfile, requireRole('ad
 
   const { data: sub } = await admin
     .from('submissions')
-    .select('id, student_id, status')
+    .select('id, student_id, status, problem_id')
     .eq('id', submission_id)
     .single();
 
   if (!sub) {
     return res.status(404).json({ error: 'Submission not found' });
+  }
+
+  // Posters may only judge submissions on problems they posted.
+  // Admins (or master users) may judge anything.
+  const isPrivileged = req.profile?.role === 'admin' || req.profile?.is_master;
+  if (!isPrivileged) {
+    const { data: problem } = await admin
+      .from('problems')
+      .select('poster_id')
+      .eq('id', sub.problem_id)
+      .single();
+    if (!problem || problem.poster_id !== req.user.id) {
+      return res.status(404).json({ error: 'Submission not found' });
+    }
   }
 
   if (sub.status === 'judged' || sub.status === 'approved' || sub.status === 'rejected') {
@@ -292,7 +306,90 @@ router.post('/api/submissions/judge', authRequired, loadProfile, requireRole('ad
 
   await syncStudentToLeaderboard(sub.student_id);
 
+  // Tell the student the verdict so an approval unlocks their final PDF
+  // upload and a rejection sends them back to revise.
+  try {
+    const { data: judgedProblem } = await admin
+      .from('problems')
+      .select('title')
+      .eq('id', sub.problem_id)
+      .maybeSingle();
+    const pTitle = judgedProblem?.title || 'your problem';
+    await admin.from('notifications').insert({
+      user_id: sub.student_id,
+      event_type: finalStatus === 'approved' ? 'SUBMISSION_APPROVED' : 'SUBMISSION_REJECTED',
+      title: finalStatus === 'approved' ? 'Solution approved!' : 'Solution needs revision',
+      body: finalStatus === 'approved'
+        ? `Your solution for "${pTitle}" was approved with ${score}/10. You can now upload your final PDF and deliverables.`
+        : `Your solution for "${pTitle}" was not approved. Check the feedback and resubmit.`,
+      link_url: finalStatus === 'approved'
+        ? `/problems/${sub.problem_id}/final-upload`
+        : `/problems/${sub.problem_id}/submit`,
+      metadata: { problem_id: sub.problem_id, submission_id, score },
+    });
+  } catch (e) { console.error('judge notify failed:', e.message); }
+
   return res.status(200).json({ ok: true, score, student_id: sub.student_id });
+});
+
+// ---- POST /api/submissions/notify-poster ----
+// Called by the student right after submitting all 7 fields. Routes the
+// submission to the poster who posted the problem for review. (Submits are
+// written straight to Supabase from the browser, so the server only learns
+// about them through this call.)
+router.post('/api/submissions/notify-poster', authRequired, loadProfile, requireRole('student'), async (req, res) => {
+  const { problem_id } = req.body || {};
+  if (!problem_id) return res.status(400).json({ error: 'Missing problem_id' });
+
+  const admin = getAdmin();
+  const { data: submission } = await admin
+    .from('submissions')
+    .select('id, status, stage')
+    .eq('problem_id', problem_id)
+    .eq('student_id', req.user.id)
+    .neq('status', 'draft')
+    .order('submitted_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!submission) return res.status(404).json({ error: 'No submitted solution found' });
+
+  const { data: problem } = await admin
+    .from('problems')
+    .select('id, title, poster_id')
+    .eq('id', problem_id)
+    .single();
+  if (!problem) return res.status(404).json({ error: 'Problem not found' });
+  if (problem.poster_id === req.user.id) return res.status(200).json({ ok: true });
+
+  const { data: student } = await admin
+    .from('users')
+    .select('name')
+    .eq('id', req.user.id)
+    .single();
+
+  // One unread nudge per student+problem — re-submits don't spam the poster.
+  const { data: existing } = await admin
+    .from('notifications')
+    .select('id')
+    .eq('user_id', problem.poster_id)
+    .eq('event_type', 'SUBMISSION_SUBMITTED')
+    .eq('is_read', false)
+    .filter('metadata->>problem_id', 'eq', problem_id)
+    .filter('metadata->>student_id', 'eq', req.user.id)
+    .limit(1);
+  if (existing && existing.length) return res.status(200).json({ ok: true });
+
+  const { error } = await admin.from('notifications').insert({
+    user_id: problem.poster_id,
+    event_type: 'SUBMISSION_SUBMITTED',
+    title: 'New solution submitted',
+    body: `${student?.name || 'A student'} submitted a 7-field solution for "${problem.title}". Review it to approve or reject.`,
+    link_url: `/poster/solutions?problem=${problem_id}`,
+    metadata: { problem_id, student_id: req.user.id, submission_id: submission.id },
+  });
+  if (error) return res.status(400).json({ error: error.message });
+  return res.status(200).json({ ok: true });
 });
 
 // ---- POST /api/submissions/progress-upload (port of app/api/submissions/progress-upload/route.ts) ----

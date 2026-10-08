@@ -38,6 +38,7 @@ const pages = {
   '/problems/:id/final-upload': 'final-upload.html',
   '/problems/:id': 'problem-detail.html',
   '/solutions': 'solutions.html',
+  '/solutions/:id': 'solution-detail.html',
   '/blogs/new': 'blog-new.html',
   '/blogs/manage': 'blog-manage.html',
   '/blogs/:id': 'blog-detail.html',

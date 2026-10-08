@@ -80,7 +80,7 @@
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { sb, api, renderNav, alertBox } from '/assets/app.js';
+import { sb, api, renderNav, alertBox, safeNext } from '/assets/app.js';
 renderNav();
 const msg = document.getElementById('msg');
 document.getElementById('f').addEventListener('submit', async (e) => {
@@ -99,7 +99,7 @@ document.getElementById('f').addEventListener('submit', async (e) => {
       await supabase.auth.signOut();
       throw new Error(`This account has role "${me.profile.role}". Please use the appropriate login page.`);
     }
-    location.href = '/admin';
+    location.href = safeNext() || '/admin';
   } catch (err) { msg.innerHTML = `<div class="auth-err">${err.message}</div>`; }
   btn.disabled = false; btn.textContent = 'Sign in as Admin →';
 });

@@ -49,7 +49,6 @@
 <div class="manage-wrap">
   <div id="msg"></div>
   <section class="manage-hero">
-    <div class="manage-eyebrow">// your blog desk</div>
     <div class="manage-hero-top">
       <div><div class="manage-hero-t">Write new posts and track your history</div><div class="manage-hero-d">Everything you publish appears here so you can refine, respond, and keep momentum.</div></div>
       <div class="manage-hero-btns"><a class="btn-write" href="/blogs/new">Write new post →</a><a class="btn-feed" href="/blogs">Back to feed</a></div>
@@ -57,12 +56,13 @@
   </section>
   <div class="blogs-manage-layout">
     <div id="content" role="status" aria-label="Loading your posts"><span class="sr-only">Loading your posts...</span><div aria-hidden="true"><div class="sk-card" style="margin-bottom:14px"><div class="sk sk-line" style="width:30%;margin-bottom:4px"></div><div class="sk" style="height:22px;width:75%;margin-bottom:4px"></div><div class="sk sk-line" style="width:100%"></div><div class="sk sk-line" style="width:88%"></div></div><div class="sk-card"><div class="sk sk-line" style="width:28%;margin-bottom:4px"></div><div class="sk" style="height:22px;width:70%;margin-bottom:4px"></div><div class="sk sk-line" style="width:95%"></div></div></div></div>
-    <aside class="mypanel" id="side"><div class="eyebrow">// your posts</div><div class="t">Previous posts</div><div class="d">Edit your posts and review who is engaging with them.</div><div id="sidemeta"></div></aside>
+    <aside class="mypanel" id="side"><div class="t">Previous posts</div><div class="d">Edit your posts and review who is engaging with them.</div><div id="sidemeta"></div></aside>
   </div>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, requireAuth, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
@@ -84,7 +84,7 @@ if (s) {
         <div class="post-top">
           <div><span class="post-type ${p.postType === 'question' ? 'q' : ''}">${esc(p.postType === 'question' ? 'Question / Doubt' : 'Knowledge Share')}</span>
           <div class="post-title" style="margin-top:6px">${esc(p.title)}</div>
-          <div class="post-meta">${esc(p.createdAt ? new Date(p.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '')} · ❤️ ${p.likesCount} · 💬 ${p.commentsCount}</div></div>
+          <div class="post-meta">${esc(p.createdAt ? new Date(p.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '')} · ${icon('heart', 13)} ${p.likesCount} · ${icon('chat', 13)} ${p.commentsCount}</div></div>
           <div class="post-btns">
             <button class="pbtn comments" data-comments="${esc(p.id)}">Comments (${p.commentsCount})</button>
             <button class="pbtn likes" data-likes="${esc(p.id)}">Likes (${p.likesCount})</button>

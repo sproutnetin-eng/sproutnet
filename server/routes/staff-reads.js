@@ -37,6 +37,9 @@ function fail(res, e, fallback) {
 // ---------------------------------------------------------------------------
 
 // GET /api/poster/problems — problems posted by the logged-in poster.
+// Intentionally returns ALL owned problems, including deadline-passed ones:
+// expired items are hidden from student listings but shown to posters as
+// "Archived — enrollment closed" (see client/poster-problems.html).
 router.get('/api/poster/problems', ...posterOnly, async (req, res) => {
   try {
     const admin = getAdmin();
@@ -99,7 +102,9 @@ router.get('/api/poster/problems/:id/enrollments', ...posterOnly, async (req, re
   } catch (e) { fail(res, e); }
 });
 
-// GET /api/poster/submissions — submissions across all my problems.
+// GET /api/poster/submissions — submissions across all my problems,
+// with the FULL written solution so the poster can review, approve/reject,
+// and score each one. Mirrors the admin judging queue payload.
 router.get('/api/poster/submissions', ...posterOnly, async (req, res) => {
   try {
     const admin = getAdmin();
@@ -111,11 +116,30 @@ router.get('/api/poster/submissions', ...posterOnly, async (req, res) => {
     if (!problemIds.length) return res.json({ problems: [], submissions: [] });
     const { data, error } = await admin
       .from('submissions')
-      .select('id, stage, milestone, status, score, created_at, problem_id, student_id, problems(title, domain), users(name, dept, year)')
+      .select('id, stage, milestone, status, score, submitted_at, problem_id, student_id, participant_type, final_deliverables, judge_feedback, f_understanding, f_rootcause, f_solution, f_impact, f_feasibility, f_risks, f_implementation, problems(title, domain), users:student_id(name, dept, year)')
       .in('problem_id', problemIds)
-      .order('created_at', { ascending: false });
+      .order('submitted_at', { ascending: false });
     if (error) throw error;
-    res.json({ problems: problems || [], submissions: data || [] });
+    const rows = data || [];
+    const studentIds = Array.from(new Set(rows.map((r) => r.student_id).filter(Boolean)));
+    const teamKeys = await getTeamEntryKeys(admin, studentIds);
+    // Client reads `created_at`; real column is `submitted_at` — alias it.
+    const submissions = rows.map((s) => ({
+      ...s,
+      created_at: s.submitted_at,
+      participantType: resolveParticipantType(s.participant_type, s.student_id, s.problem_id, teamKeys),
+      deliverables: Array.isArray(s.final_deliverables) ? s.final_deliverables : [],
+      fields: {
+        f_understanding: s.f_understanding || '',
+        f_rootcause: s.f_rootcause || '',
+        f_solution: s.f_solution || '',
+        f_impact: s.f_impact || '',
+        f_feasibility: s.f_feasibility || '',
+        f_risks: s.f_risks || '',
+        f_implementation: s.f_implementation || '',
+      },
+    }));
+    res.json({ problems: problems || [], submissions });
   } catch (e) { fail(res, e); }
 });
 
@@ -135,7 +159,7 @@ router.get('/api/mentor/dashboard', ...mentorOnly, async (req, res) => {
         .select('team_id, assigned_at, teams(id, name, status, problem_id, problems(id, title, domain))')
         .eq('mentor_id', req.user.id),
       admin.from('mentor_requests')
-        .select('id, team_id, message, created_at, requested_by, users(name, email), teams(id, name, problems(title, domain))')
+        .select('id, team_id, message, created_at, requested_by, users:requested_by(name, email), teams(id, name, problems(title, domain))')
         .eq('mentor_id', req.user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false }),

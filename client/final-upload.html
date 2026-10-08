@@ -65,6 +65,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, requireRole, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const msg = document.getElementById('msg');
 const content = document.getElementById('content');
@@ -93,7 +94,7 @@ try {
       <h2>Upload what you have built</h2>
       <p class="desc">Add up to ${MAX_ITEMS} items — research paper, APK/app build, live app link, GitHub repository, demo video, or any other file (max 25 MB each).</p>
       <div class="fin-ety-label">This entry is by</div>
-      <div class="fin-types" id="types">${typeOptions.map(o => `<button class="fin-type ${o === participantType ? 'on' : ''}" data-t="${o}">${o === 'team' ? '👥 Team' : '🙋 Individual'}</button>`).join('')}</div>
+      <div class="fin-types" id="types">${typeOptions.map(o => `<button class="fin-type ${o === participantType ? 'on' : ''}" data-t="${o}">${o === 'team' ? icon('users', 15) + ' Team' : icon('user', 15) + ' Individual'}</button>`).join('')}</div>
       <div class="fin-linkgrid">
         <label>Label<input id="linklabel" maxlength="80" placeholder="Research paper / GitHub / Live app…"></label>
         <label>URL<input id="linkurl" placeholder="https://…"></label>
@@ -160,13 +161,13 @@ try {
         <h3>Submit your final work?</h3>
         <p class="mp">This replaces everything currently saved for this problem. Admins will see it instantly in their panel.</p>
         <div style="display:grid;gap:8px;margin-bottom:16px">
-          <div class="fin-row"><span>Entry type</span><span>${participantType === 'team' ? '👥 Team' : '🙋 Individual'}</span></div>
+          <div class="fin-row"><span>Entry type</span><span>${participantType === 'team' ? icon('users', 15) + ' Team' : icon('user', 15) + ' Individual'}</span></div>
           <div class="fin-row"><span>Items</span><span>${deliverables.length} of ${MAX_ITEMS}</span></div>
           <div class="fin-row"><span>Links</span><span>${deliverables.filter(d => d.kind === 'link').length}</span></div>
           <div class="fin-row"><span>Files</span><span>${deliverables.filter(d => d.kind === 'file').length}</span></div>
         </div>
-        ${deliverables.length === 0 ? `<div class="fin-err">⚠️ You haven't added any items yet — you can still save an empty set.</div>` : `<ul>${deliverables.map((d, i) => `<li><strong>${i + 1}. ${esc(d.label)}</strong> <span style="color:#9CA3A0;font-family:'JetBrains Mono',monospace;font-size:10px">${esc((d.kind || '').toUpperCase())}</span></li>`).join('')}</ul>`}
-        <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn-back" id="mcancel">Cancel</button><button class="btn-save" id="mconfirm" style="background:#2D6A4F;color:#FAF8F4;font-size:14px">Submit ${deliverables.length} item(s) ✓</button></div>
+        ${deliverables.length === 0 ? `<div class="fin-err">${icon('alert', 14)} You haven't added any items yet — you can still save an empty set.</div>` : `<ul>${deliverables.map((d, i) => `<li><strong>${i + 1}. ${esc(d.label)}</strong> <span style="color:#9CA3A0;font-family:'JetBrains Mono',monospace;font-size:10px">${esc((d.kind || '').toUpperCase())}</span></li>`).join('')}</ul>`}
+        <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn-back" id="mcancel">Cancel</button><button class="btn-save" id="mconfirm" style="background:#2D6A4F;color:#FAF8F4;font-size:14px">Submit ${deliverables.length} item(s) ${icon('check', 14)}</button></div>
       </div></div>`;
     document.getElementById('mcancel').addEventListener('click', () => modal.innerHTML = '');
     document.getElementById('mback').addEventListener('click', (e2) => { if (e2.target.id === 'mback') modal.innerHTML = ''; });
@@ -178,7 +179,7 @@ try {
         if (error) throw error;
         modal.innerHTML = `<div class="fin-modal-bg"><div class="fin-modal" role="dialog" aria-modal="true" style="text-align:center;max-width:400px"><div style="width:60px;height:60px;margin:0 auto 14px;background:#EAF4EE;border-radius:50%;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></div><h3>Final work submitted!</h3><p class="mp">${deliverables.length} item(s) delivered as a ${participantType === 'team' ? 'team' : 'individual'} entry. The admin panel now shows your uploads.</p><button class="btn-save" id="mdone" style="background:#2D6A4F;color:#FAF8F4">Done</button></div></div>`;
         document.getElementById('mdone').addEventListener('click', () => modal.innerHTML = '');
-        document.getElementById('status').textContent = '✓ Final work saved.';
+        document.getElementById('status').textContent = 'Final work saved.';
         document.getElementById('status').classList.add('ok');
       } catch (err) { document.getElementById('errbox').innerHTML = `<div class="fin-err">${esc(err.message)}</div>`; modal.innerHTML = ''; }
     });

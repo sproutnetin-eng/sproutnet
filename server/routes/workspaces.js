@@ -342,11 +342,30 @@ router.get('/api/workspaces/:id', authRequired, async (req, res) => {
   const members = await getWorkspaceMembers(id, admin);
   const memberCount = members.length;
 
-  const { data: mentors } = await admin
+  const { data: mentorRows } = await admin
     .from('mentor_assignments')
-    .select('assigned_at, assignment_status, mentor_id, users(id, name, email), mentor_profiles(*)')
+    .select('assigned_at, assignment_status, mentor_id, users:mentor_id(id, name, email)')
     .eq('team_id', workspace.team_id)
     .eq('assignment_status', 'active');
+
+  // mentor_profiles has no FK to mentor_assignments, so join it manually.
+  let mentors = mentorRows || [];
+  {
+    const mIds = [...new Set(mentors.map((m) => m.mentor_id).filter(Boolean))];
+    if (mIds.length) {
+      const { data: profs } = await admin
+        .from('mentor_profiles')
+        .select('*')
+        .in('user_id', mIds);
+      const byUser = new Map((profs || []).map((p) => [p.user_id, p]));
+      mentors = mentors.map((m) => ({
+        ...m,
+        mentor_profiles: byUser.get(m.mentor_id) || null,
+      }));
+    } else {
+      mentors = mentors.map((m) => ({ ...m, mentor_profiles: null }));
+    }
+  }
 
   const { data: channels } = await admin
     .from('conversations')

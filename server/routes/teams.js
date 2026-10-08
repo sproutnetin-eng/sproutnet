@@ -59,12 +59,16 @@ router.post('/api/teams/create', authRequired, async (req, res) => {
   // Check if problem exists
   const { data: problem } = await admin
     .from('problems')
-    .select('id, title, max_team_size, team_mode')
+    .select('id, title, max_team_size, team_mode, deadline')
     .eq('id', problemId)
     .single();
 
   if (!problem) {
     return res.status(404).json({ error: 'Problem not found' });
+  }
+
+  if (problem.deadline && new Date(problem.deadline).getTime() < Date.now()) {
+    return res.status(403).json({ error: 'Enrollment closed. The submission deadline for this problem has passed.' });
   }
 
   if (problem.team_mode === 'solo') {
@@ -158,12 +162,16 @@ router.post('/api/teams/join', authRequired, async (req, res) => {
   // Find team by invite code
   const { data: team } = await admin
     .from('teams')
-    .select('id, name, leader_id, problem_id, problems(max_team_size)')
+    .select('id, name, leader_id, problem_id, problems(max_team_size, deadline)')
     .eq('invite_code', code)
     .single();
 
   if (!team) {
     return res.status(404).json({ error: 'Invalid or expired invite code' });
+  }
+
+  if (team.problems?.deadline && new Date(team.problems.deadline).getTime() < Date.now()) {
+    return res.status(403).json({ error: 'Enrollment closed. The submission deadline for this problem has passed.' });
   }
 
   // Check current team size

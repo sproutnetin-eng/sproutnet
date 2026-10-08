@@ -81,7 +81,7 @@
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
-import { sb, api, renderNav, alertBox } from '/assets/app.js';
+import { sb, api, renderNav, alertBox, safeNext } from '/assets/app.js';
 renderNav();
 const msg = document.getElementById('msg');
 document.getElementById('f').addEventListener('submit', async (e) => {
@@ -97,7 +97,8 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     const me = await api('/api/auth/profile');
     if (!me.profile) { await supabase.auth.signOut(); throw new Error('Profile not found. Please contact support.'); }
     const role = me.profile.role;
-    if (role === 'student' || role === 'admin') { location.href = '/dashboard'; return; }
+    if (role === 'student') { location.href = safeNext() || '/dashboard'; return; }
+    if (role === 'admin' || me.profile.is_master) { location.href = safeNext() || '/admin'; return; }
     await supabase.auth.signOut();
     throw new Error(`This account has role "${role}". Please use the appropriate login page.`);
   } catch (err) { msg.innerHTML = `<div class="auth-err">${err.message}</div>`; }

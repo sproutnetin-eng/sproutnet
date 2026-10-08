@@ -104,6 +104,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 let slug = decodeURIComponent(location.pathname.split('/')[2] || '');
 if (!slug) {
@@ -129,9 +130,9 @@ function render() {
   if (profile.avg_score >= 8) badges.push('Expert Solver');
   if (profile.attempted >= 3) badges.push('Multi-Problem');
   const socials = [];
-  if (profile.github) socials.push({ label: 'GitHub', url: profile.github, icon: '⌨' });
-  if (profile.linkedin) socials.push({ label: 'LinkedIn', url: profile.linkedin, icon: '🔗' });
-  if (profile.twitter) socials.push({ label: 'Twitter', url: profile.twitter, icon: '𝕏' });
+  if (profile.github) socials.push({ label: 'GitHub', url: profile.github, icon: 'link' });
+  if (profile.linkedin) socials.push({ label: 'LinkedIn', url: profile.linkedin, icon: 'link' });
+  if (profile.twitter) socials.push({ label: 'Twitter', url: profile.twitter, icon: 'link' });
   const stats = [
     { label: 'Builder Score', value: profile.builder_score ?? 0, color: '#F4A723' },
     { label: 'Attempted', value: profile.attempted ?? 0, color: '#2D6A4F' },
@@ -146,7 +147,7 @@ function render() {
           ${profile.avatar_url ? `<img class="p-avatar-img" src="${esc(profile.avatar_url)}" alt="${esc(profile.name)}" loading="eager" fetchpriority="high" decoding="async">`
             : `<div class="p-avatar-fb" style="background:${color(profile.name)};">${esc(initials(profile.name))}</div>`}
           ${isOwnProfile ? `<input type="file" id="avatar" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none">
-            <button class="p-avatar-edit" id="avatar-btn" title="Change avatar">✎</button>` : ''}
+            <button class="p-avatar-edit" id="avatar-btn" title="Change avatar">${icon('pencil', 13)}</button>` : ''}
         </div>
         <h1 class="p-name">${esc(profile.name)}</h1>
         <div class="p-meta">
@@ -176,7 +177,7 @@ function render() {
       </div>` : ''}
       ${profile.bio ? `<div class="p-card"><div class="p-sec-label">About</div><p class="p-bio">${esc(profile.bio)}</p></div>` : ''}
       ${(socials.length || badges.length) ? `<div class="p-split">
-        ${socials.length ? `<div><div class="p-sec-label">Connect</div><div class="p-social-row">${socials.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"><span class="ic">${esc(s.icon)}</span> ${esc(s.label)}</a>`).join('')}</div></div>` : ''}
+        ${socials.length ? `<div><div class="p-sec-label">Connect</div><div class="p-social-row">${socials.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer"><span class="ic">${icon(s.icon, 14)}</span> ${esc(s.label)}</a>`).join('')}</div></div>` : ''}
         ${badges.length ? `<div><div class="p-sec-label">Badges</div><div class="p-badges">${badges.map(b => `<span class="p-badge">${esc(b)}</span>`).join('')}</div></div>` : ''}
       </div>` : ''}
       <div class="p-card">
@@ -213,7 +214,7 @@ function render() {
       try { await api('/api/profile/avatar', { method: 'POST', form }); location.reload(); }
       catch (err) {
         document.getElementById('av-msg').innerHTML = `<div class="p-err">${esc(err.message)}</div>`;
-        btn.disabled = false; btn.textContent = '✎';
+        btn.disabled = false; btn.innerHTML = icon('pencil', 13);
       }
     });
     document.getElementById('edit').addEventListener('click', openEdit);
@@ -234,7 +235,7 @@ function openEdit() {
   ];
   document.getElementById('modal').innerHTML = `<div class="p-overlay" id="p-overlay">
     <div class="p-modal">
-      <div class="p-modal-head"><h2>Edit Profile</h2><button class="p-modal-x" id="e-cancel-x">✕</button></div>
+      <div class="p-modal-head"><h2>Edit Profile</h2><button class="p-modal-x" id="e-cancel-x">${icon('x', 16)}</button></div>
       <div class="p-modal-body">
         ${fields.map(f => `<div><label>${esc(f.label)}</label>${f.type === 'textarea'
           ? `<textarea id="f-${f.k}" rows="3" placeholder="${esc(f.ph)}">${esc(p[f.k] || '')}</textarea>`

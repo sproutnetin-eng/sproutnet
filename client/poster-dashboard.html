@@ -46,10 +46,10 @@
         <div class="pd-stat"><div class="lbl">Open now</div><div class="val" id="stat-open">–</div></div>
       </div>
       <div class="pd-grid">
-        <a class="pd-card" href="/blogs"><div class="ic">📝</div><div class="t">Blogs</div><div class="d">Join the public feed to share insights and answer questions.</div></a>
-        <a class="pd-card" href="/poster/post-problem"><div class="ic">✏️</div><div class="t">Post a Problem</div><div class="d">Create a new problem statement for students.</div></a>
-        <a class="pd-card" href="/poster/problems"><div class="ic">📋</div><div class="t">My Problems</div><div class="d">Manage problems you have posted.</div></a>
-        <a class="pd-card" href="/poster/solutions"><div class="ic">📬</div><div class="t">Student Solutions</div><div class="d">View solutions submitted by registered students.</div></a>
+        <a class="pd-card" href="/blogs"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="t">Blogs</div><div class="d">Join the public feed to share insights and answer questions.</div></a>
+        <a class="pd-card" href="/poster/post-problem"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></div><div class="t">Post a Problem</div><div class="d">Create a new problem statement for students.</div></a>
+        <a class="pd-card" href="/poster/problems"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg></div><div class="t">My Problems</div><div class="d">Manage problems you have posted.</div></a>
+        <a class="pd-card" href="/poster/solutions"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;vertical-align:-3px" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><div class="t">Student Solutions</div><div class="d">View solutions submitted by registered students.</div></a>
       </div>
     </div>
   </main>
@@ -81,8 +81,15 @@ if (me) {
   document.getElementById('welcome').textContent = `Welcome back, ${first}.`;
   try {
     const [p, s] = await Promise.all([api('/api/poster/problems'), api('/api/poster/submissions')]);
+    const nowMs = Date.now();
+    const isLive = (x) => {
+      if (x.status !== 'open') return false;
+      if (!x.deadline) return true;
+      const t = new Date(x.deadline).getTime();
+      return Number.isNaN(t) || t >= nowMs;
+    };
     document.getElementById('stat-problems').textContent = p.problems.length;
-    document.getElementById('stat-open').textContent = p.problems.filter(x => x.status === 'open').length;
+    document.getElementById('stat-open').textContent = p.problems.filter(isLive).length;
     document.getElementById('stat-subs').textContent = s.submissions.length;
   } catch (e) {
     document.getElementById('msg').innerHTML = alertBox(e.message);

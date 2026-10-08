@@ -22,6 +22,10 @@
   .pl-pill.domain { color: #2D6A4F; background: #EAF4EE; }
   .pl-pill.open { color: #15803d; background: rgba(21,128,61,0.12); text-transform: capitalize; }
   .pl-pill.held { color: #92400e; background: rgba(146,64,14,0.12); text-transform: capitalize; }
+  .pl-pill.archived { color: #57534e; background: rgba(28,20,16,0.08); text-transform: capitalize; }
+  .pl-sec-t { font-family: Sora, sans-serif; font-size: 15px; font-weight: 700; color: #1C1410; margin: 22px 0 12px; }
+  .pl-sec-t:first-child { margin-top: 0; }
+  .pl-sec-d { font-size: 13px; color: #9CA3A0; margin: -8px 0 12px; }
   .pl-title { font-family: Sora, sans-serif; font-size: 17px; font-weight: 650; color: #0f0a08; }
   .pl-meta { font-size: 13px; color: #4A3F38; display: flex; gap: 10px; flex-wrap: wrap; }
   .pl-foot { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; border-top: 1px solid rgba(28,20,16,0.06); padding-top: 12px; }
@@ -49,6 +53,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const me = await requireRole('poster', 'admin');
 const list = document.getElementById('list');
@@ -57,29 +62,48 @@ async function load() {
   try {
     const { problems } = await api('/api/poster/problems');
     if (!problems.length) {
-      list.innerHTML = `<div class="pl-empty"><div class="big">🗂️</div><div class="t">No problems yet</div><div class="d">Post your first problem to see it here.</div></div>`;
+      list.innerHTML = `<div class="pl-empty"><div class="big">${icon('inbox', 44)}</div><div class="t">No problems yet</div><div class="d">Post your first problem to see it here.</div></div>`;
       return;
     }
-    list.innerHTML = `<div class="pl-list">` + problems.map(p => {
+    const nowMs = Date.now();
+    const isExpired = (p) => {
+      if (!p.deadline) return false;
+      const t = new Date(p.deadline).getTime();
+      return !Number.isNaN(t) && t < nowMs;
+    };
+    const active = problems.filter((p) => !isExpired(p));
+    const archived = problems.filter((p) => isExpired(p));
+    const card = (p) => {
       const open = p.status === 'open';
+      const expired = isExpired(p);
       const dl = p.deadline ? new Date(p.deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
       return `<div class="pl-card" data-id="${esc(p.id)}">
         <div style="display:flex;flex-direction:column;gap:10px">
           <div class="pl-pills">
             <span class="pl-pill domain">${esc(p.domain)}</span>
             <span class="pl-pill ${open ? 'open' : 'held'}">${esc(p.status)}</span>
+            ${expired ? `<span class="pl-pill archived">archived · enrollment closed</span>` : ''}
           </div>
           <div class="pl-title">${esc(p.title)}</div>
-          <div class="pl-meta"><span>${esc(p.problem_type === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact')}</span><span>· deadline ${esc(dl)}</span></div>
+          <div class="pl-meta"><span>${esc(p.problem_type === 'industry_challenge' ? 'Industry Challenge' : 'Public Impact')}</span><span>· deadline ${esc(dl)}</span>${expired ? `<span>· enrollments closed</span>` : ''}</div>
         </div>
         <div class="pl-foot">
+          <a class="pl-btn" href="/poster/solutions?problem=${esc(p.id)}">Solutions</a>
           <a class="pl-btn" href="/poster/problems/${esc(p.id)}/enrollments">Enrolled</a>
           <a class="pl-btn" href="/poster/problems/${esc(p.id)}/edit">Edit</a>
           <button type="button" class="pl-btn toggle ${open ? 'hold' : 'publish'}" data-act="toggle">${open ? 'Hold' : 'Publish'}</button>
           <button type="button" class="pl-btn del" data-act="delete">Delete</button>
         </div>
       </div>`;
-    }).join('') + `</div>`;
+    };
+    list.innerHTML =
+      (active.length
+        ? `<div class="pl-sec-t">Active (${active.length})</div><div class="pl-list">` + active.map(card).join('') + `</div>`
+        : '')
+      + (archived.length
+        ? `<div class="pl-sec-t">Archived — enrollment closed (${archived.length})</div><div class="pl-sec-d">Deadline passed: hidden from students, still visible to you.</div><div class="pl-list">` + archived.map(card).join('') + `</div>`
+        : '')
+      || `<div class="pl-empty"><div class="big">${icon('inbox', 44)}</div><div class="t">No problems yet</div><div class="d">Post your first problem to see it here.</div></div>`;
   } catch (e) { msg.innerHTML = alertBox(e.message); }
 }
 list.addEventListener('click', async (e) => {

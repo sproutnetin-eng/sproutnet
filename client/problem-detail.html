@@ -22,6 +22,8 @@
   .bdg-ind { color: #1E40AF; background: rgba(30,64,175,0.08); border: 1px solid rgba(30,64,175,0.15); }
   .bdg-open { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #22C55E; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); text-transform: uppercase; letter-spacing: 0.08em; gap: 5px; }
   .bdg-open .dot { width: 6px; height: 6px; border-radius: 50%; background: #22C55E; }
+  .bdg-closed { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9CA3A0; background: rgba(28,20,16,0.05); border: 1px solid rgba(28,20,16,0.15); text-transform: uppercase; letter-spacing: 0.08em; gap: 5px; }
+  .bdg-closed .dot { width: 6px; height: 6px; border-radius: 50%; background: #9CA3A0; }
   .bdg-team { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B5CF6; background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); text-transform: uppercase; letter-spacing: 0.08em; gap: 5px; }
   .pd-title { font-family: 'Instrument Serif', Georgia, serif; font-size: clamp(28px, 6vw, 38px); font-weight: 400; color: #1C1410; letter-spacing: -0.5px; line-height: 1.15; margin: 0 0 32px 0; }
   .pd-thumb-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 16px; overflow: hidden; margin-bottom: 28px; }
@@ -206,6 +208,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 const id = location.pathname.split('/')[2];
 const SECTIONS = [
@@ -444,6 +447,10 @@ async function postComment() {
 }
 
 function ctaHtml() {
+  const closed = problem && problem.deadline ? (Math.ceil((new Date(problem.deadline).getTime() - Date.now()) / 86400000) < 0) : false;
+  if (closed && !(enroll.enrolled || enroll.completed)) return `<div class="cta-stack">
+    <div class="cta-done" style="background:rgba(250,248,244,0.08);color:rgba(250,248,244,0.85);border:1px solid rgba(250,248,244,0.2)">Enrollment closed</div>
+    <div class="cta-note">The submission deadline for this problem has passed. New enrollments are closed.</div></div>`;
   if (!me) return `<a class="cta-btn" href="/login">Sign in to Solve →</a>`;
   if (me.role !== 'student') return `<div class="cta-stack">
     <div class="cta-note">You&apos;re signed in as a ${esc(me.role)} account. Enroll is only available for student accounts.</div>
@@ -454,9 +461,9 @@ function ctaHtml() {
     <div class="cta-note">You have already fully submitted this problem and can unlock a new enrollment slot.</div></div>`;
   if (enroll.enrolled) {
     return `<div class="cta-stack">
-      ${enroll.submissionStatus === 'approved' ? `<a class="cta-btn-green" href="/problems/${esc(id)}/final-upload">🎉 Approved! Upload Final Work (APK, papers…) →</a>` : ''}
-      ${enroll.submissionStatus === 'pending' ? '<div class="banner banner-pending">⏳ Submitted — waiting for admin review</div>' : ''}
-      ${enroll.submissionStatus === 'rejected' ? '<div class="banner banner-rejected">✗ Solution was not approved — improve it and resubmit</div>' : ''}
+      ${enroll.submissionStatus === 'approved' ? `<a class="cta-btn-green" href="/problems/${esc(id)}/final-upload">${icon('sparkles', 15)} Approved! Upload Final Work (APK, papers…) →</a>` : ''}
+      ${enroll.submissionStatus === 'pending' ? `<div class="banner banner-pending">${icon('activity', 14)} Submitted — waiting for the poster to review</div>` : ''}
+      ${enroll.submissionStatus === 'rejected' ? '<div class="banner banner-rejected">${icon("x", 14)} Solution was not approved — improve it and resubmit</div>' : ''}
       <a class="cta-btn" href="/problems/${esc(id)}/submit">${enroll.hasSubmitted ? 'Continue Solving →' : 'Start Solving →'}</a>
       <button type="button" class="cancel-link" id="cancel-enroll">Cancel enrollment</button>
       <div id="enroll-err"></div></div>`;
@@ -545,6 +552,7 @@ function renderActions() {
 function render() {
   const isIndustry = problem.problem_type === 'industry_challenge';
   const daysLeft = Math.ceil((new Date(problem.deadline).getTime() - Date.now()) / 86400000);
+  const closed = !isNaN(daysLeft) && daysLeft < 0;
   const teamMode = problem.team_mode;
   const judging = problem.judging_deadline ? new Date(problem.judging_deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—';
   const diff = problem.difficulty_label;
@@ -555,7 +563,7 @@ function render() {
         <span class="bdg ${isIndustry ? 'bdg-ind' : 'bdg-pub'}">${isIndustry
           ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Industry Challenge · ₹${esc((problem.reward_amount ?? 0).toLocaleString('en-IN'))}`
           : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Public Impact`}</span>
-        <span class="bdg bdg-open"><span class="dot"></span>Open</span>
+        <span class="bdg ${closed ? 'bdg-closed' : 'bdg-open'}"><span class="dot"></span>${closed ? 'Closed' : 'Open'}</span>
         ${(teamMode === 'team' || teamMode === 'both') ? `<span class="bdg bdg-team"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${teamMode === 'team' ? 'Team' : 'Solo or Team'}</span>` : ''}
       </div>
       <h1 class="pd-title">${esc(problem.title)}</h1>
@@ -568,16 +576,15 @@ function render() {
     </div>
     <div class="pd-side">
       <div class="cta">
-        <div class="cta-kicker">// ready to build?</div>
         <div class="cta-title">${enroll.completed ? 'You finished this problem.' : (enroll.hasSubmitted ? 'You\u2019ve started this.' : 'Start solving this problem.')}</div>
         <div id="act"></div>
       </div>
       <div class="stats-card">
-        <div class="stat-row"><span class="stat-label">Days Left</span><span class="stat-val ${isNaN(daysLeft) ? '' : (daysLeft <= 7 ? 'stat-val-soon' : 'stat-val-days')}">${isNaN(daysLeft) ? '—' : `${daysLeft}d`}</span></div>
+        <div class="stat-row"><span class="stat-label">Days Left</span><span class="stat-val ${closed ? '' : (isNaN(daysLeft) ? '' : (daysLeft <= 7 ? 'stat-val-soon' : 'stat-val-days'))}">${isNaN(daysLeft) ? '—' : (closed ? 'Enrollment closed' : `${daysLeft}d`)}</span></div>
         <div class="stat-row"><span class="stat-label">Submissions</span><span class="stat-val">${esc(String(problem.submission_count ?? 0))}</span></div>
         <div class="stat-row"><span class="stat-label">Judging by</span><span class="stat-val">${esc(judging)}</span></div>
       </div>
-      ${diff ? `<div class="ai-card"><div class="ai-kicker">// ai evaluation</div>
+      ${diff ? `<div class="ai-card">
         <div class="ai-tiles">
           <div class="ai-tile diff-${esc(diff)}"><div class="ai-tile-name diff-${esc(diff)}">${esc(diff)}</div>
             <div class="ai-tile-val">${problem.difficulty_score != null ? `${Number(problem.difficulty_score).toFixed(1)} / 10` : '—'}</div></div>

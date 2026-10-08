@@ -69,6 +69,13 @@
   .md-team-p { font-size: 13px; color: #7A7068; margin-bottom: 16px; flex: 1; }
   .md-open { align-self: flex-start; font-size: 13px; font-weight: 600; color: #1C1410; background: #F4A723; padding: 8px 16px; border-radius: 8px; text-decoration: none; }
   .md-grid { display: grid; gap: 14px; }
+  .md-side { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .md-avail { display: flex; align-items: center; gap: 10px; background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 10px; padding: 8px 8px 8px 14px; }
+  .md-avail-label { font-size: 11px; font-weight: 600; color: #7A7068; text-transform: uppercase; letter-spacing: 0.08em; }
+  .md-avail-seg { display: flex; background: #F2EEE8; border-radius: 8px; padding: 3px; gap: 2px; }
+  .md-avail-seg button { border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #7A7068; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  .md-avail-seg button.on { background: #2D6A4F; color: #fff; }
+  .md-avail-seg button:disabled { opacity: 0.6; cursor: wait; }
 </style>
 </head>
 <body>
@@ -88,11 +95,17 @@
       <div id="msg"></div>
       <div class="md-welcome">
         <div><h1 id="welcome">Welcome, Mentor.</h1><p>Guide student teams, review requests, and foster engineering impact.</p></div>
-        <a class="md-edit" href="/mentor/profile">Edit Profile &amp; Availability →</a>
+        <div class="md-side">
+          <a class="md-edit" href="/mentor/profile">Edit Profile &amp; Availability →</a>
+          <div class="md-avail"><span class="md-avail-label">Availability</span>
+            <div class="md-avail-seg" id="avail-seg" role="group" aria-label="Availability status">
+              <button type="button" data-av="available">Available</button><button type="button" data-av="busy">Busy</button><button type="button" data-av="unavailable">Off</button>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="md-stats" id="stats"></div>
       <div class="md-quick">
-        <a class="q1" href="/mentors">Browse Mentors →</a>
         <a class="q2" href="/messages">Open Messages →</a>
         <a class="q3" href="/notifications">View Notifications →</a>
       </div>
@@ -105,16 +118,13 @@
         <div id="connections"></div>
         <div id="history" style="margin-top:24px"></div>
       </div>
-      <div>
-        <div class="md-sec-head"><h2>My Teams</h2></div>
-        <div id="teams"></div>
-      </div>
     </div>
   </main>
 </div>
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, renderSidebar, esc, alertBox } from '/assets/app.js';
+import { icon } from '/assets/icons.js';
 renderNav();
 renderSidebar({ targetId: 'dash-sidebar', active: '/mentor/dashboard' });
 
@@ -137,6 +147,18 @@ if (me) {
   renderSidebar({ targetId: 'dash-sidebar', user: me.profile, active: '/mentor/dashboard' });
 }
 const msg = document.getElementById('msg');
+// Availability toggle — flips mentor_profiles.availability_status in place.
+document.getElementById('avail-seg')?.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-av]');
+  if (!btn || btn.classList.contains('on')) return;
+  const seg = document.getElementById('avail-seg');
+  seg.querySelectorAll('button').forEach(b => b.disabled = true);
+  try {
+    await api('/api/mentors/availability', { method: 'POST', body: { availability_status: btn.dataset.av } });
+    await load();
+  } catch (err) { msg.innerHTML = alertBox(err.message); }
+  seg.querySelectorAll('button').forEach(b => b.disabled = false);
+});
 async function respondConnect(notificationId, action, btn) {
   btn.disabled = true;
   try {
@@ -159,6 +181,7 @@ async function load() {
     const done = d.connections.filter(c => c.metadata?.response);
     const hasRequests = (d.requests.length + pending.length) > 0;
     const avail = d.mentorProfile?.availability_status || '';
+    document.querySelectorAll('#avail-seg button').forEach(b => b.classList.toggle('on', b.dataset.av === (avail || 'available')));
     document.getElementById('stats').innerHTML = `
       <div class="md-stat"><div class="lbl">Active Teams</div><div class="row"><span class="num" style="color:#2D6A4F">${d.assignments.length}</span><span class="sub">/ ${d.mentorProfile?.max_active_teams ?? 3}</span></div></div>
       <div class="md-stat"><div class="lbl">Pending</div><div class="row"><span class="num" style="color:${hasRequests ? '#F4A723' : '#9CA3A0'}">${d.requests.length + pending.length}</span></div></div>
@@ -173,9 +196,9 @@ async function load() {
         ${r.message ? `<div class="md-quote">&ldquo;${esc(r.message)}&rdquo;</div>` : ''}
         <div class="md-by">Requested by <strong>${esc(r.users?.name || r.users?.email || 'Unknown')}</strong></div>
       </div>
-      <div class="md-btns"><button type="button" class="md-accept" data-req="${esc(r.id)}" data-act="accept">Accept ✓</button>
+      <div class="md-btns"><button type="button" class="md-accept" data-req="${esc(r.id)}" data-act="accept">Accept ${icon('check', 13)}</button>
       <button type="button" class="md-decline" data-req="${esc(r.id)}" data-act="reject">Decline</button></div>
-    </div>`).join('') + `</div>` : `<div class="md-empty"><div class="big">📭</div><div class="t">No pending team mentorship requests.</div><div class="d">Teams will appear here when students request your mentorship.</div></div>`;
+    </div>`).join('') + `</div>` : `<div class="md-empty"><div class="big">${icon('inbox', 44)}</div><div class="t">No pending team mentorship requests.</div><div class="d">Teams will appear here when students request your mentorship.</div></div>`;
     const cc = document.getElementById('conn-count');
     if (pending.length) { cc.style.display = ''; cc.textContent = pending.length; } else { cc.style.display = 'none'; }
     document.getElementById('connections').innerHTML = d.connections.length
@@ -188,17 +211,12 @@ async function load() {
           <button type="button" class="md-decline" data-conn="${esc(c.id)}" data-act="decline">Decline</button>
           ${c.metadata?.student_id ? `<a class="md-chat" href="/messages?user=${esc(c.metadata.student_id)}">Start Chat →</a>` : ''}</div>
         </div>`).join('') + `</div>` : `<div class="md-empty"><div class="t" style="font-size:14px">All requests processed. Showing history below.</div></div>`)
-      : `<div class="md-empty"><div class="big">🤝</div><div class="t">No connection requests yet.</div><div class="d">Students can send individual connection requests from the mentor directory.</div></div>`;
+      : `<div class="md-empty"><div class="big">${icon('users', 44)}</div><div class="t">No connection requests yet.</div><div class="d">Students can send individual connection requests from the mentor directory.</div></div>`;
     document.getElementById('history').innerHTML = done.length ? `<div class="md-hist-title">History (${done.length})</div><div class="md-grid">` + done.map(c => {
       const r = c.metadata?.response;
-      return `<div class="md-hist"><div class="who"><span style="font-size:13px;color:${r === 'accepted' ? '#2D6A4F' : '#DC2626'}">${r === 'accepted' ? '✓' : '✕'}</span> <span class="nm">${esc(c.metadata?.student_name || 'Student')}</span> <span class="md-pill ${r === 'accepted' ? 'ok' : 'no'}">${esc(r)}</span></div>
+      return `<div class="md-hist"><div class="who"><span style="font-size:13px;color:${r === 'accepted' ? '#2D6A4F' : '#DC2626'}">${r === 'accepted' ? icon('check', 13) : icon('x', 13)}</span> <span class="nm">${esc(c.metadata?.student_name || 'Student')}</span> <span class="md-pill ${r === 'accepted' ? 'ok' : 'no'}">${esc(r)}</span></div>
       ${c.metadata?.student_id ? `<a class="md-msg" href="/messages?user=${esc(c.metadata.student_id)}">Message →</a>` : ''}</div>`;
     }).join('') + `</div>` : '';
-    document.getElementById('teams').innerHTML = d.assignments.length ? `<div class="md-teams">` + d.assignments.map(a => `<div class="md-team-card">
-      <div class="md-team-top"><span class="md-team-dom">${esc(a.teams?.problems?.domain || 'General')}</span><span class="md-team-st">${esc(a.teams?.status || 'active')}</span></div>
-      <div class="md-team-nm">${esc(a.teams?.name)}</div><div class="md-team-p">${esc(a.teams?.problems?.title || '')}</div>
-      <a class="md-open" href="/teams/${esc(a.team_id)}">Open Workspace →</a></div>`).join('') + `</div>`
-      : `<div class="md-empty"><div class="big">👥</div><div class="t">No teams assigned yet.</div><div class="d">Once you accept a mentorship request, the team will appear here with a full workspace.</div></div>`;
   } catch (e) { msg.innerHTML = alertBox(e.message); }
 }
 document.addEventListener('click', (e) => {

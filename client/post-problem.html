@@ -56,7 +56,7 @@
     <label class="pp-field"><span>Thumbnail image (optional)</span>
       <div style="display:grid;gap:12px">
         <input class="pp-input" type="file" id="thumb" accept="image/jpeg,image/png,image/webp,image/gif">
-        <div class="pp-hint">Add a JPG, PNG, WebP, or GIF image up to 5 MB for the problem preview card.</div>
+        <div class="pp-hint">Cards show a fixed 16:9 frame. Any photo works — after you choose one, a popup opens to crop, zoom, or rotate it so every card stays the same size. JPG, PNG, WebP, or GIF up to 5 MB.</div>
         <div id="thumb-preview"></div>
       </div>
     </label>
@@ -88,6 +88,7 @@
     <div class="pp-2col-sm">
       <label class="pp-field"><span>Submission deadline</span><input class="pp-input" type="date" name="deadline" required></label>
       <label class="pp-field"><span>Judging deadline</span><input class="pp-input" type="date" name="judging_deadline" required></label>
+      <label class="pp-field"><span>Milestones (2–5)</span><input class="pp-input" type="number" name="milestones" min="2" max="5" step="1" value="3" required></label>
     </div>
     <label class="pp-field"><span>Background &amp; context</span><textarea class="pp-textarea" name="context" required rows="4" placeholder="Why this problem matters, who is affected, and what has been tried."></textarea></label>
     <label class="pp-field"><span>Problem statement</span><textarea class="pp-textarea" name="problem_stmt" required rows="4" placeholder="Describe the exact problem to be solved."></textarea></label>
@@ -103,6 +104,7 @@
 <script src="/assets/config.js"></script>
 <script type="module">
 import { api, requireRole, renderNav, esc, alertBox } from '/assets/app.js';
+import { initThumbCrop } from '/assets/thumb-crop.js';
 renderNav();
 const me = await requireRole('poster', 'admin');
 if (!me) throw new Error('blocked');
@@ -112,7 +114,7 @@ const f = document.getElementById('f');
 const thumb = document.getElementById('thumb');
 function showPopup() {
   document.getElementById('popup').innerHTML = `<div class="pp-popup"><div class="box">
-    <div class="mono">// upload complete</div><div class="big">Problem posted.</div>
+    <div class="big">Problem posted.</div>
     <p>Your problem is now live in the problems list. Redirecting to your dashboard.</p>
     <button type="button" id="popup-ok">Okay</button></div></div>`;
   document.getElementById('popup-ok').addEventListener('click', () => { document.getElementById('popup').innerHTML = ''; });
@@ -128,14 +130,10 @@ document.getElementById('tmode').addEventListener('change', (e) => {
 document.getElementById('mentor-req').addEventListener('change', (e) => {
   document.getElementById('max-mentors-wrap').style.display = e.target.checked ? '' : 'none';
 });
-thumb.addEventListener('change', () => {
-  const file = thumb.files[0];
-  const prev = document.getElementById('thumb-preview');
-  if (!file) { prev.innerHTML = ''; return; }
-  if (file.size > 5 * 1024 * 1024) { formMsg.innerHTML = `<div class="pp-err">Thumbnail must be 5 MB or smaller.</div>`; thumb.value = ''; prev.innerHTML = ''; return; }
-  const url = URL.createObjectURL(file);
-  prev.innerHTML = `<div class="pp-thumb"><div class="prev"><img src="${url}" alt="Problem thumbnail preview" loading="eager" decoding="async"></div><div class="bar"><span>${esc(file.name)}</span><button type="button" class="pp-remove" id="thumb-clear">Remove image</button></div></div>`;
-  document.getElementById('thumb-clear').addEventListener('click', () => { thumb.value = ''; prev.innerHTML = ''; });
+const crop = initThumbCrop({
+  input: thumb,
+  mount: document.getElementById('thumb-preview'),
+  onError: (m) => { formMsg.innerHTML = `<div class="pp-err">${esc(m)}</div>`; },
 });
 f.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -147,10 +145,14 @@ f.addEventListener('submit', async (e) => {
       throw new Error('Judging deadline must be on or after the submission deadline.');
     }
     let thumbnail_url = null;
-    if (thumb.files[0]) {
+    if (crop.isEditing()) {
+      throw new Error('Please click “Crop & use” to confirm your crop, or Cancel to remove the photo.');
+    }
+    const cropped = await crop.getFile();
+    if (cropped) {
       btn.textContent = 'Uploading image…';
       const up = new FormData();
-      up.append('file', thumb.files[0]);
+      up.append('file', cropped, cropped.name);
       const r = await api('/api/problems/thumbnail', { method: 'POST', form: up });
       thumbnail_url = typeof r.url === 'string' ? r.url : null;
     }
@@ -159,7 +161,7 @@ f.addEventListener('submit', async (e) => {
       title: String(fd.get('title')).trim(), domain: fd.get('domain'),
       problem_type: fd.get('problem_type'), status: 'open', thumbnail_url,
       reward_amount: fd.get('problem_type') === 'industry_challenge' && fd.get('reward_amount') ? Number(fd.get('reward_amount')) : null,
-      milestones: 1, deadline: fd.get('deadline'), judging_deadline: fd.get('judging_deadline'),
+      milestones: Math.min(5, Math.max(2, Number(fd.get('milestones')) || 3)), deadline: fd.get('deadline'), judging_deadline: fd.get('judging_deadline'),
       context: String(fd.get('context')).trim(), problem_stmt: String(fd.get('problem_stmt')).trim(),
       scope: String(fd.get('scope')).trim(), constraints: String(fd.get('constraints')).trim(),
       deliverables: String(fd.get('deliverables')).trim(), team_mode: teamMode,

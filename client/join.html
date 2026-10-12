@@ -48,6 +48,13 @@
   .auth-btn:disabled { background: #F9C05A; cursor: not-allowed; }
   .fine { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; text-align: center; margin: 0; }
   .fine a { color: #2D6A4F; font-weight: 600; text-decoration: none; }
+  .otp-box { background: #FAF8F4; border: 1.5px dashed rgba(28,20,16,0.18); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .otp-row { display: flex; gap: 8px; }
+  .otp-row input { flex: 1; font-size: 18px; letter-spacing: 8px; text-align: center; font-weight: 600; }
+  .otp-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; border-radius: 8px; padding: 10px 14px; cursor: pointer; border: 1.5px solid rgba(28,20,16,0.15); background: #fff; color: #1C1410; white-space: nowrap; }
+  .otp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .otp-ok { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #2D6A4F; }
+  .otp-note { font-family: 'DM Sans', sans-serif; font-size: 12px; color: #9CA3A0; margin: 0; }
 </style>
 </head>
 <body>
@@ -99,6 +106,16 @@
         <div class="fld"><label for="name">Full name</label><input id="name" required placeholder="Arjun Verma"></div>
         <div class="fld"><label for="email" id="emaillabel">Email address</label><input type="email" id="email" required></div>
         <div class="fld"><label for="password">Password</label><div class="pw-wrap"><input type="password" id="password" required minlength="8" placeholder="Min 8 characters"><button type="button" class="pw-toggle" data-target="password" aria-label="Show password"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div></div>
+        <div class="otp-box" id="otpbox">
+          <div class="fld" style="gap:4px"><label for="otp">Email verification <span class="otp-ok" id="otpstate" style="display:none">✓ verified</span></label></div>
+          <p class="otp-note" id="otpnote">We&#39;ll send a 6-digit code to your email. Verify it before creating your account.</p>
+          <div class="otp-row"><button class="otp-btn" type="button" id="btn-send-otp">Send code</button></div>
+          <div id="otpentry" style="display:none;flex-direction:column;gap:10px">
+            <div class="otp-row"><input id="otp" inputmode="numeric" maxlength="6" placeholder="••••••" autocomplete="one-time-code"><button class="otp-btn" type="button" id="btn-verify-otp">Verify</button></div>
+            <p class="otp-note" id="otptimer"></p>
+          </div>
+          <div id="otpmsg"></div>
+        </div>
         <div id="studentfields" style="display:none;flex-direction:column;gap:16px">
           <div class="fld"><label for="dept">Department</label><select id="dept">
             <option value="">Select department</option>
@@ -159,6 +176,125 @@ const formcard = document.getElementById('formcard');
 const msg = document.getElementById('msg');
 const ROLE_ICON = { student: icon('gradcap', 22), mentor: icon('compass', 22), poster: icon('building', 22) };
 
+// --- Email OTP verification (required before account creation) ---
+let otpSentTo = null;
+let otpVerifiedEmail = null;
+let resendIn = 0;
+let resendTimer = null;
+const otpmsg = document.getElementById('otpmsg');
+const otpentry = document.getElementById('otpentry');
+const otpstate = document.getElementById('otpstate');
+const btnSendOtp = document.getElementById('btn-send-otp');
+const btnVerifyOtp = document.getElementById('btn-verify-otp');
+const otpInput = document.getElementById('otp');
+const otpTimer = document.getElementById('otptimer');
+
+function otpNote(html) { otpmsg.innerHTML = html; }
+
+function refreshOtpUI() {
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const verified = !!(otpVerifiedEmail && otpVerifiedEmail === email);
+  otpstate.style.display = verified ? '' : 'none';
+  document.getElementById('btn').disabled = !verified;
+}
+
+function resetOtp() {
+  otpSentTo = null;
+  otpVerifiedEmail = null;
+  otpentry.style.display = 'none';
+  otpInput.value = '';
+  otpNote('');
+  otpTimer.textContent = '';
+  if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+  btnSendOtp.disabled = false;
+  btnSendOtp.textContent = 'Send code';
+  refreshOtpUI();
+}
+
+function startResendCooldown() {
+  resendIn = 60;
+  const update = () => {
+    if (resendIn <= 0) {
+      btnSendOtp.disabled = false;
+      btnSendOtp.textContent = otpSentTo ? 'Resend code' : 'Send code';
+      otpTimer.textContent = '';
+      if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+      return;
+    }
+    btnSendOtp.disabled = true;
+    btnSendOtp.textContent = 'Resend in ' + resendIn + 's';
+    otpTimer.textContent = 'Didn\u2019t get the code? You can resend in ' + resendIn + 's.';
+    resendIn -= 1;
+  };
+  update();
+  if (resendTimer) clearInterval(resendTimer);
+  resendTimer = setInterval(update, 1000);
+}
+
+btnSendOtp.addEventListener('click', async () => {
+  otpNote('');
+  try {
+    const email = document.getElementById('email').value.trim();
+    if (!role) throw new Error('Pick a role first.');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Enter a valid email address first.');
+    if (role === 'student') {
+      const supabase = sb();
+      const domain = '@' + email.split('@')[1];
+      const { data: domainCheck } = await supabase.from('allowed_domains').select('domain').eq('domain', domain).eq('active', true).single();
+      if (!domainCheck) throw new Error('Your college email is not yet registered on SproutNet. Phase 1 is open to @jyothyit.ac.in students only.');
+    }
+    btnSendOtp.disabled = true;
+    btnSendOtp.textContent = 'Sending...';
+    await api('/api/auth/request-register-otp', { method: 'POST', body: { email, role } });
+    otpSentTo = email.toLowerCase();
+    otpentry.style.display = 'flex';
+    otpInput.value = '';
+    otpInput.focus();
+    otpNote('<div class="auth-err" style="border-color:rgba(45,106,79,0.3);background:rgba(45,106,79,0.07);color:#2D6A4F;">Code sent to ' + email + '. It expires in 10 minutes.</div>');
+    startResendCooldown();
+  } catch (err) {
+    btnSendOtp.disabled = false;
+    btnSendOtp.textContent = otpSentTo ? 'Resend code' : 'Send code';
+    otpNote('<div class="auth-err">' + (err.message || 'Could not send code.') + '</div>');
+  }
+});
+
+otpInput.addEventListener('input', (e) => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
+
+btnVerifyOtp.addEventListener('click', async () => {
+  otpNote('');
+  try {
+    const otp = otpInput.value.replace(/\D/g, '').slice(0, 6);
+    if (!otpSentTo) throw new Error('Click "Send code" first.');
+    if (otp.length !== 6) throw new Error('Enter the 6-digit code from your email.');
+    btnVerifyOtp.disabled = true;
+    btnVerifyOtp.textContent = 'Verifying...';
+    await api('/api/auth/verify-register-otp', { method: 'POST', body: { email: otpSentTo, otp } });
+    otpVerifiedEmail = otpSentTo;
+    otpNote('<div class="auth-err" style="border-color:rgba(45,106,79,0.3);background:rgba(45,106,79,0.07);color:#2D6A4F;">Email verified. You can now create your account.</div>');
+    refreshOtpUI();
+  } catch (err) {
+    otpNote('<div class="auth-err">' + (err.message || 'Verification failed.') + '</div>');
+  }
+  btnVerifyOtp.disabled = false;
+  btnVerifyOtp.textContent = 'Verify';
+});
+
+document.getElementById('email').addEventListener('input', () => {
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  if (otpVerifiedEmail && email !== otpVerifiedEmail) otpVerifiedEmail = null;
+  if (otpSentTo && email !== otpSentTo) {
+    otpSentTo = null;
+    otpentry.style.display = 'none';
+    otpInput.value = '';
+    if (resendTimer) { clearInterval(resendTimer); resendTimer = null; }
+    btnSendOtp.disabled = false;
+    btnSendOtp.textContent = 'Send code';
+    otpTimer.textContent = '';
+  }
+  refreshOtpUI();
+});
+
 function showForm(r) {
   role = r;
   rolepick.style.display = 'none';
@@ -174,9 +310,10 @@ function showForm(r) {
   document.getElementById('year').required = r === 'student';
   document.getElementById('city').required = r === 'poster';
   document.getElementById('orgtype').required = r === 'poster';
+  resetOtp();
 }
 document.querySelectorAll('#rolepick [data-role]').forEach(b => b.addEventListener('click', () => showForm(b.dataset.role)));
-document.getElementById('back').addEventListener('click', () => { role = null; formcard.style.display = 'none'; rolepick.style.display = ''; history.replaceState(null, '', '/join'); msg.innerHTML = ''; });
+document.getElementById('back').addEventListener('click', () => { role = null; formcard.style.display = 'none'; rolepick.style.display = ''; history.replaceState(null, '', '/join'); msg.innerHTML = ''; resetOtp(); });
 if (role) showForm(role);
 
 document.getElementById('f').addEventListener('submit', async (e) => {
@@ -188,6 +325,7 @@ document.getElementById('f').addEventListener('submit', async (e) => {
     const name = document.getElementById('name').value.trim();
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    if (otpVerifiedEmail !== email.toLowerCase()) throw new Error('Please verify your email with the OTP code first.');
     if (role === 'student') {
       const domain = '@' + email.split('@')[1];
       const { data: domainCheck } = await supabase.from('allowed_domains').select('domain').eq('domain', domain).eq('active', true).single();

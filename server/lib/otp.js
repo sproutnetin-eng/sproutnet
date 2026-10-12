@@ -10,8 +10,8 @@ const MAX_ATTEMPTS = 5;
 // Codes are hashed so they can't be read even if memory is inspected.
 const store = new Map();
 
-function hashCode(email, otp) {
-  return createHash('sha256').update(`${email.toLowerCase()}::${otp}`).digest('hex');
+function hashCode(email, otp, purpose) {
+  return createHash('sha256').update((purpose || 'reset') + '::' + email.toLowerCase() + '::' + otp).digest('hex');
 }
 
 function cleanup() {
@@ -21,9 +21,9 @@ function cleanup() {
   }
 }
 
-function generateOtp(email) {
+function generateOtp(email, purpose) {
   cleanup();
-  const key = email.toLowerCase();
+  const key = (purpose || 'reset') + '::' + email.toLowerCase();
   const existing = store.get(key);
 
   if (existing && existing.lastSentAt + RESEND_COOLDOWN_MS > Date.now()) {
@@ -33,7 +33,7 @@ function generateOtp(email) {
 
   const otp = String(randomInt(0, 1_000_000)).padStart(6, '0');
   store.set(key, {
-    hash: hashCode(key, otp),
+    hash: hashCode(key, otp, purpose),
     expiresAt: Date.now() + OTP_TTL_MS,
     attempts: 0,
     lastSentAt: Date.now(),
@@ -41,9 +41,9 @@ function generateOtp(email) {
   return { ok: true, otp };
 }
 
-function verifyOtp(email, otp) {
+function verifyOtp(email, otp, purpose) {
   cleanup();
-  const key = email.toLowerCase();
+  const key = (purpose || 'reset') + '::' + email.toLowerCase();
   const entry = store.get(key);
 
   if (!entry) return { ok: false, error: 'No reset code requested. Please request a new one.' };
@@ -58,7 +58,7 @@ function verifyOtp(email, otp) {
     return { ok: false, error: 'Too many incorrect attempts. Please request a new code.' };
   }
 
-  if (entry.hash !== hashCode(key, otp)) {
+  if (entry.hash !== hashCode(key, otp, purpose)) {
     return { ok: false, error: `Incorrect code. ${MAX_ATTEMPTS - entry.attempts} attempts remaining.` };
   }
 

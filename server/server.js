@@ -32,6 +32,8 @@ const pages = {
   '/login/mentor': 'login-mentor.html',
   '/login/admin': 'login-admin.html',
   '/join': 'join.html',
+  '/join/verify': 'verify-otp.html',
+  '/verify-otp': 'verify-otp.html',
   '/forgot-password': 'forgot-password.html',
   '/problems': 'problems.html',
   '/problems/:id/submit': 'submit.html',

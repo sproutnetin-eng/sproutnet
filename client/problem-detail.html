@@ -29,6 +29,11 @@
   .pd-thumb-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.07); border-radius: 16px; overflow: hidden; margin-bottom: 28px; }
   .pd-thumb { aspect-ratio: 16 / 9; background: #F3EEE7; }
   .pd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .domain-fb { position: relative; display: flex; align-items: center; justify-content: center; gap: 12px; overflow: hidden; }
+  .domain-fb-icon { display: inline-flex; color: rgba(255,255,255,0.9); }
+  .domain-fb-icon svg { width: 26px; height: 26px; }
+  .domain-fb-name { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.01em; text-shadow: 0 1px 12px rgba(0,0,0,0.45); white-space: nowrap; }
+  .domain-fb-img { position: absolute; inset: 0; }
   .pd-tabs { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 1px solid rgba(28,20,16,0.08); overflow-x: auto; padding-bottom: 0; }
   .pd-tabs button { font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: #9CA3A0; background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 16px; cursor: pointer; white-space: nowrap; margin-bottom: -1px; display: inline-flex; align-items: center; gap: 6px; }
   .pd-tabs button.on { color: #1C1410; border-bottom-color: #2D6A4F; }
@@ -209,6 +214,7 @@
 <script type="module">
 import { sb, api, esc, renderNav, alertBox } from '/assets/app.js';
 import { icon } from '/assets/icons.js';
+import { domainTheme } from '/assets/domain-themes.js';
 renderNav();
 const id = location.pathname.split('/')[2];
 const SECTIONS = [
@@ -567,7 +573,7 @@ function render() {
         ${(teamMode === 'team' || teamMode === 'both') ? `<span class="bdg bdg-team"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>${teamMode === 'team' ? 'Team' : 'Solo or Team'}</span>` : ''}
       </div>
       <h1 class="pd-title">${esc(problem.title)}</h1>
-      ${problem.thumbnail_url ? `<div class="pd-thumb-card"><div class="pd-thumb"><img src="${esc(problem.thumbnail_url)}" alt="${esc(problem.title)} thumbnail" loading="eager" fetchpriority="high" decoding="async"></div></div>` : ''}
+      <div class="pd-thumb-card"><div class="pd-thumb domain-fb" style="background:${esc(domainTheme(problem.domain))}"><span class="domain-fb-icon">${domainIcon(problem.domain)}</span><span class="domain-fb-name">${esc(problem.domain || '')}</span>${(typeof problem.thumbnail_url === 'string' && problem.thumbnail_url.trim()) ? `<img class="domain-fb-img" src="${esc(problem.thumbnail_url)}" alt="${esc(problem.title)} thumbnail" loading="eager" fetchpriority="high" decoding="async" onerror="this.remove()">` : ''}</div></div>
       <div class="pd-tabs">${SECTIONS.map(([k, l, icon]) => `<button type="button" data-sec="${k}" class="${activeSection === k ? 'on' : ''}">${icon} ${esc(l)}</button>`).join('')}</div>
       ${SECTIONS.filter(([k]) => activeSection === k).map(([k, l, icon]) => `<div class="pd-sec-card">
         <div class="pd-sec-kicker">${icon} ${esc(l)}</div>

@@ -27,6 +27,10 @@
   .pcard:hover { box-shadow: 0 8px 28px rgba(28,20,16,0.10); transform: translateY(-2px); }
   .pcard-thumb { aspect-ratio: 16 / 9; background: #F3EEE7; }
   .pcard-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .domain-fb { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; overflow: hidden; }
+  .domain-fb-icon { display: inline-flex; color: rgba(255,255,255,0.9); }
+  .domain-fb-name { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 0.01em; text-shadow: 0 1px 10px rgba(0,0,0,0.45); white-space: nowrap; }
+  .domain-fb-img { position: absolute; inset: 0; }
   .pcard-body { padding: clamp(20px, 3vw, 28px); display: flex; flex-direction: column; gap: 16px; flex: 1; }
   .pbadges { display: flex; gap: 8px; flex-wrap: wrap; }
   .pbadge { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; }
@@ -82,6 +86,7 @@
 <script type="module">
 import { api, esc, renderNav, alertBox } from '/assets/app.js';
 import { icon } from '/assets/icons.js';
+import { domainTheme } from '/assets/domain-themes.js';
 renderNav();
 const DOMAINS = ['All','AI & Data','Climate','Public Infrastructure','Healthcare','Agriculture','Education','Urban Mobility','Civic Technology'];
 const DOMAIN_ICONS = { 'AI & Data': 'cpu', 'Climate': 'leaf', 'Public Infrastructure': 'wrench', 'Healthcare': 'activity', 'Agriculture': 'wheat', 'Education': 'book', 'Urban Mobility': 'bus', 'Civic Technology': 'landmark' };
@@ -106,8 +111,13 @@ function card(p, idx = 0) {
   const snippet = (p.context || '').length > 140 ? `${(p.context || '').slice(0, 140)}...` : (p.context || '');
   const dayClass = days == null || isNaN(days) || closed ? 'pstat-val' : (days <= 7 ? 'pstat-val pstat-val-soon' : 'pstat-val pstat-val-days');
   const eager = idx < 2;
+  const theme = domainTheme(p.domain);
+  const fbIcon = DOMAIN_ICONS[p.domain] ? icon(DOMAIN_ICONS[p.domain], 24) : '';
+  const customImg = (typeof p.thumbnail_url === 'string' && p.thumbnail_url.trim())
+    ? `<img class="domain-fb-img" src="${esc(p.thumbnail_url)}" alt="${esc(p.title)} thumbnail" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async" onerror="this.remove()">`
+    : '';
   return `<a class="pcard-link" href="/problems/${esc(p.id)}"><div class="pcard">
-    ${p.thumbnail_url ? `<div class="pcard-thumb"><img src="${esc(p.thumbnail_url)}" alt="${esc(p.title)} thumbnail" ${eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} decoding="async"></div>` : ''}
+    <div class="pcard-thumb domain-fb" style="background:${esc(theme)}"><span class="domain-fb-icon">${fbIcon}</span><span class="domain-fb-name">${esc(p.domain || '')}</span>${customImg}</div>
     <div class="pcard-body">
       <div class="pbadges">
         <span class="pbadge pbadge-domain">${DOMAIN_ICONS[p.domain] ? icon(DOMAIN_ICONS[p.domain], 14) + ' ' : ''}${esc(p.domain || '')}</span>

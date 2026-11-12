@@ -67,6 +67,17 @@
     .lb-row, .lb-hdr { grid-template-columns: 44px 1fr 80px; padding: 12px 14px; }
     .lb-hide { display: none; }
     .lb-bar { display: none; }
+    /* Phone podium: 1st + 2nd side-by-side on row 1, 3rd centered below */
+    .lb-podium { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: stretch; }
+    .lb-podium-link { max-width: none; min-width: 0; width: 100%; }
+    .lb-podium-link.rank-1 { grid-column: 1; grid-row: 1; }
+    .lb-podium-link.rank-2 { grid-column: 2; grid-row: 1; }
+    .lb-podium-link.rank-3 { grid-column: 1 / -1; grid-row: 2; width: calc(50% + 6px); max-width: 260px; justify-self: center; }
+    .lb-podium-card { min-height: 0; padding: 18px 12px; }
+    .lb-podium-card.gold { min-height: 0; padding: 18px 12px; box-shadow: 0 4px 24px rgba(244,167,35,0.1); }
+    .lb-podium-card.bronze { min-height: 0; }
+    .lb-pscore.gold, .lb-pscore.silver, .lb-pscore.bronze { font-size: 24px; }
+    .lb-pavatar { width: 44px; height: 44px; font-size: 15px; }
   }
 </style>
 </head>
@@ -122,7 +133,7 @@ try {
     document.getElementById('board').innerHTML = `
       <div class="lb-podium">${order.map((e, idx) => {
         const actualRank = orderRank[idx];
-        return `<a class="lb-podium-link" href="${profLink(e)}"><div class="lb-podium-card ${podiumCls[actualRank]}">
+        return `<a class="lb-podium-link rank-${actualRank}" href="${profLink(e)}"><div class="lb-podium-card ${podiumCls[actualRank]}">
         <span class="lb-medal">${medals[actualRank]}</span>
         <div class="lb-pavatar" style="background:${color(e.name)};border-color:${accent[actualRank]};">${esc(initials(e.name))}</div>
         <div class="lb-pname">${esc(e.name)}</div><div class="lb-pmeta">${esc(e.dept || '')} · ${esc(e.year || '')}</div>

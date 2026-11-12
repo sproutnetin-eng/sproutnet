@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify email | SproutNet</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .auth-wrap { min-height: 100vh; background: #FAF8F4; display: flex; align-items: center; justify-content: center; padding: 48px 16px; box-sizing: border-box; }
+  .auth-inner { width: 100%; max-width: 440px; }
+  .auth-head { text-align: center; margin-bottom: 32px; }
+  .auth-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; margin-bottom: 24px; }
+  .auth-logo span { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; color: #1C1410; }
+  .auth-head h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 32px; font-weight: 400; color: #1C1410; letter-spacing: -0.5px; display: block; margin: 0; }
+  .auth-head p { font-family: 'DM Sans', sans-serif; font-size: 15px; color: #4A3F38; margin-top: 8px; margin-bottom: 0; font-weight: 300; }
+  .auth-card { background: #fff; border: 1.5px solid rgba(28,20,16,0.08); border-radius: 14px; padding: 36px 40px; box-shadow: 0 4px 24px rgba(28,20,16,0.07); }
+  .auth-err { background: rgba(220,38,38,0.06); border: 1px solid rgba(220,38,38,0.2); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #DC2626; }
+  .auth-ok { background: rgba(45,106,79,0.07); border: 1px solid rgba(45,106,79,0.3); border-radius: 8px; padding: 10px 14px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #2D6A4F; }
+  .otp-boxes { display: flex; gap: 10px; justify-content: center; margin: 20px 0 8px; }
+  .otp-boxes input { width: 48px; height: 56px; text-align: center; font-family: 'DM Sans', sans-serif; font-size: 22px; font-weight: 700; color: #1C1410; background: #FAF8F4; border: 1.5px solid rgba(28,20,16,0.15); border-radius: 10px; outline: none; }
+  .otp-boxes input:focus { border-color: #2D6A4F; background: #fff; box-shadow: 0 0 0 3px rgba(45,106,79,0.12); }
+  .otp-boxes input.filled { border-color: #2D6A4F; background: #fff; }
+  .resend-line { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #9CA3A0; text-align: center; margin: 12px 0 0; }
+  .resend-line button { background: none; border: none; padding: 0; color: #2D6A4F; font-weight: 600; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; }
+  .resend-line button:disabled { color: #9CA3A0; cursor: not-allowed; }
+  .auth-btn { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; color: #1C1410; background: #F4A723; border: none; border-radius: 8px; padding: 13px; cursor: pointer; margin-top: 16px; box-shadow: 0 2px 10px rgba(244,167,35,0.3); width: 100%; }
+  .auth-btn:disabled { background: #F9C05A; cursor: not-allowed; }
+  .back-btn { font-family: 'DM Sans', sans-serif; font-size: 13px; color: #9CA3A0; background: none; border: none; cursor: pointer; padding: 0; margin-top: 14px; width: 100%; text-align: center; }
+  .email-pill { display: inline-block; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #2D6A4F; background: #EAF4EE; border-radius: 999px; padding: 4px 12px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div id="sn-nav"></div>
+<div class="auth-wrap">
+  <div class="auth-inner">
+    <div class="auth-head">
+      <a class="auth-logo" href="/">
+        <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+          <rect width="34" height="34" rx="8" fill="#2D6A4F"/>
+          <line x1="17" y1="27" x2="17" y2="15" stroke="#FAF8F4" stroke-width="1.7" stroke-linecap="round"/>
+          <path d="M17 21 C16 19 13 18 11 14.5 C11 14.5 15.5 13 17 17.5" fill="#F4A723"/>
+          <path d="M17 18 C18 15.5 21.5 14 24 10.5 C24 10.5 19.5 10 17 14.5" fill="rgba(250,248,244,0.88)"/>
+        </svg>
+        <span>SproutNet</span>
+      </a>
+      <h1>Check your inbox.</h1>
+      <p>Enter the 6-digit code we sent to</p>
+      <div><span class="email-pill" id="emailpill">…</span></div>
+    </div>
+    <div class="auth-card">
+      <div id="msg"></div>
+      <div class="otp-boxes" id="boxes" role="group" aria-label="6-digit verification code">
+        <input inputmode="numeric" maxlength="1" autocomplete="one-time-code" aria-label="Digit 1">
+        <input inputmode="numeric" maxlength="1" aria-label="Digit 2">
+        <input inputmode="numeric" maxlength="1" aria-label="Digit 3">
+        <input inputmode="numeric" maxlength="1" aria-label="Digit 4">
+        <input inputmode="numeric" maxlength="1" aria-label="Digit 5">
+        <input inputmode="numeric" maxlength="1" aria-label="Digit 6">
+      </div>
+      <p class="resend-line" id="resendwrap">Didn&#39;t get it? <span id="timer"></span><button type="button" id="resend">Resend code</button></p>
+      <button class="auth-btn" type="button" id="btn">Verify &amp; Create account →</button>
+      <button class="back-btn" type="button" id="back">← Back to details</button>
+    </div>
+  </div>
+</div>
+<script src="/assets/config.js"></script>
+<script type="module">
+import { sb, api, renderNav } from '/assets/app.js';
+renderNav();
+
+const qs = new URLSearchParams(location.search);
+const emailParam = (qs.get('email') || '').trim().toLowerCase();
+let pending = null;
+try { pending = JSON.parse(sessionStorage.getItem('sn_pending_reg') || 'null'); } catch {}
+const email = (pending && pending.email ? pending.email : emailParam).toLowerCase();
+const role = (pending && pending.role) || qs.get('role') || 'student';
+
+const msg = document.getElementById('msg');
+const emailpill = document.getElementById('emailpill');
+const inputs = Array.from(document.querySelectorAll('#boxes input'));
+const btn = document.getElementById('btn');
+const resendBtn = document.getElementById('resend');
+const timerEl = document.getElementById('timer');
+
+emailpill.textContent = email || 'your email';
+
+if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  msg.innerHTML = '<div class="auth-err">Missing email. Please go back and enter your details again. <a href="/join" style="color:#2D6A4F;font-weight:600">Back to Join</a></div>';
+  btn.disabled = true;
+}
+if (!pending) {
+  msg.innerHTML = '<div class="auth-err">Session expired (details not found). Please <a href="/join" style="color:#2D6A4F;font-weight:600">start again</a> — your code is still valid for 10 minutes if already sent.</div>';
+}
+
+function code() { return inputs.map(i => i.value).join(''); }
+
+function focusBox(i) {
+  if (i < 0) i = 0;
+  if (i > 5) i = 5;
+  inputs[i].focus();
+  inputs[i].select();
+}
+
+inputs.forEach((inp, i) => {
+  inp.addEventListener('input', () => {
+    inp.value = inp.value.replace(/\D/g, '').slice(0, 1);
+    inp.classList.toggle('filled', !!inp.value);
+    if (inp.value && i < 5) focusBox(i + 1);
+    msg.innerHTML = '';
+  });
+  inp.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace' && !inp.value && i > 0) { e.preventDefault(); focusBox(i - 1); inputs[i - 1].value = ''; inputs[i - 1].classList.remove('filled'); }
+    if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); focusBox(i - 1); }
+    if (e.key === 'ArrowRight' && i < 5) { e.preventDefault(); focusBox(i + 1); }
+  });
+  inp.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const text = (e.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, 6);
+    if (!text) return;
+    text.split('').forEach((ch, k) => {
+      if (i + k < 6) { inputs[i + k].value = ch; inputs[i + k].classList.add('filled'); }
+    });
+    focusBox(Math.min(5, i + text.length));
+  });
+});
+
+// Resend cooldown
+let resendIn = 60;
+let resendTimer = null;
+function tick() {
+  if (resendIn > 0) {
+    timerEl.textContent = 'Resend in ' + resendIn + 's ';
+    resendBtn.disabled = true;
+    resendIn--;
+    resendTimer = setTimeout(tick, 1000);
+  } else {
+    timerEl.textContent = '';
+    resendBtn.disabled = false;
+  }
+}
+tick();
+
+resendBtn.addEventListener('click', async () => {
+  if (resendIn > 0) return;
+  msg.innerHTML = '';
+  try {
+    resendBtn.disabled = true;
+    resendBtn.textContent = 'Sending...';
+    await api('/api/auth/request-register-otp', { method: 'POST', body: { email, role } });
+    msg.innerHTML = '<div class="auth-ok">New code sent to ' + email + '.</div>';
+    inputs.forEach(i => { i.value = ''; i.classList.remove('filled'); });
+    focusBox(0);
+    resendIn = 60; tick();
+  } catch (err) {
+    msg.innerHTML = '<div class="auth-err">' + (err.message || 'Could not resend code.') + '</div>';
+    resendBtn.disabled = false;
+  }
+  resendBtn.textContent = 'Resend code';
+});
+
+document.getElementById('back').addEventListener('click', () => {
+  // Keep details so user can edit and Continue again.
+  location.href = '/join' + (role ? '?role=' + encodeURIComponent(role) : '');
+});
+
+btn.addEventListener('click', async () => {
+  msg.innerHTML = '';
+  try {
+    const otp = code();
+    if (otp.length !== 6) throw new Error('Enter the 6-digit code from your email.');
+    if (!pending) throw new Error('Session expired. Go back and click Continue again to get a fresh code.');
+    btn.disabled = true; btn.textContent = 'Verifying...';
+    await api('/api/auth/verify-register-otp', { method: 'POST', body: { email, otp } });
+    btn.textContent = 'Creating account...';
+    const supabase = sb();
+    const { data, error } = await supabase.auth.signUp({
+      email: pending.email, password: pending.password,
+      options: { data: { name: pending.name, role: pending.role } }
+    });
+    if (error) throw error;
+    if (!data.user) throw new Error('Sign up failed. Please try again.');
+    const updates = { name: pending.name, role: pending.role };
+    if (pending.role === 'student') { updates.dept = pending.dept; updates.year = pending.year; }
+    else if (pending.role === 'poster') { updates.city = pending.city; updates.org_type = pending.org_type; }
+    await api('/api/auth/profile', { method: 'POST', body: updates });
+    if (pending.role === 'mentor') {
+      const skills = String(pending.skills || '').split(',').map(s => s.trim()).filter(Boolean);
+      const techs = String(pending.techs || '').split(',').map(t => t.trim()).filter(Boolean);
+      await supabase.from('mentor_profiles').insert({
+        user_id: data.user.id,
+        bio: pending.bio || null,
+        skills, technologies: techs,
+        experience_years: parseInt(pending.exp) || 0,
+        linkedin_url: pending.linkedin || null,
+        github_url: pending.github || null,
+      });
+      try { sessionStorage.removeItem('sn_pending_reg'); } catch {}
+      location.href = '/mentor/dashboard';
+      return;
+    }
+    try { sessionStorage.removeItem('sn_pending_reg'); } catch {}
+    location.href = '/dashboard';
+  } catch (err) {
+    msg.innerHTML = '<div class="auth-err">' + (err.message || 'Verification failed.') + '</div>';
+    btn.disabled = false; btn.textContent = 'Verify & Create account →';
+  }
+});
+
+inputs[0].focus();
+</script>
+</body>
+</html>

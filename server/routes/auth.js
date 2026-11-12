@@ -18,8 +18,8 @@ function createInlineOtp() {
   // Codes are hashed so they can't be read even if memory is inspected.
   const store = new Map();
 
-  function hashCode(email, otp) {
-    return createHash('sha256').update(`${email.toLowerCase()}::${otp}`).digest('hex');
+  function hashCode(email, otp, purpose) {
+    return createHash('sha256').update((purpose || 'reset') + '::' + email.toLowerCase() + '::' + otp).digest('hex');
   }
 
   function cleanup() {
@@ -30,9 +30,9 @@ function createInlineOtp() {
   }
 
   return {
-    generateOtp(email) {
+    generateOtp(email, purpose) {
       cleanup();
-      const key = email.toLowerCase();
+      const key = (purpose || 'reset') + '::' + email.toLowerCase();
       const existing = store.get(key);
 
       if (existing && existing.lastSentAt + RESEND_COOLDOWN_MS > Date.now()) {
@@ -42,7 +42,7 @@ function createInlineOtp() {
 
       const otp = String(randomInt(0, 1_000_000)).padStart(6, '0');
       store.set(key, {
-        hash: hashCode(key, otp),
+        hash: hashCode(key, otp, purpose),
         expiresAt: Date.now() + OTP_TTL_MS,
         attempts: 0,
         lastSentAt: Date.now(),
@@ -50,9 +50,9 @@ function createInlineOtp() {
       return { ok: true, otp };
     },
 
-    verifyOtp(email, otp) {
+    verifyOtp(email, otp, purpose) {
       cleanup();
-      const key = email.toLowerCase();
+      const key = (purpose || 'reset') + '::' + email.toLowerCase();
       const entry = store.get(key);
 
       if (!entry) return { ok: false, error: 'No reset code requested. Please request a new one.' };
@@ -67,7 +67,7 @@ function createInlineOtp() {
         return { ok: false, error: 'Too many incorrect attempts. Please request a new code.' };
       }
 
-      if (entry.hash !== hashCode(key, otp)) {
+      if (entry.hash !== hashCode(key, otp, purpose)) {
         return { ok: false, error: `Incorrect code. ${MAX_ATTEMPTS - entry.attempts} attempts remaining.` };
       }
 
@@ -145,6 +145,28 @@ function createInlineMail() {
         `,
       });
     },
+    async sendRegistrationOtpEmail(to, otp) {
+      const transport = getTransporter();
+      await transport.sendMail({
+        from: getFromAddress(),
+        to,
+        subject: otp + ' is your SproutNet verification code',
+        text: 'Your SproutNet verification code is ' + otp + '. It expires in 10 minutes. If you did not request this, you can safely ignore this email.',
+        html:
+          '<div style="font-family:\'DM Sans\',Helvetica,Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;background:#FAF8F4;border-radius:12px;">' +
+          '<div style="text-align:center;margin-bottom:24px;">' +
+          '<span style="font-size:22px;font-weight:700;color:#1C1410;">Sprout<span style="color:#2D6A4F;">Net</span></span>' +
+          '</div>' +
+          '<div style="background:#ffffff;border:1px solid rgba(28,20,16,0.08);border-radius:10px;padding:28px;text-align:center;">' +
+          '<p style="margin:0 0 8px;font-size:15px;color:#4A3F38;">Use this code to verify your email</p>' +
+          '<p style="margin:0 0 16px;font-size:34px;font-weight:700;letter-spacing:8px;color:#1C1410;">' + otp + '</p>' +
+          '<p style="margin:0;font-size:13px;color:#9CA3A0;">This code expires in 10 minutes.</p>' +
+          '</div>' +
+          '<p style="text-align:center;font-size:12px;color:#9CA3A0;margin-top:20px;">' +
+          'If you didn\'t request this code, you can safely ignore this email.' +
+          '</p></div>',
+      });
+    },
   };
 }
 
@@ -155,6 +177,30 @@ try {
   mailLib = createInlineMail();
 }
 const sendOtpEmail = mailLib.sendOtpEmail.bind(mailLib);
+const sendRegistrationOtpEmail = (mailLib.sendRegistrationOtpEmail || mailLib.sendOtpEmail).bind(mailLib);
+
+// ---------------------------------------------------------------------------
+// Registration OTP: emails verified here are trusted for new-profile creation
+// for a limited window (see POST /api/auth/profile enforcement below).
+// ---------------------------------------------------------------------------
+const REGISTER_VERIFIED_TTL_MS = 30 * 60 * 1000;
+const registerVerified = new Map();
+
+function markRegisterVerified(email) {
+  registerVerified.set(email.toLowerCase(), Date.now() + REGISTER_VERIFIED_TTL_MS);
+}
+
+function isRegisterVerified(email) {
+  if (!email) return false;
+  const key = email.toLowerCase();
+  const expiresAt = registerVerified.get(key);
+  if (!expiresAt) return false;
+  if (expiresAt < Date.now()) {
+    registerVerified.delete(key);
+    return false;
+  }
+  return true;
+}
 
 // ---------------------------------------------------------------------------
 // GET /api/auth/profile — fetch own profile
@@ -197,8 +243,34 @@ router.post('/api/auth/profile', authRequired, async (req, res) => {
   if (body.year) updates.year = body.year;
   if (body.city) updates.city = body.city;
   if (body.org_type) updates.org_type = body.org_type;
+  if (user.email) updates.email = String(user.email).toLowerCase();
 
   const admin = getAdmin();
+
+  // New registrations must have verified their email via OTP first.
+  // Existing profiles (updates) skip this check.
+  const { data: existing } = await admin
+    .from('users')
+    .select('id')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (!existing && !isRegisterVerified(user.email || '')) {
+    return res.status(403).json({ error: 'Please verify your email with the OTP code first.' });
+  }
+
+  if (!existing && updates.role === 'student') {
+    const domain = '@' + String(user.email || '').split('@')[1];
+    const { data: domainCheck } = await admin
+      .from('allowed_domains')
+      .select('domain')
+      .eq('domain', domain)
+      .eq('active', true)
+      .single();
+    if (!domainCheck) {
+      return res.status(403).json({ error: 'Your college email is not yet registered on SproutNet. Phase 1 is open to @jyothyit.ac.in students only.' });
+    }
+  }
 
   const { error } = await admin
     .from('users')
@@ -315,6 +387,98 @@ router.post('/api/auth/reset-password', async (req, res) => {
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('[reset-password]', err);
+    return res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/request-register-otp — send an email-verification OTP to a
+// new user before they create their account. Body: { email, role }.
+// ---------------------------------------------------------------------------
+router.post('/api/auth/request-register-otp', async (req, res) => {
+  try {
+    const { email, role } = req.body || {};
+
+    if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+    if (!['student', 'mentor', 'poster'].includes(role)) {
+      return res.status(400).json({ error: 'Please pick a valid role first.' });
+    }
+
+    const admin = getAdmin();
+
+    if (role === 'student') {
+      const domain = '@' + String(email).split('@')[1];
+      const { data: domainCheck } = await admin
+        .from('allowed_domains')
+        .select('domain')
+        .eq('domain', domain)
+        .eq('active', true)
+        .single();
+      if (!domainCheck) {
+        return res.status(403).json({ error: 'Your college email is not yet registered on SproutNet. Phase 1 is open to @jyothyit.ac.in students only.' });
+      }
+    }
+
+    const { data: taken } = await admin
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
+    if (taken) {
+      return res.status(409).json({ error: 'An account with this email already exists. Please sign in instead.' });
+    }
+
+    const result = generateOtp(email, 'register');
+    if (!result.ok) {
+      return res.status(429).json(
+        { error: 'Please wait ' + result.retryInSec + 's before requesting another code.' }
+      );
+    }
+
+    // Log the code outside production so registration can be tested
+    // before SMTP credentials are configured.
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[register-otp] code for ' + email.toLowerCase() + ': ' + result.otp);
+    }
+
+    try {
+      await sendRegistrationOtpEmail(email.toLowerCase(), result.otp);
+    } catch (mailErr) {
+      console.error('[request-register-otp] mail failed:', mailErr);
+      return res.status(500).json(
+        { error: 'Failed to send verification code. Please check SMTP configuration or try again later.' }
+      );
+    }
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('[request-register-otp]', err);
+    return res.status(500).json({ error: 'Something went wrong. Please try again.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/auth/verify-register-otp — check the code. On success the email
+// is trusted for new-profile creation for 30 minutes. Body: { email, otp }.
+// ---------------------------------------------------------------------------
+router.post('/api/auth/verify-register-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body || {};
+
+    if (!email || !otp) {
+      return res.status(400).json({ error: 'Email and code are required.' });
+    }
+
+    const result = verifyOtp(email, String(otp), 'register');
+    if (!result.ok) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    markRegisterVerified(email);
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('[verify-register-otp]', err);
     return res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 });
